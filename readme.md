@@ -1,1 +1,1 @@
-[](https://datatracker.ietf.org/doc/html/rfc1459)
+[click](https://datatracker.ietf.org/doc/html/rfc1459)
