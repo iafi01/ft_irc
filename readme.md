@@ -20,3 +20,6 @@ https://www.ibm.com/docs/en/zos/2.4.0?topic=lf-htons-translate-unsigned-short-in
 
 client / server
 https://www.geeksforgeeks.org/simple-client-server-application-in-c/
+
+exam06 per imparare chat in c sockets
+https://github.com/artainmo/examrank06/blob/main/mini_serv/mini_serv.c
