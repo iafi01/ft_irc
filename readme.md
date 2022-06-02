@@ -11,3 +11,12 @@ https://tools.ietf.org/html/rfc2811 Channel Management<br>
 https://tools.ietf.org/html/rfc2812 Client<br>
 https://tools.ietf.org/html/rfc2813 Server Protocol<br>
 https://tools.ietf.org/html/rfc7194 Default Port for Internet Relay Chat <br>(IRC) via TLS/SSL
+
+documentazione network programming 
+https://avires.dimi.uniud.it/claudio/teach/reti2004/network_programming.pdf
+
+librerie
+https://www.ibm.com/docs/en/zos/2.4.0?topic=lf-htons-translate-unsigned-short-integer-into-network-byte-order
+
+client / server
+https://www.geeksforgeeks.org/simple-client-server-application-in-c/
