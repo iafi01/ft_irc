@@ -11,6 +11,8 @@
 
 #include "Client.hpp"
 
+#define EXIT_CMD 1
+
 class Client;
 
 class Server
@@ -52,6 +54,16 @@ class Server
         std::string getDate() const;
 
         //commands
-
+        void parse_commands(Client *client, std::string cmd);
+        void quit_cmd();
+        //channel cmd
+        void mode_cmd();
+        void invite_cmd();
+        void topic_cmd();
+        void kick_cmd();
+        //other cmd
+        void join_cmd();
+        void _cmd();
         //clients and channels management by server
+
 };

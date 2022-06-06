@@ -1,9 +1,7 @@
 #pragma once
 
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
+#include <iostream>
+#include <string>
 #include <netinet/in.h>
 #include <sys/select.h>
 #include <sys/socket.h>
@@ -14,6 +12,8 @@
 class Client
 {
     private:
+        std::string nickname;
+        std::string username;
         int fd;
         int id;
         int is_msg;
