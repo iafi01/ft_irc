@@ -11,8 +11,6 @@
 
 #include "Client.hpp"
 
-#define EXIT_CMD 1
-
 class Client;
 
 class Server
