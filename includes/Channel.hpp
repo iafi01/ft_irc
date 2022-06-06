@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <iterator>
 
 #include "Client.hpp"
 
@@ -11,7 +12,10 @@ class Channel {
         typedef struct Banned {
             Client* user;
             std::string reason;
-        };
+            time_t ban_time;
+            std::string admin_nick;
+            std::string admin_user;
+        }   Banned;
         enum {
             open,
             only_invite_by_all,
@@ -30,25 +34,26 @@ class Channel {
         std::string name;
         std::string topic;
         std::vector<Client*> clients;
-        std::vector<Client*> op;
-        std::vector<Client*> half_op;
-        std::vector<Client*> voice_op;
-        std::vector<Banned*> banned;
-        std::vector<Client*> invited;
+        std::vector<Client*> op_vec;
+        std::vector<Client*> half_op_vec;
+        std::vector<Client*> voice_op_vec;
+        std::vector<Banned*> banned_vec;
+        std::vector<Client*> invited_vec;
         int n_users;
 
         //only admin functions
-        bool op();
-        bool deop();
-        bool halfOp();
-        bool deHalfOp();
-        bool voiceOp();
-        bool deVoiceOp();
-        bool ban();
-        bool unBan();
+        bool op(Client *client);
+        bool deop(Client *client);
+        bool halfOp(Client *client);
+        bool deHalfOp(Client *client);
+        bool voiceOp(Client *client);
+        bool deVoiceOp(Client *client);
+        bool ban(Client *client);
+        bool unBan(Client *client);
         bool modInvite();
     public:
         std::string getName() const;
+        std::string getTopic() const;
         std::vector<Client*> getClients() const;
         std::vector<Client*> getOp() const;
         std::vector<Client*> halfOp() const;
@@ -56,8 +61,8 @@ class Channel {
         std::vector<Banned*> getBanned() const;
 
         //cmds
-        bool kick(Client *client);
-        bool invite(Client *client);
-        bool topic(std::string);
-        bool mode(enum func);
+        bool kickCmd(Client *client);
+        bool inviteCmd(Client *client);
+        bool topicCmd(std::string);
+        bool modeCmd(enum func);
 };
