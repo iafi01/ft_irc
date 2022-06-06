@@ -149,9 +149,7 @@ Client Server::getClient(int sockfd)
 {
 	for(std::map<int, Client*>::iterator it = client_map.begin(); it != client_map.end(); it++)
 	{
-		Client* tmp = client_map.begin();
-		if(sockfd == tmp->first)
-			return *(client_map.at());
-		tmp++;
+		if(sockfd == it->first)
+			return (*it->second);
 	}
 }
