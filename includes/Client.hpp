@@ -23,7 +23,6 @@ class Client
         Client(int fd);
         Client(const Client &obj);
         Client& operator=(const Client &obj);
-/**/    Client get_client(int fd);
 
         //getters
         int         get_fd() const;

@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Client.hpp"
+#include "Exception.hpp"
 
 class Client;
 
@@ -37,7 +38,7 @@ class Server
 /**/    Server(const Server &obj);
 /**/    Server& operator=(const Server &obj);
 
-        void accept_client();
+        void accept_client(int sockfd);
         void send_all(std::vector<Client*> receivers, std::string mex, Client sender);
         
         //setters
@@ -51,6 +52,8 @@ class Server
         std::string get_pass() const;
         std::string getDate() const;
 
+        //utils
+        int get_max_fd(int sockfd);
         //commands
         void parse_commands(Client *client, std::string cmd);
         void quit_cmd();
@@ -63,5 +66,5 @@ class Server
         void join_cmd();
         void _cmd();
         //clients and channels management by server
-
+        Client getClient(int sockfd);
 };
