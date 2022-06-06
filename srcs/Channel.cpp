@@ -1,5 +1,4 @@
 #include "../includes/Channel.hpp"
-#include <exception>
 
 bool Channel::op(Client *client)
 {
@@ -106,13 +105,17 @@ bool Channel::deVoiceOp(Client *client)
     return (false);
 }
 
-bool Channel::ban(Client *client)
+bool Channel::ban(Client *client, std::string _reason)
 {
     try {
         Banned victim;
 
-        victim.user = client.
-        this->banned_vec.push_back(client);
+        time_t now = time(0);
+
+        victim.user = client;
+        victim.reason = _reason;
+        victim.ban_time = ctime(&now);
+        this->banned_vec.push_back(&victim);
         return (true);
     }
     catch (std::exception& e) {
@@ -121,7 +124,7 @@ bool Channel::ban(Client *client)
     }
 }
 
-bool Channel::unBan(Client *client)
+bool Channel::unBan(Client *client, std::string _reason)
 {
     std::vector<Client*>::iterator i;
 
@@ -131,7 +134,14 @@ bool Channel::unBan(Client *client)
         if ((*i) == client)
         {   
             try {
-                this->banned_vec.erase(i);
+                Banned victim;
+
+                time_t now = time(0);
+
+                victim.user = client;
+                victim.reason = _reason;
+                victim.ban_time = ctime(&now);
+                this->banned_vec.push_back(&victim);
                 return (true);
             }
             catch (std::exception& e) {

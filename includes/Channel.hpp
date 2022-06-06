@@ -4,6 +4,9 @@
 #include <string>
 #include <vector>
 #include <iterator>
+#include <ctime>
+#include <exception>
+
 
 #include "Client.hpp"
 
@@ -12,9 +15,8 @@ class Channel {
         typedef struct Banned {
             Client* user;
             std::string reason;
-            time_t ban_time;
-            std::string admin_nick;
-            std::string admin_user;
+            std::string ban_time;
+            //Client *admin;
         }   Banned;
         enum {
             open,
@@ -48,8 +50,8 @@ class Channel {
         bool deHalfOp(Client *client);
         bool voiceOp(Client *client);
         bool deVoiceOp(Client *client);
-        bool ban(Client *client);
-        bool unBan(Client *client);
+        bool ban(Client *client, std::string _reason);
+        bool unBan(Client *client, std::string _reason);
         bool modInvite();
     public:
         std::string getName() const;
