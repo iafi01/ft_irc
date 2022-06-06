@@ -34,8 +34,8 @@ class Server
         Server();
         ~Server();
         Server(const int port, const std::string pass);
-        Server(const Server &obj);
-        Server& operator=(const Server &obj);
+/**/    Server(const Server &obj);
+/**/    Server& operator=(const Server &obj);
 
         void accept_client();
         void send_all(std::vector<Client*> receivers, std::string mex, Client sender);

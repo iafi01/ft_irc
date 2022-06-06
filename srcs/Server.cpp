@@ -22,14 +22,15 @@ Server::~Server()
 
 }
 
-Server::Server(const int port, const std::string pass)
+Server::Server(const int port, const std::string pass): port(port), pass(pass)
 {
-
+    setup_server(port, pass);
+    start_server();
 }
 
 Server::Server(const Server &obj)
 {
-
+    *this = obj;
 }
 
 Server& Server::operator=(const Server &obj)
