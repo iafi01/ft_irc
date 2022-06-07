@@ -124,33 +124,33 @@ void Server::setDate()
 
 void Server::setPass()
 {
-
+	
 }
 
 //getters
 int Server::get_port() const
 {
-
+	return (port);
 }
 
 int Server::get_sock() const
 {
-
+	return (sockfd);
 }
 
 int Server::get_max_id() const
 {
-
+	return (max_id);
 }
 
 std::string Server::get_pass() const
 {
-
+	return (pass);
 }
 
 std::string Server::getDate() const
 {
-
+	return (time_string);
 }
 
 //clients and channels management by server
@@ -168,9 +168,9 @@ void Server::send_all(std::string mex, Client *sender)
 	int i = 0;
 	while(clients[i])
 	{
-		if(clients[i] != sender && FD_ISSET(clients[i]->fd, &write_fds))
+		if(clients[i] != sender && FD_ISSET(clients[i]->get_fd(), &write_fds))
 		{
-			if(send(clients[i]->fd, mex.c_str(), mex.length(), 0) < 0)
+			if(send(clients[i]->get_fd(), mex.c_str(), mex.length(), 0) < 0)
 				fatal();
 		}
 		i++;
