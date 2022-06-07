@@ -32,6 +32,6 @@ class Client
 
         //setters
         void setIsMsg(int i);
-        Client getClient(int fd);
+        //non serve Client getClient(int fd);
         
 };

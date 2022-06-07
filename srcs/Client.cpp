@@ -52,8 +52,3 @@ void Client::setIsMsg(int i)
 {
     is_msg = i;
 }
-
-Client Client::getClient(int fd)
-{
-    
-}
