@@ -192,8 +192,7 @@ std::vector<Client*> Channel::voiceOp() const
 {
     return (voice_op_vec);
 }
-
-std::vector<Banned*> Channel::getBanned() const
+std::vector<Channel::Banned*> Channel::getBanned() const
 {
     return (banned_vec);
 }
