@@ -99,24 +99,22 @@ Server& Server::operator=(const Server &obj)
 	return (*this);
 }
 
-
-
 void Server::accept_client(int sockfd)
 {
 	int new_fd;
 	if((new_fd = accept(this->sockfd, NULL, NULL)) < 0)
 		fatal();
-	sprintf(this->server_buffer, "server: client %d just arrived\n", new_client(new_fd, this));
-	send_all(this->server_buffer, strlen(this->server_buffer), new_fd, getClient(sockfd));
+	sprintf(this->server_buffer, "server: client %d just arrived\n", Client(new_fd));
+	send_all(this->server_buffer, getClient(sockfd));
 	FD_SET(new_fd, &this->curr_fds);
 }
 
-void Server::send_all(std::string mex, Client *sender)
+void Server::send_all(std::string mex, Client sender)
 {
 	int i = 0;
 	while(clients[i])
 	{
-		if(clients[i] != sender && FD_ISSET(clients[i]->get_fd(), &write_fds))
+		if(clients[i] != &sender && FD_ISSET(clients[i]->get_fd(), &write_fds))
 		{
 			if(send(clients[i]->get_fd(), mex.c_str(), mex.length(), 0) < 0)
 				fatal();

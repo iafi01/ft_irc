@@ -34,12 +34,13 @@ class Server
         std::map<int, Client*> client_map;
         time_t now; //settare = time(0)
         std::string time_string; //ctime(&now) (localdate not UTC)
-        
+        std::vector<Client*> clients;
+
         //funzioni usate dal costruttore
         void setup_server(int port, std::string pass);
         void start_server();
         void fatal();
-        std::vector<Client*> clients;
+        
     public:
         Server();
         ~Server();
@@ -48,7 +49,7 @@ class Server
 /**/    Server& operator=(const Server &obj);
 
         void accept_client(int sockfd);
-        void send_all(std::string mex, Client *sender);
+        void send_all(std::string mex, Client sender);
         
         //setters
         void setDate();
