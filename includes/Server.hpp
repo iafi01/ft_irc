@@ -9,8 +9,11 @@
 #include <ctime>
 #include <vector>
 
+#include "Channel.hpp"
 #include "Client.hpp"
-#include "Exception.hpp"
+
+#define ERR_ARG "Wrong number of arguments\n"
+#define ERR_FAT "Fatal error\n"
 
 class Client;
 
@@ -31,6 +34,7 @@ class Server
         //funzioni usate dal costruttore
         void setup_server(int port, std::string pass);
         void start_server();
+        void fatal();
     public:
         Server();
         ~Server();

@@ -7,7 +7,6 @@
 #include <ctime>
 #include <exception>
 
-
 #include "Client.hpp"
 
 class Channel {
@@ -16,14 +15,13 @@ class Channel {
             Client* user;
             std::string reason;
             std::string ban_time;
-            //Client *admin;
-        }   Banned;
-        enum {
+        };
+        enum modInvite{
             open,
             only_invite_by_all,
             only_invite_by_admin
         };
-        enum {
+        enum modOp{
             op,
             deop,
             halfOp,
@@ -66,5 +64,5 @@ class Channel {
         bool kickCmd(Client *client);
         bool inviteCmd(Client *client);
         bool topicCmd(std::string);
-        bool modeCmd(enum func);
+        bool modeCmd(enum modOp type);
 };

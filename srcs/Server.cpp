@@ -1,5 +1,6 @@
 #include "../includes/Server.hpp"
 
+
 //private used by contructors
 void Server::setup_server(int port, std::string pass)
 {
@@ -63,6 +64,12 @@ void Server::start_server()
 	}
 }
 
+void Server::fatal()
+{
+	std::perror(ERR_FAT);
+	exit(1);
+}
+
 //public
 Server::Server()
 {
@@ -87,7 +94,7 @@ Server::Server(const Server &obj)
 
 Server& Server::operator=(const Server &obj)
 {
-
+	
 }
 
 

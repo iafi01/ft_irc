@@ -190,9 +190,9 @@ std::vector<Client*> Channel::voiceOp() const
     return (voice_op_vec);
 }
 
-std::vector<Banned> Channel::getBanned() const
+std::vector<Banned*> Channel::getBanned() const
 {
-
+    return (banned_vec);
 }
 
 
@@ -212,7 +212,7 @@ bool Channel::topicCmd(std::string)
 
 }
 
-bool Channel::modeCmd(enum func)
+bool Channel::modeCmd(enum modOp type)
 {
 
 }
