@@ -14,16 +14,17 @@ class Client
     private:
         std::string nickname;
         std::string username;   // !!! Lo username e' statico !!!
+                                //Variabile che indica se lo user ha appena inviato un messaggio
+    public:
         int fd;
         int id;
-        int is_msg;             //Variabile che indica se lo user ha appena inviato un messaggio
-    public:
+        int is_msg;
+
         Client();
         ~Client();
         Client(int fd);
         Client(const Client &obj);
         Client& operator=(const Client &obj);
-
         //getters
         int         get_fd() const;
         int         get_id() const;

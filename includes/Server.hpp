@@ -8,6 +8,10 @@
 #include <string>
 #include <ctime>
 #include <vector>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/select.h>
+
 
 #include "Channel.hpp"
 #include "Client.hpp"
@@ -35,6 +39,7 @@ class Server
         void setup_server(int port, std::string pass);
         void start_server();
         void fatal();
+        std::vector<Client*> clients;
     public:
         Server();
         ~Server();
@@ -43,7 +48,7 @@ class Server
 /**/    Server& operator=(const Server &obj);
 
         void accept_client(int sockfd);
-        void send_all(std::vector<Client*> receivers, std::string mex, Client sender);
+        void Server::send_all(std::string mex, Client *sender)
         
         //setters
         void setDate();

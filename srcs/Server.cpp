@@ -42,7 +42,7 @@ void Server::start_server()
 					if(recv(fd, &c, 1, 0) <= 0)
 					{
 						sprintf(this->server_buffer, "server: client %d just left\n", del_client(fd, this));
-						send_all(this->server_buffer, strlen(s->server_buffer), fd, this);//da vedere
+						send_all(this->server_buffer, fd, this);//da vedere
 						FD_CLR(fd, &this->curr_fds);
 						close(fd);
 						break;
@@ -94,7 +94,9 @@ Server::Server(const Server &obj)
 
 Server& Server::operator=(const Server &obj)
 {
-	
+	if (this != &obj)
+		*this = obj;
+	return (*this);
 }
 
 
@@ -158,5 +160,19 @@ Client Server::getClient(int sockfd)
 	{
 		if(sockfd == it->first)
 			return (*it->second);
+	}
+}
+
+void Server::send_all(std::string mex, Client *sender)
+{
+	int i = 0;
+	while(clients[i])
+	{
+		if(clients[i] != sender && FD_ISSET(clients[i]->fd, &write_fds))
+		{
+			if(send(clients[i]->fd, mex.c_str(), mex.length(), 0) < 0)
+				fatal();
+		}
+		i++;
 	}
 }
