@@ -41,22 +41,23 @@ void Server::start_server()
 					char c;
 					if(recv(fd, &c, 1, 0) <= 0)
 					{
-						sprintf(this->server_buffer, "server: client %d just left\n", del_client(fd, this));
-						send_all(this->server_buffer, fd, this);//da vedere
+						sprintf(this->server_buffer, "server: client %d just left\n");
+						delete &getClient(fd);
+						send_all(this->server_buffer, fd);
 						FD_CLR(fd, &this->curr_fds);
 						close(fd);
 						break;
 					}
 					else
 					{
-						Client *client = get_client(fd, this);//Da vedere
-						if(client->is_msg)
+						Client *client = &getClient(fd);
+						if(client->getIsMsg())
 						{
-							sprintf(this->server_buffer, "client %d: ", client->id);
-							send_all(this->server_buffer, strlen(s->server_buffer), fd, this);
+							sprintf(this->server_buffer, "client %d: ", client->getId());
+							send_all(this->server_buffer, getClient(fd));
 						}
-						client->new_msg = (c == '\n');
-						send_all(&c, 1, fd, this);
+						client->setIsMsg(c == '\n');
+						send_all(&c, getClient(fd));
 					}
 				}
 			}

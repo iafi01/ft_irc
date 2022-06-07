@@ -23,32 +23,37 @@ Client &Client::operator=(const Client &obj)
     return(*this);
 }
 
-Client Client::get_client(int fd)
-{
-
-}
-
-int Client::get_fd() const
+int Client::getFd() const
 {
     return (this->fd);
 }
 
-int Client::get_id() const
+int Client::getId() const
 {
     return (this->id);
 }
 
-int Client::get_is_msg() const
+int Client::getIsMsg() const
 {
     return (this->is_msg);
 }
 
-std::string Client::get_nick() const
+std::string Client::getNick() const
 {
     return (this->nickname);
 }
 
-std::string Client::get_user() const
+std::string Client::getUser() const
 {
     return (this->username);
+}
+
+void Client::setIsMsg(int i)
+{
+    is_msg = i;
+}
+
+Client Client::getClient(int fd)
+{
+    
 }
