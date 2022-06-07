@@ -115,9 +115,9 @@ void Server::send_all(std::string mex, Client sender)
 	int i = 0;
 	while(clients[i])
 	{
-		if(clients[i] != &sender && FD_ISSET(clients[i]->get_fd(), &write_fds))
+		if(clients[i] != &sender && FD_ISSET(clients[i]->getFd(), &write_fds))
 		{
-			if(send(clients[i]->get_fd(), mex.c_str(), mex.length(), 0) < 0)
+			if(send(clients[i]->getFd(), mex.c_str(), mex.length(), 0) < 0)
 				fatal();
 		}
 		i++;
