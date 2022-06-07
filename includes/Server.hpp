@@ -48,11 +48,11 @@ class Server
 /**/    Server& operator=(const Server &obj);
 
         void accept_client(int sockfd);
-        void Server::send_all(std::string mex, Client *sender)
+        void send_all(std::string mex, Client *sender);
         
         //setters
         void setDate();
-        void setPass();
+        void setPass(std::string new_pass);
 
         //getters
         int get_port() const;

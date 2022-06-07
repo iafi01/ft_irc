@@ -107,24 +107,34 @@ void Server::accept_client(int sockfd)
 	if((new_fd = accept(this->sockfd, NULL, NULL)) < 0)
 		fatal();
 	sprintf(this->server_buffer, "server: client %d just arrived\n", new_client(new_fd, this));
-	send_all(thisserver_buffer, strlen(this->server_buffer), new_fd, getClient(sockfd));
+	send_all(this->server_buffer, strlen(this->server_buffer), new_fd, getClient(sockfd));
 	FD_SET(new_fd, &this->curr_fds);
 }
 
-void Server::send_all(std::vector<Client*> receivers, std::string mex, Client sender)
+void Server::send_all(std::string mex, Client *sender)
 {
-
+	int i = 0;
+	while(clients[i])
+	{
+		if(clients[i] != sender && FD_ISSET(clients[i]->get_fd(), &write_fds))
+		{
+			if(send(clients[i]->get_fd(), mex.c_str(), mex.length(), 0) < 0)
+				fatal();
+		}
+		i++;
+	}
 }
 
 //setters
 void Server::setDate()
 {
-
+	time_t now = time(0);
+	time_string = ctime(&now);
 }
 
-void Server::setPass()
+void Server::setPass(std::string new_pass)
 {
-	
+	this->pass = new_pass;
 }
 
 //getters
@@ -160,19 +170,5 @@ Client Server::getClient(int sockfd)
 	{
 		if(sockfd == it->first)
 			return (*it->second);
-	}
-}
-
-void Server::send_all(std::string mex, Client *sender)
-{
-	int i = 0;
-	while(clients[i])
-	{
-		if(clients[i] != sender && FD_ISSET(clients[i]->get_fd(), &write_fds))
-		{
-			if(send(clients[i]->get_fd(), mex.c_str(), mex.length(), 0) < 0)
-				fatal();
-		}
-		i++;
 	}
 }
