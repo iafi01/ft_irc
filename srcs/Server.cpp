@@ -105,7 +105,7 @@ void Server::accept_client(int sockfd)
 	int new_fd;
 	if((new_fd = accept(this->sockfd, NULL, NULL)) < 0)
 		fatal();
-	sprintf(this->server_buffer, "server: client %d just arrived\n", Client(new_fd));
+	sprintf(this->server_buffer, "server: client %d just arrived\n", new_fd);
 	send_all(this->server_buffer, getClient(sockfd));
 	FD_SET(new_fd, &this->curr_fds);
 }
