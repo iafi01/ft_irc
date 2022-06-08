@@ -2,12 +2,13 @@
 
 
 //private used by contructors
-void Server::setup_server(int port, std::string pass)
+void Server::setup_server(int port, std::string password)
 {
     bzero(&serveraddr, sizeof(serveraddr));
 	serveraddr.sin_family = AF_INET;
 	serveraddr.sin_addr.s_addr = htonl(2130706433);
 	serveraddr.sin_port = htons(port);
+	pass = password;
 
 	this->sockfd = -1;
 	if((this->sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -161,6 +162,41 @@ std::string Server::get_pass() const
 std::string Server::getDate() const
 {
 	return (time_string);
+}
+
+int get_max_fd(int sockfd)
+{
+
+}
+
+void parse_commands(Client *client, std::string cmd)
+{
+
+}
+void quit_cmd()
+{
+
+}
+void mode_cmd()
+{
+
+}
+void invite_cmd()
+{
+
+}
+void topic_cmd()
+{
+
+}
+void kick_cmd()
+{
+
+}
+
+void join_cmd()
+{
+
 }
 
 //clients and channels management by server
