@@ -108,6 +108,7 @@ void Server::accept_client(int sockfd)
 	sprintf(this->server_buffer, "server: client %d just arrived\n", new_fd);
 	send_all(this->server_buffer, getClient(sockfd));
 	FD_SET(new_fd, &this->curr_fds);
+	client_map.insert(std::make_pair(new_fd, getClient(new_fd)));
 }
 
 void Server::send_all(std::string mex, Client sender)

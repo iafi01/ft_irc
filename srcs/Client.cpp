@@ -52,3 +52,8 @@ void Client::setIsMsg(int i)
 {
     is_msg = i;
 }
+
+void setFd(int fd)
+{
+    
+}

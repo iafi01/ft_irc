@@ -74,7 +74,6 @@ class Server
         void kick_cmd();
         //other cmd
         void join_cmd();
-        void _cmd();
         //clients and channels management by server
         Client getClient(int sockfd);
 };
