@@ -65,16 +65,18 @@ class Server
         //utils
         int get_max_fd(int sockfd);
         //commands
+        
         void parse_commands(Client *client, std::string cmd);
         void quit_cmd();
         //channel cmd
+
         void mode_cmd();
         void invite_cmd();
         void topic_cmd();
         void kick_cmd();
         //other cmd
+
         void join_cmd();
-        void _cmd();
         //clients and channels management by server
         Client getClient(int sockfd);
 };

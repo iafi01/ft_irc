@@ -162,6 +162,41 @@ std::string Server::getDate() const
 	return (time_string);
 }
 
+int get_max_fd(int sockfd)
+{
+
+}
+
+void parse_commands(Client *client, std::string cmd)
+{
+
+}
+void quit_cmd()
+{
+
+}
+void mode_cmd()
+{
+
+}
+void invite_cmd()
+{
+
+}
+void topic_cmd()
+{
+
+}
+void kick_cmd()
+{
+
+}
+
+void join_cmd()
+{
+
+}
+
 //clients and channels management by server
 Client Server::getClient(int sockfd)
 {
