@@ -14,6 +14,7 @@ class Client
     private:
         std::string nickname;
         std::string username;   // !!! Lo username e' statico !!!
+        bool isLogged;
         int fd;
         int id;
         int is_msg;      //Variabile che indica se lo user ha appena inviato un messaggio
@@ -34,6 +35,6 @@ class Client
         void setIsMsg(int i);
         void setFd(int fd);
         void setId(int id);
-        //non serve Client getClient(int fd);
+        void setIsLogged(bool log);
         
 };

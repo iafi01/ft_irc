@@ -208,3 +208,12 @@ Client Server::getClient(int sockfd)
 			return (*it->second);
 	}
 }
+
+Channel Server::getChannel(std::string nameCh)
+{
+	for(std::map<std::string, Channel*>::iterator it = channel_map.begin(); it != channel_map.end(); it++)
+	{
+		if(nameCh == it->first)
+			return (*it->second);
+	}
+}
