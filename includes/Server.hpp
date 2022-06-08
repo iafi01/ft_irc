@@ -44,7 +44,7 @@ class Server
     public:
         Server();
         ~Server();
-        Server(const int port, const std::string pass);
+        Server(const int port, const std::string password);
 /**/    Server(const Server &obj);
 /**/    Server& operator=(const Server &obj);
 
@@ -65,7 +65,7 @@ class Server
         //utils
         int get_max_fd(int sockfd);
         //commands
-        
+
         void parse_commands(Client *client, std::string cmd);
         void quit_cmd();
         //channel cmd

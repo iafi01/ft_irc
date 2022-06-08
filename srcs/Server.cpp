@@ -2,12 +2,13 @@
 
 
 //private used by contructors
-void Server::setup_server(int port, std::string pass)
+void Server::setup_server(int port, std::string password)
 {
     bzero(&serveraddr, sizeof(serveraddr));
 	serveraddr.sin_family = AF_INET;
 	serveraddr.sin_addr.s_addr = htonl(2130706433);
 	serveraddr.sin_port = htons(port);
+	pass = password;
 
 	this->sockfd = -1;
 	if((this->sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
