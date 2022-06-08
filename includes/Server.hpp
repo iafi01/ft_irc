@@ -32,6 +32,7 @@ class Server
         fd_set curr_fds, read_fds, write_fds;
         char server_buffer[64];
         std::map<int, Client*> client_map;
+        std::map<std::string, Channel*> channel_map;
         time_t now; //settare = time(0)
         std::string time_string; //ctime(&now) (localdate not UTC)
         std::vector<Client*> clients;
@@ -76,4 +77,5 @@ class Server
         void join_cmd();
         //clients and channels management by server
         Client getClient(int sockfd);
+        Channel getChannel(std::string nameCh);
 };
