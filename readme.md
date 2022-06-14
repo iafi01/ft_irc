@@ -26,3 +26,6 @@ https://github.com/artainmo/examrank06/blob/main/mini_serv/mini_serv.c
 
 Ban Mask, Whois Mask, cosa sono le mask?
 https://slayersflag.forumfree.it/?t=6412695
+
+Channel Modes Commands
+https://libera.chat/guides/channelmodes
