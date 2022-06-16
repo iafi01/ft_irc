@@ -35,16 +35,18 @@ class Channel {
         };
         std::string name;
         std::string topic;
+        std::string pass;
         std::vector<Client*> clients;
         std::vector<Client*> op_vec;
         std::vector<Client*> half_op_vec;
         std::vector<Client*> voice_op_vec;
-        std::vector<Banned*> banned_vec;
         std::vector<Client*> invited_vec;
-        int n_users;
+        std::vector<Banned*> banned_vec;
+        int userLimit;
         int is_only_invite;
 
         //only admin functions
+        bool setPass(std::string psw);
         bool op(Client *client);
         bool deop(Client *client);
         bool halfOp(Client *client);
@@ -62,6 +64,13 @@ class Channel {
         std::vector<Client*> halfOp() const;
         std::vector<Client*> voiceOp() const;
         std::vector<Banned*> getBanned() const;
+        bool isInvited(const Client* client);
+        bool isOp(const Client* client);
+        bool isHalfOp(const Client* client);
+        bool isVoiceOp(const Client* client);
+        bool isBanned(const Client* client);
+        bool invite(const Client* client);
+        bool removeInvite(const Client* client);
 
         //cmds
         bool kickCmd(Client *client, std::string _reason);
