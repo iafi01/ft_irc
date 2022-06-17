@@ -117,7 +117,7 @@ bool Channel::deVoiceOp(Client *client)
     return (false);
 }
 
-bool Channel::ban(std::string nick = "*", std::string user = "*", std::string host = "*", std::string _reason)
+bool Channel::ban(std::string nick = "*", std::string user = "*", std::string host = "*", std::string _reason = "")
 {
     try {
         Banned victim;
@@ -131,6 +131,9 @@ bool Channel::ban(std::string nick = "*", std::string user = "*", std::string ho
         victim.reason = _reason;
         victim.ban_time = ctime(&now);
         victim.permanent = 1;
+        //victim.admin->nickname = ;
+        //victim.admin->username = ;
+        //victim.admin->hostname = ;
         this->banned_vec.push_back(&victim);
         return (true);
     }
@@ -217,15 +220,8 @@ std::vector<Channel::Banned*> Channel::getBanned() const
 bool Channel::kickCmd(Client *client, std::string _reason)
 {
     try {
-        Banned victim;
-
-        time_t now = time(0);
-
-        victim.user = client;
-        victim.reason = _reason;
-        victim.ban_time = ctime(&now);
-        victim.permanent = 0; //potra' rientrare
-        this->banned_vec.push_back(&victim);
+        std::cout << _reason << std::endl;
+        disconnect(client);
         return (true);
     }
     catch (std::exception& e) {
@@ -411,7 +407,7 @@ void Channel::connect(const Client* client, std::string psw = "")
         return ;
     if (nClient + 1 >= userLimit)
         return ;
-    if (is_only_invite == 1)
+    if (is_only_invite > 0)
     {
         std::vector<Client*>::iterator j;
         bool invited;
@@ -420,7 +416,7 @@ void Channel::connect(const Client* client, std::string psw = "")
         j = invited_vec.begin();
         while (j != invited_vec.end())
         {
-            if ((*j)->user == client->getUser())
+            if ((*j)->getUser() == client->getUser() && (*j)->getNick() == client->getNick() && (*j)->getHost() == client->getHost())
             {
                 invited = true;
                 break;
@@ -437,7 +433,14 @@ void Channel::connect(const Client* client, std::string psw = "")
 
 void Channel::disconnect(const Client* client)
 {
+    std::vector<Client*>::iterator i;
 
+    i = client;
+
+    //tolgo i permessi da admin se abbandoni?
+    //controllo se c'é almeno un admin sennó almeno un admin ci deve essere
+    nClient--;
+    clients.erase(i);
 }
 
 void Channel::sendMessage(const Client* sender, std::string msg) const
