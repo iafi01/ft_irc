@@ -1,5 +1,17 @@
 #include "../includes/Channel.hpp"
 
+bool Channel::setPass(std::string psw)
+{
+    try {
+        pass = psw;
+        return (true);
+    }
+    catch (std::exception& e) {
+        std::cerr << e.what();
+        return (false);
+    }
+}
+
 bool Channel::op(Client *client)
 {
     try {
@@ -268,4 +280,113 @@ bool Channel::modeCmd(enum modOp type, Client *client, std::string _reason = "")
     {
         std::cerr << e.what() << '\n';
     }
+}
+
+bool Channel::isInvited(const Client* client)
+{
+    std::vector<Client*>::iterator i;
+
+    i = invited_vec.begin();
+    while (i != invited_vec.end())
+    {
+        if ((*i) == client)
+            return (true);
+        i++;
+    }
+    return (false);
+}
+
+bool Channel::isOp(const Client* client)
+{
+    std::vector<Client*>::iterator i;
+
+    i = op_vec.begin();
+    while (i != op_vec.end())
+    {
+        if ((*i) == client)
+            return (true);
+        i++;
+    }
+    return (false);
+}
+
+bool Channel::isHalfOp(const Client* client)
+{
+    std::vector<Client*>::iterator i;
+
+    i = half_op_vec.begin();
+    while (i != half_op_vec.end())
+    {
+        if ((*i) == client)
+            return (true);
+        i++;
+    }
+    return (false);
+}
+
+bool Channel::isVoiceOp(const Client* client)
+{
+    std::vector<Client*>::iterator i;
+
+    i = voice_op_vec.begin();
+    while (i != voice_op_vec.end())
+    {
+        if ((*i) == client)
+            return (true);
+        i++;
+    }
+    return (false);
+}
+
+bool Channel::isBanned(const Client* client)
+{
+    std::vector<Banned*>::iterator i;
+
+    int j = 0;
+    i = banned_vec.begin();
+    while (i != banned_vec.end())
+    {
+        if (banned_vec.at(j)->user == client)
+        {
+            return (true);
+        }
+        i++;
+        j++;
+    }
+    return (false);
+}
+
+bool Channel::invite(const Client* client)
+{
+    try {
+        this->invited_vec.push_back(client);
+        return (true);
+    }
+    catch (std::exception& e) {
+        std::cerr << e.what();
+        return (false);
+    }
+}
+
+bool Channel::removeInvite(const Client* client)
+{
+    std::vector<Client*>::iterator i;
+
+    i = clients.begin();
+    while (i != clients.end())
+    {
+        if ((*i) == client)
+        {   
+            try {
+                this->invited_vec.erase(i);
+                return (true);
+            }
+            catch (std::exception& e) {
+                std::cerr << e.what();
+                return (false);
+            }
+        }
+        i++;
+    }
+    return (false);
 }
