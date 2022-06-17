@@ -12,6 +12,7 @@
 #include <sys/types.h>
 #include <sys/select.h>
 #include <unistd.h>
+#include <algorithm>
 
 #include "Channel.hpp"
 #include "Client.hpp"
@@ -70,10 +71,13 @@ class Server
 
         //utils
         int get_max_fd(int sockfd);
-        //commands
-
+        std::string toUpper(std::string toUp);
+        bool compStr(char *buf, std::string str);
+        
+        //commands 
         void parse_commands(Client *client, char *buf, int valrecv);
         void quit_cmd();
+
         //channel cmd
 
         void mode_cmd();
