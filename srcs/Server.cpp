@@ -1,5 +1,63 @@
 #include "../includes/Server.hpp"
 
+std::vector<std::string> ft_split(std::string toSplit, std::string toFind)
+{
+	std::vector<std::string> splitted;
+	while(toSplit.size())
+	{
+		unsigned long index = splitted.find(toFind);
+		if (index!=std::string::npos)
+		{
+			if (index != 0)
+				splitted.push_back(toSplit.substr(0, index));
+			toSplit = toSplit.substr(index + toFind.size());
+		}
+		else
+		{
+			splitted.push_back(toSplit);
+			toSplit = "";
+		}
+	}
+	return (splitted);
+}
+
+void Server::parse_commands(Client *client, char *buf, int valrecv)
+{
+	std::string clientCommand;
+	std::vector<std::string> splitted;
+	clientCommand.assign(buf, valrecv);
+
+	splitted = ft_split(clientCommand, " ");
+	if(!strncmp(buf, "QUIT", 4) || !strncmp(buf, "quit", 4))
+		quit_cmd();
+	else if(!strncmp(buf, "INVITE", 6) || !strncmp(buf, "invite", 6))
+		invite_cmd();
+	else if(!strncmp(buf, "KICK", 4) || !strncmp(buf, "kick", 4))
+		kick_cmd();
+	else if(!strncmp(buf, "JOIN", 4) || !strncmp(buf, "join", 4))
+		join_cmd();
+	else if(!strncmp(buf, "OP", 2) || !strncmp(buf, "op", 2))
+		op_cmd();
+	else if(!strncmp(buf, "DEOP", 4) || !strncmp(buf, "deop", 4))
+		deop_cmd();
+	else if(!strncmp(buf, "HALFOP", 6) || !strncmp(buf, "halfop", 6))
+		half_cmd();
+	else if(!strncmp(buf, "DEHALFOP", 8) || !strncmp(buf, "dehalfop", 8))
+		dehalf_cmd();
+	else if(!strncmp(buf, "BAN", 3) || !strncmp(buf, "ban", 3))
+		ban_cmd();
+	else if(!strncmp(buf, "UNBAN", 5) || !strncmp(buf, "unban", 5))
+		unban_cmd();
+	else if(!strncmp(buf, "VOICE", 5) || !strncmp(buf, "voice", 5))
+		voice_cmd();
+	else if(!strncmp(buf, "UNVOICE", 7) || !strncmp(buf, "unvoice", 7))
+		unvoice_cmd();
+	else
+	{
+
+	}
+
+}
 
 //private used by contructors
 void Server::setup_server(int port, std::string password)
@@ -23,6 +81,8 @@ void Server::start_server()
 {
 	FD_ZERO(&this->curr_fds);
 	FD_SET(this->sockfd, &this->curr_fds);
+	char buf[512];
+	int valrecv = 0;
 	while(1)
 	{
 		this->write_fds = this->read_fds = this->curr_fds;
@@ -39,8 +99,9 @@ void Server::start_server()
 				}
 				else
 				{
-					char c;
-					if(recv(fd, &c, 1, 0) <= 0)
+					if(valrecv = recv(fd, &buf, 1, 0) < 0)
+						fatal();
+					else if(valrecv = recv(fd, &buf, 1, 0) == 0)
 					{
 						sprintf(this->server_buffer, "server: client %d just left\n");
 						delete &getClient(fd);
@@ -51,14 +112,16 @@ void Server::start_server()
 					}
 					else
 					{
+						buf[valrecv] = '\0';
 						Client *client = &getClient(fd);
-						if(client->getIsMsg())
+						/*if(client->getIsMsg())
 						{
 							sprintf(this->server_buffer, "client %d: ", client->getId());
 							send_all(this->server_buffer, getClient(fd));
 						}
 						client->setIsMsg(c == '\n');
-						send_all(&c, getClient(fd));
+						send_all(&c, getClient(fd));*/
+						parse_commands(client, buf, valrecv);
 					}
 				}
 			}

@@ -19,6 +19,11 @@
 #define ERR_ARG "Wrong number of arguments\n"
 #define ERR_FAT "Fatal error\n"
 
+/*
+Per testare il programma scriviamo sul terminale, dopo aver avviato il server,:
+>nc 0.0.0.0 8080
+*/
+
 class Client;
 
 class Server
@@ -67,7 +72,7 @@ class Server
         int get_max_fd(int sockfd);
         //commands
 
-        void parse_commands(Client *client, std::string cmd);
+        void parse_commands(Client *client, char *buf, int valrecv);
         void quit_cmd();
         //channel cmd
 
