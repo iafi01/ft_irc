@@ -12,7 +12,9 @@
 class Channel {
     private:
         typedef struct Banned {
-            Client* user; //nick,user,host da controllare
+            std::string nick;
+            std::string user;
+            std::string host;
             std::string reason;
             std::string ban_time;
             Client* admin;
@@ -53,8 +55,8 @@ class Channel {
         bool deHalfOp(Client *client);
         bool voiceOp(Client *client);
         bool deVoiceOp(Client *client);
-        bool ban(Client *client, std::string _reason);
-        bool unBan(Client *client);
+        bool ban(std::string nick, std::string user, std::string host, std::string _reason);
+        bool unBan(std::string nick, std::string user, std::string host);
         bool modInvite(enum modInvite i);
     public:
         std::string getName() const;

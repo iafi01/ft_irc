@@ -117,14 +117,17 @@ bool Channel::deVoiceOp(Client *client)
     return (false);
 }
 
-bool Channel::ban(Client *client, std::string _reason)
+bool Channel::ban(std::string nick = "*", std::string user = "*", std::string host = "*", std::string _reason)
 {
     try {
         Banned victim;
 
         time_t now = time(0);
 
-        victim.user = client;
+        victim.nick = nick;
+        victim.user = user;
+        victim.host = host;
+
         victim.reason = _reason;
         victim.ban_time = ctime(&now);
         victim.permanent = 1;
@@ -137,7 +140,7 @@ bool Channel::ban(Client *client, std::string _reason)
     }
 }
 
-bool Channel::unBan(Client *client)
+bool Channel::unBan(std::string nick = "*", std::string user = "*", std::string host = "*")
 {
     std::vector<Banned*>::iterator i;
 
@@ -145,7 +148,7 @@ bool Channel::unBan(Client *client)
     i = banned_vec.begin();
     while (i != banned_vec.end())
     {
-        if (banned_vec.at(j)->user == client)
+        if (banned_vec.at(j)->nick == nick && banned_vec.at(j)->user == user && banned_vec.at(j)->host == host)
         {
             try {
                 this->banned_vec.erase(i);
