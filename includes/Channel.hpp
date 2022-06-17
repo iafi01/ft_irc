@@ -18,7 +18,6 @@ class Channel {
             std::string reason;
             std::string ban_time;
             Client* admin;
-            int permanent; //kick = 0 or ban = 1
         };
         enum modInvite{
             open,
