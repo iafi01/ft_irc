@@ -1,5 +1,18 @@
 #include "../includes/Server.hpp"
 
+std::string Server::toUpper(std::string toUp)
+{
+	std::transform(toUp.begin(), toUp.end(),toUp.begin(), ::toupper);
+	return (toUp);
+}
+
+bool Server::compStr(std::string buffer, std::string str)
+{
+	if(!strncmp(buffer, str, str.length + 1))
+		return true;
+	return false;
+}
+
 std::vector<std::string> ft_split(std::string toSplit, std::string toFind)
 {
 	std::vector<std::string> splitted;
@@ -25,33 +38,43 @@ void Server::parse_commands(Client *client, char *buf, int valrecv)
 {
 	std::string clientCommand;
 	std::vector<std::string> splitted;
-	clientCommand.assign(buf, valrecv);
+	std::string aStr;
+	clientCommand.assign(buf, (size_t)valrecv);
 
 	splitted = ft_split(clientCommand, " ");
-	if(!strncmp(buf, "QUIT", 4) || !strncmp(buf, "quit", 4))
+	aStr = toUpper(splitted[0]);
+	if(compStr(aStr, "QUIT"))
 		quit_cmd();
-	else if(!strncmp(buf, "INVITE", 6) || !strncmp(buf, "invite", 6))
+	if(compStr(aStr, "INVITE"))
 		invite_cmd();
-	else if(!strncmp(buf, "KICK", 4) || !strncmp(buf, "kick", 4))
+	else if(compStr(aStr, "KICK"))
 		kick_cmd();
-	else if(!strncmp(buf, "JOIN", 4) || !strncmp(buf, "join", 4))
+	else if(compStr(aStr, "JOIN"))
 		join_cmd();
-	else if(!strncmp(buf, "OP", 2) || !strncmp(buf, "op", 2))
+	else if(compStr(aStr, "OP"))
 		op_cmd();
-	else if(!strncmp(buf, "DEOP", 4) || !strncmp(buf, "deop", 4))
+	else if(compStr(aStr, "DEOP"))
 		deop_cmd();
-	else if(!strncmp(buf, "HALFOP", 6) || !strncmp(buf, "halfop", 6))
+	else if(compStr(aStr, "HALFOP"))
 		half_cmd();
-	else if(!strncmp(buf, "DEHALFOP", 8) || !strncmp(buf, "dehalfop", 8))
+	else if(compStr(aStr, "DEHALFOP"))
 		dehalf_cmd();
-	else if(!strncmp(buf, "BAN", 3) || !strncmp(buf, "ban", 3))
+	else if(compStr(aStr, "BAN"))
 		ban_cmd();
-	else if(!strncmp(buf, "UNBAN", 5) || !strncmp(buf, "unban", 5))
+	else if(compStr(aStr, "UNBAN"))
 		unban_cmd();
-	else if(!strncmp(buf, "VOICE", 5) || !strncmp(buf, "voice", 5))
+	else if(compStr(aStr, "VOICE"))
 		voice_cmd();
-	else if(!strncmp(buf, "UNVOICE", 7) || !strncmp(buf, "unvoice", 7))
+	else if(compStr(aStr, "UNVOICE"))
 		unvoice_cmd();
+	else if(compStr(aStr, "WHO"))
+		who_cmd();
+	else if(compStr(aStr, "WHOIS"))
+		whois_cmd();
+	else if(compStr(aStr, "PRIVMSG"))
+		privmsg_cmd()
+	else if(compStr(aStr, "MODE"))
+		mode_cmd();
 	else
 	{
 
