@@ -2,6 +2,7 @@
 
 Client::Client()
 {
+    isLogged = false;
 }
 
 Client::Client(int fd): fd(fd)
@@ -51,4 +52,19 @@ std::string Client::getUser() const
 void Client::setIsMsg(int i)
 {
     is_msg = i;
+}
+
+void Client::setFd(int fd)
+{
+    this->fd = fd;
+}
+
+void Client::setId(int id)
+{
+    this->id = id;
+}
+
+void Client::setIsLogged(bool log)
+{
+    this->isLogged = log;
 }
