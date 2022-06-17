@@ -12,7 +12,7 @@
 class Channel {
     private:
         typedef struct Banned {
-            Client* user;
+            Client* user; //nick,user,host da controllare
             std::string reason;
             std::string ban_time;
             Client* admin;
@@ -71,6 +71,9 @@ class Channel {
         bool isBanned(const Client* client);
         bool invite(const Client* client);
         bool removeInvite(const Client* client);
+        void connect(const Client* client, std::string psw);
+        void disconnect(const Client* client);
+        void sendMessage(const Client* sender, std::string msg) const;
 
         //cmds
         bool kickCmd(Client *client, std::string _reason);

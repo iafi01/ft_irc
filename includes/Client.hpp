@@ -14,6 +14,7 @@ class Client
     private:
         std::string nickname;
         std::string username;   // !!! Lo username e' statico !!!
+        std::string hostname;
         bool isLogged;
         int fd;
         int id;
