@@ -1,5 +1,17 @@
 #include "../includes/Channel.hpp"
 
+bool Channel::setPass(std::string psw)
+{
+    try {
+        pass = psw;
+        return (true);
+    }
+    catch (std::exception& e) {
+        std::cerr << e.what();
+        return (false);
+    }
+}
+
 bool Channel::op(Client *client)
 {
     try {
@@ -105,14 +117,17 @@ bool Channel::deVoiceOp(Client *client)
     return (false);
 }
 
-bool Channel::ban(Client *client, std::string _reason)
+bool Channel::ban(std::string nick = "*", std::string user = "*", std::string host = "*", std::string _reason)
 {
     try {
         Banned victim;
 
         time_t now = time(0);
 
-        victim.user = client;
+        victim.nick = nick;
+        victim.user = user;
+        victim.host = host;
+
         victim.reason = _reason;
         victim.ban_time = ctime(&now);
         victim.permanent = 1;
@@ -125,7 +140,7 @@ bool Channel::ban(Client *client, std::string _reason)
     }
 }
 
-bool Channel::unBan(Client *client)
+bool Channel::unBan(std::string nick = "*", std::string user = "*", std::string host = "*")
 {
     std::vector<Banned*>::iterator i;
 
@@ -133,7 +148,7 @@ bool Channel::unBan(Client *client)
     i = banned_vec.begin();
     while (i != banned_vec.end())
     {
-        if (banned_vec.at(j)->user == client)
+        if (banned_vec.at(j)->nick == nick && banned_vec.at(j)->user == user && banned_vec.at(j)->host == host)
         {
             try {
                 this->banned_vec.erase(i);
@@ -268,4 +283,184 @@ bool Channel::modeCmd(enum modOp type, Client *client, std::string _reason = "")
     {
         std::cerr << e.what() << '\n';
     }
+}
+
+bool Channel::isInvited(const Client* client)
+{
+    std::vector<Client*>::iterator i;
+
+    i = invited_vec.begin();
+    while (i != invited_vec.end())
+    {
+        if ((*i) == client)
+            return (true);
+        i++;
+    }
+    return (false);
+}
+
+bool Channel::isOp(const Client* client)
+{
+    std::vector<Client*>::iterator i;
+
+    i = op_vec.begin();
+    while (i != op_vec.end())
+    {
+        if ((*i) == client)
+            return (true);
+        i++;
+    }
+    return (false);
+}
+
+bool Channel::isHalfOp(const Client* client)
+{
+    std::vector<Client*>::iterator i;
+
+    i = half_op_vec.begin();
+    while (i != half_op_vec.end())
+    {
+        if ((*i) == client)
+            return (true);
+        i++;
+    }
+    return (false);
+}
+
+bool Channel::isVoiceOp(const Client* client)
+{
+    std::vector<Client*>::iterator i;
+
+    i = voice_op_vec.begin();
+    while (i != voice_op_vec.end())
+    {
+        if ((*i) == client)
+            return (true);
+        i++;
+    }
+    return (false);
+}
+
+bool Channel::isBanned(const Client* client)
+{
+    std::vector<Banned*>::iterator i;
+
+    int j = 0;
+    i = banned_vec.begin();
+    while (i != banned_vec.end())
+    {
+        if (banned_vec.at(j)->user == client)
+        {
+            return (true);
+        }
+        i++;
+        j++;
+    }
+    return (false);
+}
+
+bool Channel::invite(const Client* client)
+{
+    try {
+        this->invited_vec.push_back(client);
+        return (true);
+    }
+    catch (std::exception& e) {
+        std::cerr << e.what();
+        return (false);
+    }
+}
+
+bool Channel::removeInvite(const Client* client)
+{
+    std::vector<Client*>::iterator i;
+
+    i = clients.begin();
+    while (i != clients.end())
+    {
+        if ((*i) == client)
+        {   
+            try {
+                this->invited_vec.erase(i);
+                return (true);
+            }
+            catch (std::exception& e) {
+                std::cerr << e.what();
+                return (false);
+            }
+        }
+        i++;
+    }
+    return (false);
+}
+
+void Channel::connect(const Client* client, std::string psw = "")
+{
+    std::vector<Banned*>::iterator i;
+
+    i = banned_vec.begin();
+    //se sei bannato esce dalla funzione
+    while (i != banned_vec.end())
+    {
+        if ((client->getNick() == (*i)->nick || client->getNick() == "*") &&
+            (client->getUser() == (*i)->user || client->getUser() == "*") &&
+            (client->getHost() == (*i)->host || client->getHost() == "*"))
+            return ;
+    }
+    if (pass != pwd)
+        return ;
+    if (nClient + 1 >= userLimit)
+        return ;
+    if (is_only_invite == 1)
+    {
+        std::vector<Client*>::iterator j;
+        bool invited;
+
+        invited = false;
+        j = invited_vec.begin();
+        while (j != invited_vec.end())
+        {
+            if ((*j)->user == client->getUser())
+            {
+                invited = true;
+                break;
+            }
+            j++;
+        }
+        if (!invited)
+            return;
+    }
+    //connettiti
+    nClient++;
+    clients.push_back(client);
+}
+
+void Channel::disconnect(const Client* client)
+{
+
+}
+
+void Channel::sendMessage(const Client* sender, std::string msg) const
+{
+
+}
+
+bool Channel::kickCmd(Client *client, std::string _reason)
+{
+
+}
+
+bool Channel::inviteCmd(Client *client)
+{
+
+}
+
+bool Channel::topicCmd(std::string setTopic)
+{
+
+}
+
+bool Channel::modeCmd(enum modOp type, Client *client, std::string _reason)
+{
+
 }
