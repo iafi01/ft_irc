@@ -45,6 +45,7 @@ class Channel {
         std::vector<Client*> invited_vec;
         std::vector<Banned*> banned_vec;
         int userLimit;
+        int nClient;
         int is_only_invite;
 
         //only admin functions

@@ -49,6 +49,11 @@ std::string Client::getUser() const
     return (this->username);
 }
 
+std::string Client::getHost() const
+{
+    return (this->hostname);
+}
+
 void Client::setIsMsg(int i)
 {
     is_msg = i;

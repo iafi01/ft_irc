@@ -31,6 +31,7 @@ class Client
         int         getIsMsg() const;
         std::string getNick() const;
         std::string getUser() const;
+        std::string getHost() const;
 
         //setters
         void setIsMsg(int i);

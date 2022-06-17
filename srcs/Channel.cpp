@@ -393,3 +393,74 @@ bool Channel::removeInvite(const Client* client)
     }
     return (false);
 }
+
+void Channel::connect(const Client* client, std::string psw = "")
+{
+    std::vector<Banned*>::iterator i;
+
+    i = banned_vec.begin();
+    //se sei bannato esce dalla funzione
+    while (i != banned_vec.end())
+    {
+        if ((client->getNick() == (*i)->nick || client->getNick() == "*") &&
+            (client->getUser() == (*i)->user || client->getUser() == "*") &&
+            (client->getHost() == (*i)->host || client->getHost() == "*"))
+            return ;
+    }
+    if (pass != pwd)
+        return ;
+    if (nClient + 1 >= userLimit)
+        return ;
+    if (is_only_invite == 1)
+    {
+        std::vector<Client*>::iterator j;
+        bool invited;
+
+        invited = false;
+        j = invited_vec.begin();
+        while (j != invited_vec.end())
+        {
+            if ((*j)->user == client->getUser())
+            {
+                invited = true;
+                break;
+            }
+            j++;
+        }
+        if (!invited)
+            return;
+    }
+    //connettiti
+    nClient++;
+    clients.push_back(client);
+}
+
+void Channel::disconnect(const Client* client)
+{
+
+}
+
+void Channel::sendMessage(const Client* sender, std::string msg) const
+{
+
+}
+
+bool Channel::kickCmd(Client *client, std::string _reason)
+{
+
+}
+
+bool Channel::inviteCmd(Client *client)
+{
+
+}
+
+bool Channel::topicCmd(std::string setTopic)
+{
+
+}
+
+bool Channel::modeCmd(enum modOp type, Client *client, std::string _reason)
+{
+
+}
