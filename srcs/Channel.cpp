@@ -436,11 +436,19 @@ void Channel::disconnect(const Client* client)
     std::vector<Client*>::iterator i;
 
     i = client;
-
-    //tolgo i permessi da admin se abbandoni?
-    //controllo se c'é almeno un admin sennó almeno un admin ci deve essere
     nClient--;
+    //non sei piu client di questo channel
     clients.erase(i);
+    //tolgo i permessi da admin se abbandoni
+    if (std::find(op_vec.begin(), op_vec.end(), i))
+        op_vec.erase(i);
+    if (std::find(halfop_vec.begin(), halfop_vec.end(), i))
+        halfop_vec.erase(i);
+    if (std::find(voice_op_vec.begin(), voice_op_vec.end(), i))
+        voice_op_vec.erase(i);
+    //controllo se c'é almeno un admin sennó almeno un admin ci deve essere
+    if (op_vec.empty())
+        op_vec.push_back(clients.at(0));
 }
 
 void Channel::sendMessage(const Client* sender, std::string msg) const

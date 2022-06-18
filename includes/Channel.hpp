@@ -6,6 +6,7 @@
 #include <iterator>
 #include <ctime>
 #include <exception>
+#include <algorithm>
 
 #include "Client.hpp"
 
