@@ -251,39 +251,55 @@ std::string Server::getDate() const
 	return (time_string);
 }
 
-int get_max_fd(int sockfd)
+int Server::get_max_fd(int sockfd)
 {
 
 }
 
-void parse_commands(Client *client, std::string cmd)
+void Server::parse_commands(Client *client, std::string cmd)
 {
 
 }
-void quit_cmd()
+void Server::quit_cmd()
 {
 
 }
-void mode_cmd()
+void Server::mode_cmd()
 {
 
 }
-void invite_cmd()
+void Server::invite_cmd()
 {
 
 }
-void topic_cmd()
+void Server::topic_cmd()
 {
 
 }
-void kick_cmd()
+void Server::kick_cmd()
 {
 
 }
 
-void join_cmd()
+void Server::join_cmd(Client *client, std::string channel_name, std::string psw = "")
 {
+	//controlla che channel_name esiste nel map e accedi al second
+	std::map<std::string, Channel*>::iterator i;
+	Channel *channel_join;
 
+	i = channel_map.begin();
+	while (i != channel_map.end())
+	{
+		if ((*i).first == channel_name)
+		{
+			channel_join = (*i).second;
+			break;
+		}
+		i++;
+	}
+	if (channel_join->connect(client, psw))
+		return true;
+    return false;
 }
 
 //clients and channels management by server
