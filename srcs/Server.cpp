@@ -34,7 +34,7 @@ std::vector<std::string> ft_split(std::string toSplit, std::string toFind)
 	return (splitted);
 }
 
-void Server::parse_commands(Client *client, char *buf, int valrecv)
+bool Server::parse_commands(Client *client, char *buf, int valrecv)
 {
 	std::string clientCommand;
 	std::vector<std::string> splitted;
@@ -76,9 +76,7 @@ void Server::parse_commands(Client *client, char *buf, int valrecv)
 	else if(compStr(aStr, "MODE"))
 		mode_cmd();
 	else
-	{
-
-	}
+		return false;
 
 }
 
@@ -122,6 +120,7 @@ void Server::start_server()
 				}
 				else
 				{
+					char c;
 					if(valrecv = recv(fd, &buf, 1, 0) < 0)
 						fatal();
 					else if(valrecv = recv(fd, &buf, 1, 0) == 0)
@@ -137,14 +136,16 @@ void Server::start_server()
 					{
 						buf[valrecv] = '\0';
 						Client *client = &getClient(fd);
-						/*if(client->getIsMsg())
+						if(client->getIsMsg() && buf[0] == '/')
 						{
 							sprintf(this->server_buffer, "client %d: ", client->getId());
 							send_all(this->server_buffer, getClient(fd));
 						}
-						client->setIsMsg(c == '\n');
-						send_all(&c, getClient(fd));*/
-						parse_commands(client, buf, valrecv);
+						if (!parse_commands(client, buf, valrecv))
+						{
+							client->setIsMsg(c == '\n');
+							send_all(&c, getClient(fd));
+						}
 					}
 				}
 			}
@@ -250,39 +251,55 @@ std::string Server::getDate() const
 	return (time_string);
 }
 
-int get_max_fd(int sockfd)
+int Server::get_max_fd(int sockfd)
 {
 
 }
 
-void parse_commands(Client *client, std::string cmd)
+void Server::parse_commands(Client *client, std::string cmd)
 {
 
 }
-void quit_cmd()
+void Server::quit_cmd()
 {
 
 }
-void mode_cmd()
+void Server::mode_cmd()
 {
 
 }
-void invite_cmd()
+void Server::invite_cmd()
 {
 
 }
-void topic_cmd()
+void Server::topic_cmd()
 {
 
 }
-void kick_cmd()
+void Server::kick_cmd()
 {
 
 }
 
-void join_cmd()
+void Server::join_cmd(Client *client, std::string channel_name, std::string psw = "")
 {
+	//controlla che channel_name esiste nel map e accedi al second
+	std::map<std::string, Channel*>::iterator i;
+	Channel *channel_join;
 
+	i = channel_map.begin();
+	while (i != channel_map.end())
+	{
+		if ((*i).first == channel_name)
+		{
+			channel_join = (*i).second;
+			break;
+		}
+		i++;
+	}
+	if (channel_join->connect(client, psw))
+		return true;
+    return false;
 }
 
 //clients and channels management by server

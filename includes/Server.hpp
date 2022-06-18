@@ -75,7 +75,7 @@ class Server
         bool compStr(char *buf, std::string str);
         
         //commands 
-        void parse_commands(Client *client, char *buf, int valrecv);
+        bool parse_commands(Client *client, char *buf, int valrecv);
         void quit_cmd();
 
         //channel cmd
