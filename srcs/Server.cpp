@@ -34,7 +34,7 @@ std::vector<std::string> ft_split(std::string toSplit, std::string toFind)
 	return (splitted);
 }
 
-void Server::parse_commands(Client *client, char *buf, int valrecv)
+bool Server::parse_commands(Client *client, char *buf, int valrecv)
 {
 	std::string clientCommand;
 	std::vector<std::string> splitted;
@@ -76,9 +76,7 @@ void Server::parse_commands(Client *client, char *buf, int valrecv)
 	else if(compStr(aStr, "MODE"))
 		mode_cmd();
 	else
-	{
-
-	}
+		return false;
 
 }
 
@@ -122,6 +120,7 @@ void Server::start_server()
 				}
 				else
 				{
+					char c;
 					if(valrecv = recv(fd, &buf, 1, 0) < 0)
 						fatal();
 					else if(valrecv = recv(fd, &buf, 1, 0) == 0)
@@ -137,14 +136,16 @@ void Server::start_server()
 					{
 						buf[valrecv] = '\0';
 						Client *client = &getClient(fd);
-						/*if(client->getIsMsg())
+						if(client->getIsMsg() && buf[0] == '/')
 						{
 							sprintf(this->server_buffer, "client %d: ", client->getId());
 							send_all(this->server_buffer, getClient(fd));
 						}
-						client->setIsMsg(c == '\n');
-						send_all(&c, getClient(fd));*/
-						parse_commands(client, buf, valrecv);
+						if (!parse_commands(client, buf, valrecv))
+						{
+							client->setIsMsg(c == '\n');
+							send_all(&c, getClient(fd));
+						}
 					}
 				}
 			}
