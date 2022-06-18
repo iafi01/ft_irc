@@ -77,7 +77,7 @@ class Channel {
         void connect(const Client* client, std::string psw);
         void disconnect(const Client* client);
         void sendMessage(const Client* sender, std::string msg) const;
-
+        bool setTopic(std::string topic);
         //cmds
         bool kickCmd(Client *client, std::string _reason);
         bool inviteCmd(Client *client);

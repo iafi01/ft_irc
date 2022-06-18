@@ -256,48 +256,44 @@ int Server::get_max_fd(int sockfd)
 
 }
 
-void Server::parse_commands(Client *client, std::string cmd)
+bool Server::quit_cmd()
 {
 
 }
-void Server::quit_cmd()
+bool Server::mode_cmd()
 {
 
 }
-void Server::mode_cmd()
+bool Server::invite_cmd()
 {
 
 }
-void Server::invite_cmd()
+bool Server::topic_cmd(std::string channel_name, std::string topic = "")
+{
+	Channel *channel;
+	
+	channel = this->getChannel(channel_name);
+	if (topic == "")
+	{
+		channel->getTopic();
+		return true;
+	}
+	else if (channel->setTopic(topic))
+		return true;
+    return false;
+}
+bool Server::kick_cmd()
 {
 
 }
-void Server::topic_cmd()
-{
 
-}
-void Server::kick_cmd()
-{
-
-}
-
-void Server::join_cmd(Client *client, std::string channel_name, std::string psw = "")
+bool Server::join_cmd(Client *client, std::string channel_name, std::string psw = "")
 {
 	//controlla che channel_name esiste nel map e accedi al second
-	std::map<std::string, Channel*>::iterator i;
-	Channel *channel_join;
-
-	i = channel_map.begin();
-	while (i != channel_map.end())
-	{
-		if ((*i).first == channel_name)
-		{
-			channel_join = (*i).second;
-			break;
-		}
-		i++;
-	}
-	if (channel_join->connect(client, psw))
+	Channel *channel;
+	
+	channel = this->getChannel(channel_name);
+	if (channel->connect(client, psw))
 		return true;
     return false;
 }

@@ -215,6 +215,17 @@ std::vector<Channel::Banned*> Channel::getBanned() const
     return (banned_vec);
 }
 
+bool Channel::setTopic(std::string topic)
+{
+    try {
+        this->topic = topic;
+        return (true);
+    }
+    catch (std::exception& e) {
+        std::cerr << e.what();
+        return (false);
+    }
+}
 
 //cmds
 bool Channel::kickCmd(Client *client, std::string _reason)
