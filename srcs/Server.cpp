@@ -8,7 +8,7 @@ std::string Server::toUpper(std::string toUp)
 
 bool Server::compStr(std::string buffer, std::string str)
 {
-	if(!strncmp(buffer, str, str.length + 1))
+	if(!std::strncmp(buffer.c_str(), str.c_str(), str.length() + 1))
 		return true;
 	return false;
 }
@@ -75,9 +75,9 @@ void Server::start_server()
 				else
 				{
 					char c;
-					if(valrecv = recv(fd, &buf, 1, 0) < 0)
+					if((valrecv = recv(fd, &buf, 1, 0)) < 0)
 						fatal();
-					else if(valrecv = recv(fd, &buf, 1, 0) == 0)
+					else if((valrecv = recv(fd, &buf, 1, 0)) == 0)
 					{
 						sprintf(this->server_buffer, "server: client %d just left\n");
 						delete &getClient(fd);
@@ -213,6 +213,7 @@ int Server::get_max_fd(int sockfd)
 bool Server::parse_commands(Client *client, char *buf, int valrecv)
 {
 	std::string clientCommand;
+	std::string::iterator it;
 	std::vector<std::string> splitted;
 	std::string aStr;
 	clientCommand.assign(buf, (size_t)valrecv);
@@ -222,9 +223,9 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	if(compStr(aStr, "QUIT"))
 		quit_cmd();
 	else if(compStr(aStr, "INVITE"))
-		invite_cmd();
+		invite_cmd(clientConvert(splitted), splitted[splitted.size() - 1]);
 	else if(compStr(aStr, "TOPIC"))
-		topic_cmd();
+		topic_cmd(append(splitted[2], ));
 	else if(compStr(aStr, "KICK"))
 		kick_cmd();
 	else if(compStr(aStr, "JOIN"))

@@ -72,18 +72,19 @@ class Server
         //utils
         int get_max_fd(int sockfd);
         std::string toUpper(std::string toUp);
-        bool compStr(char *buf, std::string str);
+        bool compStr(std::string buf, std::string str);
+        std::vector<Client *> clientConvert(std::vector<std::string> toConv);
         
         //commands 
         bool parse_commands(Client *client, char *buf, int valrecv);
         bool quit_cmd();
 
         //channel cmd
-
         bool mode_cmd();
         bool invite_cmd(std::vector<Client *> invited, std::string channel_name);
         bool topic_cmd(std::string channel_name, std::string topic);
         bool kick_cmd();
+
         //other cmd
 
         bool join_cmd(Client *client, std::string channel_name, std::string psw);
