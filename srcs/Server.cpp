@@ -264,6 +264,7 @@ bool Server::quit_cmd()
 
 bool Server::privmsg_cmd(std::string mex, Client *receiver, Client *sender)
 {
+	//controllare sia sul server
 	if(receiver != sender && FD_ISSET(receiver->getFd(), &write_fds))
 	{
 		if((receiver->getFd(), mex.c_str(), mex.length(), 0) < 0)
@@ -277,9 +278,32 @@ bool Server::mode_cmd()
 
 }
 
-bool Server::invite_cmd()
+bool Server::invite_cmd(std::vector<Client *> invited, std::string channel_name)
 {
+	//gli inviti possono essere una lista di nomi
+	//in funzione di questo controllo se quei client sono nel server
+	//PS: vengono invitati solo se presenti
 
+	Channel *channel;
+	std::map<int, Client*>::iterator it;
+
+	channel = this->getChannel(channel_name);
+	it = client_map.begin();
+
+	for (int i = 0; i < invited.lenght(); i++)
+	{
+		while(it != client_map.end())
+		{
+			if (invited[i] == *it->second)
+				break;
+			it++;
+			if (it == client_map.end())
+				return false;
+		}
+		if (channel->invite(invited[i]))
+			return true;
+		return false;
+	}
 }
 
 bool Server::topic_cmd(std::string channel_name, std::string topic = "")
