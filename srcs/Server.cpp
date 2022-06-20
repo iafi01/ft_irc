@@ -1,5 +1,6 @@
 #include "../includes/Server.hpp"
 
+//se i nick passati sono nel server, crea un nuovo vettore di clients
 std::vector<Client *> Server::clientConvert(std::vector<std::string> splitted)
 {
 	std::vector<Client *> new_clients;
@@ -12,6 +13,20 @@ std::vector<Client *> Server::clientConvert(std::vector<std::string> splitted)
 		}
 	}
 	return (new_clients);
+}
+
+std::string topicConvert(std::vector<std::string> toConv)
+{
+	std::string result;
+
+	for (uint i = 0; i < toConv.size(); i++)
+		result += toConv[i];
+		if (i == toConv.size() - 1) //se é l'ultima stringa prima del nome del channel
+			result += "\0";
+		else
+			result +=  " ";
+		
+	return (result);
 }
 
 std::string Server::toUpper(std::string toUp)
@@ -240,9 +255,14 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	else if(compStr(aStr, "INVITE"))
 		invite_cmd(clientConvert(splitted), splitted[splitted.size() - 1]);
 	else if(compStr(aStr, "TOPIC"))
-		topic_cmd(topicConvert(splitted));
+		topic_cmd(splitted[1] ,topicConvert(splitted));
 	else if(compStr(aStr, "KICK"))
-		kick_cmd();
+	{
+		if (splitted[3])
+			kick_cmd(splitted[1], splitted[2], splitted[3]);
+		else
+			kick_cmd(splitted[1], splitted[2]);
+	}
 	else if(compStr(aStr, "JOIN"))
 		join_cmd();
 	else if(compStr(aStr, "OP"))
@@ -338,9 +358,15 @@ bool Server::topic_cmd(std::string channel_name, std::string topic = "")
     return false;
 }
 
-bool Server::kick_cmd()
+bool Server::kick_cmd(std::string channel_name, std::string client_name, std::string reason = "")
 {
+	Channel *channel;
 
+	channel = this->getChannel(channel_name);
+	for (uint i = 0; i < clients.size(); i++)
+		if (clients[i].getNick() == client_name)
+			return (channel.kickCmd(clients[i], reason));
+	return false;
 }
 
 bool Server::join_cmd(Client *client, std::string channel_name, std::string psw = "")
