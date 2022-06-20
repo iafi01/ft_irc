@@ -76,17 +76,17 @@ class Server
         
         //commands 
         bool parse_commands(Client *client, char *buf, int valrecv);
-        void quit_cmd();
+        bool quit_cmd();
 
         //channel cmd
 
-        void mode_cmd();
-        void invite_cmd();
-        void topic_cmd();
-        void kick_cmd();
+        bool mode_cmd();
+        bool invite_cmd();
+        bool topic_cmd(std::string channel_name, std::string topic);
+        bool kick_cmd();
         //other cmd
 
-        void join_cmd();
+        bool join_cmd(Client *client, std::string channel_name, std::string psw);
         //clients and channels management by server
         Client getClient(int sockfd);
         Channel getChannel(std::string nameCh);

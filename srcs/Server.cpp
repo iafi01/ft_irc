@@ -34,52 +34,6 @@ std::vector<std::string> ft_split(std::string toSplit, std::string toFind)
 	return (splitted);
 }
 
-bool Server::parse_commands(Client *client, char *buf, int valrecv)
-{
-	std::string clientCommand;
-	std::vector<std::string> splitted;
-	std::string aStr;
-	clientCommand.assign(buf, (size_t)valrecv);
-
-	splitted = ft_split(clientCommand, " ");
-	aStr = toUpper(splitted[0]);
-	if(compStr(aStr, "QUIT"))
-		quit_cmd();
-	if(compStr(aStr, "INVITE"))
-		invite_cmd();
-	else if(compStr(aStr, "KICK"))
-		kick_cmd();
-	else if(compStr(aStr, "JOIN"))
-		join_cmd();
-	else if(compStr(aStr, "OP"))
-		op_cmd();
-	else if(compStr(aStr, "DEOP"))
-		deop_cmd();
-	else if(compStr(aStr, "HALFOP"))
-		half_cmd();
-	else if(compStr(aStr, "DEHALFOP"))
-		dehalf_cmd();
-	else if(compStr(aStr, "BAN"))
-		ban_cmd();
-	else if(compStr(aStr, "UNBAN"))
-		unban_cmd();
-	else if(compStr(aStr, "VOICE"))
-		voice_cmd();
-	else if(compStr(aStr, "UNVOICE"))
-		unvoice_cmd();
-	else if(compStr(aStr, "WHO"))
-		who_cmd();
-	else if(compStr(aStr, "WHOIS"))
-		whois_cmd();
-	else if(compStr(aStr, "PRIVMSG"))
-		privmsg_cmd()
-	else if(compStr(aStr, "MODE"))
-		mode_cmd();
-	else
-		return false;
-
-}
-
 //private used by contructors
 void Server::setup_server(int port, std::string password)
 {
@@ -256,48 +210,101 @@ int Server::get_max_fd(int sockfd)
 
 }
 
-void Server::parse_commands(Client *client, std::string cmd)
+bool Server::parse_commands(Client *client, char *buf, int valrecv)
+{
+	std::string clientCommand;
+	std::vector<std::string> splitted;
+	std::string aStr;
+	clientCommand.assign(buf, (size_t)valrecv);
+
+	splitted = ft_split(clientCommand, " ");
+	aStr = toUpper(splitted[0]);
+	if(compStr(aStr, "QUIT"))
+		quit_cmd();
+	else if(compStr(aStr, "INVITE"))
+		invite_cmd();
+	else if(compStr(aStr, "TOPIC"))
+		topic_cmd();
+	else if(compStr(aStr, "KICK"))
+		kick_cmd();
+	else if(compStr(aStr, "JOIN"))
+		join_cmd();
+	else if(compStr(aStr, "OP"))
+		op_cmd();
+	else if(compStr(aStr, "DEOP"))
+		deop_cmd();
+	else if(compStr(aStr, "HALFOP"))
+		half_cmd();
+	else if(compStr(aStr, "DEHALFOP"))
+		dehalf_cmd();
+	else if(compStr(aStr, "BAN"))
+		ban_cmd();
+	else if(compStr(aStr, "UNBAN"))
+		unban_cmd();
+	else if(compStr(aStr, "VOICE"))
+		voice_cmd();
+	else if(compStr(aStr, "UNVOICE"))
+		unvoice_cmd();
+	else if(compStr(aStr, "WHO"))
+		who_cmd();
+	else if(compStr(aStr, "WHOIS"))
+		whois_cmd();
+	else if(compStr(aStr, "PRIVMSG"))
+		privmsg_cmd()
+	else if(compStr(aStr, "MODE"))
+		mode_cmd();
+	else
+		return false;
+}
+
+bool Server::quit_cmd()
 {
 
 }
-void Server::quit_cmd()
-{
 
-}
-void Server::mode_cmd()
-{
-
-}
-void Server::invite_cmd()
-{
-
-}
-void Server::topic_cmd()
-{
-
-}
-void Server::kick_cmd()
+bool Server::privmsg_cmd()
 {
 
 }
 
-void Server::join_cmd(Client *client, std::string channel_name, std::string psw = "")
+bool Server::mode_cmd()
+{
+
+}
+
+bool Server::invite_cmd()
+{
+
+}
+
+bool Server::topic_cmd(std::string channel_name, std::string topic = "")
+{
+	Channel *channel;
+	
+	channel = this->getChannel(channel_name);
+	if (topic == "")
+	{
+		channel->getTopic();
+		//getTime e Sender
+		return true;
+	}
+	else if (channel->setTopic(topic)) //setTime e Sender
+		return true;
+    return false;
+}
+
+bool Server::kick_cmd()
+{
+
+}
+
+bool Server::join_cmd(Client *client, std::string channel_name, std::string psw = "")
 {
 	//controlla che channel_name esiste nel map e accedi al second
-	std::map<std::string, Channel*>::iterator i;
-	Channel *channel_join;
-
-	i = channel_map.begin();
-	while (i != channel_map.end())
-	{
-		if ((*i).first == channel_name)
-		{
-			channel_join = (*i).second;
-			break;
-		}
-		i++;
-	}
-	if (channel_join->connect(client, psw))
+	Channel *channel;
+	
+	channel = this->getChannel(channel_name);
+	if (channel->connect(client, psw))
 		return true;
     return false;
 }
