@@ -19,7 +19,6 @@ Client &Client::operator=(const Client &obj)
     this->nickname = obj.nickname;
     this->username = obj.username;
     this->fd = obj.fd;
-    this->id = obj.id;
     this->is_msg = obj.is_msg;
     return(*this);
 }
@@ -27,11 +26,6 @@ Client &Client::operator=(const Client &obj)
 int Client::getFd() const
 {
     return (this->fd);
-}
-
-int Client::getId() const
-{
-    return (this->id);
 }
 
 int Client::getIsMsg() const
@@ -62,11 +56,6 @@ void Client::setIsMsg(int i)
 void Client::setFd(int fd)
 {
     this->fd = fd;
-}
-
-void Client::setId(int id)
-{
-    this->id = id;
 }
 
 void Client::setIsLogged(bool log)

@@ -19,7 +19,7 @@ class Channel {
             std::string reason;
             std::string ban_time;
             Client* admin;
-        };
+        }              Banned;
         enum modInvite{
             open,
             only_invite_by_all,
@@ -72,10 +72,10 @@ class Channel {
         bool isHalfOp(const Client* client);
         bool isVoiceOp(const Client* client);
         bool isBanned(const Client* client);
-        bool invite(const Client* client);
+        bool invite(Client* client);
         bool removeInvite(const Client* client);
-        void connect(const Client* client, std::string psw);
-        void disconnect(const Client* client);
+        void connect(Client* client, std::string psw);
+        void disconnect(Client* client);
         void sendMessage(const Client* sender, std::string msg) const;
         bool setTopic(std::string topic);
         //cmds
