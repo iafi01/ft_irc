@@ -262,9 +262,14 @@ bool Server::quit_cmd()
 
 }
 
-bool Server::privmsg_cmd()
+bool Server::privmsg_cmd(std::string mex, Client *receiver, Client *sender)
 {
-
+	if(receiver != sender && FD_ISSET(receiver->getFd(), &write_fds))
+	{
+		if((receiver->getFd(), mex.c_str(), mex.length(), 0) < 0)
+			fatal();
+	}
+	return true;
 }
 
 bool Server::mode_cmd()
