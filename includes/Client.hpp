@@ -17,6 +17,7 @@ class Client
         std::string hostname;
         bool isLogged;
         int fd;
+        int id;
         int is_msg;      //Variabile che indica se lo user ha appena inviato un messaggio
     public:
         Client();
@@ -36,6 +37,5 @@ class Client
         void setIsMsg(int i);
         void setFd(int fd);
         void setId(int id);
-        void setIsLogged(bool log);
-        
+        void setIsLogged(bool log);      
 };

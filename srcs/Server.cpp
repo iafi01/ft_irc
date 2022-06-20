@@ -1,5 +1,19 @@
 #include "../includes/Server.hpp"
 
+std::vector<Client *> Server::clientConvert(std::vector<std::string> splitted)
+{
+	std::vector<Client *> new_clients;
+	for (uint j = 0; j < clients.size() - 1; j++)
+	{
+		for (uint i = 1; i < splitted.size(); i++)
+		{
+			if (splitted[i] == clients[j]->getNick())
+				new_clients.push_back(clients[j]);
+		}
+	}
+	return (new_clients);
+}
+
 std::string Server::toUpper(std::string toUp)
 {
 	std::transform(toUp.begin(), toUp.end(),toUp.begin(), ::toupper);
@@ -151,6 +165,7 @@ void Server::accept_client(int sockfd)
 	send_all(this->server_buffer, getClient(sockfd));
 	FD_SET(new_fd, &this->curr_fds);
 	client_map.insert(std::make_pair(new_fd, getClient(new_fd)));
+	clients.push_back(getClient(new_fd));
 }
 
 void Server::send_all(std::string mex, Client sender)
@@ -225,7 +240,7 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	else if(compStr(aStr, "INVITE"))
 		invite_cmd(clientConvert(splitted), splitted[splitted.size() - 1]);
 	else if(compStr(aStr, "TOPIC"))
-		topic_cmd(append(splitted[2], ));
+		topic_cmd(topicConvert(splitted));
 	else if(compStr(aStr, "KICK"))
 		kick_cmd();
 	else if(compStr(aStr, "JOIN"))

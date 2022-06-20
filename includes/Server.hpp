@@ -74,6 +74,7 @@ class Server
         std::string toUpper(std::string toUp);
         bool compStr(std::string buf, std::string str);
         std::vector<Client *> clientConvert(std::vector<std::string> toConv);
+        std::string topicConvert(std::vector<std::string> toConv);
         
         //commands 
         bool parse_commands(Client *client, char *buf, int valrecv);

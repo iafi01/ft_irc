@@ -48,6 +48,11 @@ std::string Client::getHost() const
     return (this->hostname);
 }
 
+std::string Client::getId() const
+{
+    return (this->id);
+}
+
 void Client::setIsMsg(int i)
 {
     is_msg = i;
@@ -56,6 +61,11 @@ void Client::setIsMsg(int i)
 void Client::setFd(int fd)
 {
     this->fd = fd;
+}
+
+void Client::setId(int id)
+{
+    this->id = id;
 }
 
 void Client::setIsLogged(bool log)
