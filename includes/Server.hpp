@@ -81,7 +81,7 @@ class Server
         //channel cmd
 
         bool mode_cmd();
-        bool invite_cmd();
+        bool invite_cmd(std::vector<Client *> invited, std::string channel_name);
         bool topic_cmd(std::string channel_name, std::string topic);
         bool kick_cmd();
         //other cmd
