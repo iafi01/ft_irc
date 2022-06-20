@@ -1,5 +1,19 @@
 #include "../includes/Server.hpp"
 
+std::vector<Channel *> Server::clientConvert(std::vector<std::string> splitted)
+{
+	std::vector<Channel *> channel_list;
+	for(std::map<std::string, Channel*>::iterator it = channel_map.begin(); it != channel_map.end(); it++)
+	{
+		for (uint i = 1; i < splitted.size(); i++)
+		{
+			if (splitted[i] == it->second)
+				channel_list.push_back(*it->second);
+		}
+	}
+	return (channel_list);
+}
+
 //se i nick passati sono nel server, crea un nuovo vettore di clients
 std::vector<Client *> Server::clientConvert(std::vector<std::string> splitted)
 {
@@ -289,6 +303,10 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 		privmsg_cmd()
 	else if(compStr(aStr, "MODE"))
 		mode_cmd();
+	else if(compStr(aStr, "LEAVE"))
+		leave_cmd(channelConvert(splitted));
+	else if(compStr(aStr, "PASS"))
+		leave_cmd(client, splitted[1]);
 	else
 		return false;
 }
