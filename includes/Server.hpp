@@ -87,13 +87,14 @@ class Server
         
         //commands 
         bool parse_commands(Client *client, char *buf, int valrecv); //Function used to parse commands sent by clients
-        bool quit_cmd();
+        
 
         //channel cmd
         bool mode_cmd(); //quiiiiiii!!
         bool invite_cmd(std::vector<Client *> invited, std::string channel_name);
         bool topic_cmd(std::string channel_name, std::string topic);
         bool kick_cmd(std::string channel_name, std::string client_name, std::string reason);
+        bool quit_cmd(Client *client, std::vector<std::string> words);
 
         //other cmd
         bool join_cmd(Client *client, std::string channel_name, std::string psw);
