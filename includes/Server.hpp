@@ -97,7 +97,7 @@ class Server
         
 
         //channel cmd
-        bool mode_cmd(); //quiiiiiii!!
+        bool mode_cmd(Client *client, std::vector<std::string> splitted);
         bool invite_cmd(std::vector<Client *> invited, std::string channel_name);
         bool topic_cmd(std::string channel_name, std::string topic);
         bool kick_cmd(std::string channel_name, std::string client_name, std::string reason);
@@ -110,7 +110,7 @@ class Server
         bool half_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToHalfOp);
         bool dehalf_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeHalfOp);
         bool ban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToBan);
-        bool unban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnBan);
+        bool unban_cmd(Client *admin, std::string channel_name, std::string clientToUnBan);
         bool voice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToVoice);
         bool unvoice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnVoice);
         bool who_cmd(std::string filter);   //The filter is the name of the channel that contains the list of users that you want to visualize [channel or a client] (# or ' ')

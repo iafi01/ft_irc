@@ -48,7 +48,7 @@ std::string Client::getHost() const
     return (this->hostname);
 }
 
-std::string Client::getId() const
+int Client::getId() const
 {
     return (this->id);
 }

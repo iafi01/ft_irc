@@ -4,7 +4,7 @@ bool Server::mode_cmd(Client *client, std::vector<std::string> splitted)
 {
 	std::string flag = splitted[2];												//+o, -o, +v, -v, +h, -h, +b, -b
 	std::string channel_name = splitted[1];										//#<channel_name>
-	std::vector<Client *client> users = clientConvert(splitted);				//List of users
+	std::vector<Client *> users = clientConvert(splitted);				//List of users
 	if(compStr(flag, "+o"))	// /OP <nickname> works only inside a channel but the server receives the command as "MODE #miocanale +o <nickname>"
 		op_cmd(client, channel_name, users);
 	else if(compStr(flag, "-o"))
@@ -31,6 +31,7 @@ std::vector<std::string> Server::parseBanMask(std::string banMask)
 	std::vector<std::string> str2;
 	std::vector<std::string> result;
 
+	//Aggiungere controllo asterischi nei 3 if
 	if (banMask.find("!") == std::string::npos)
 	{
 		return (ft_split(banMask, "!"));
@@ -45,7 +46,7 @@ std::vector<std::string> Server::parseBanMask(std::string banMask)
 		{
 			str1 = ft_split(banMask, "!");
 			str2 = ft_split(str1[1], "@");
-			result.push_back(str[0]);
+			result.push_back(str1[0]);
 			result.push_back(str2[0]);
 			result.push_back(str2[1]);
 			return (result);
@@ -138,7 +139,7 @@ void Server::ban_cmd(Client *admin, std::string channel_name, std::vector<Client
 			return ;
 }
 
-void Server::unban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnBan)
+void Server::unban_cmd(Client *admin, std::string channel_name, std::string clientToUnBan)
 {
 	Channel *channel;
 
