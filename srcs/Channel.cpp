@@ -117,7 +117,7 @@ bool Channel::deVoiceOp(Client *client)
     return (false);
 }
 
-bool Channel::ban(std::string nick = "*", std::string user = "*", std::string host = "*", std::string _reason = "")
+bool Channel::ban(std::string nick = "*", std::string user = "*", std::string host = "*", Client *admin, std::string _reason = "")
 {
     try {
         Banned victim;
@@ -130,9 +130,8 @@ bool Channel::ban(std::string nick = "*", std::string user = "*", std::string ho
 
         victim.reason = _reason;
         victim.ban_time = ctime(&now);
-        //victim.admin->nickname = ;
-        //victim.admin->username = ;
-        //victim.admin->hostname = ;
+        victim.admin->nickname = admin;
+
         this->banned_vec.push_back(&victim);
         return (true);
     }
