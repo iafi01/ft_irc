@@ -1,5 +1,27 @@
 #include "../includes/Server.hpp"
 
+bool mode_cmd(Client *client, std::vector<std::string> splitted)
+{
+	if(compStr(aStr, "OP"))	// /OP <nickname> works only inside a channel but the channel receives the command as "MODE #miocanale +o <nickname>"
+		op_cmd();
+	else if(compStr(aStr, "DEOP"))
+		deop_cmd();					// /DEOP <nickname> works only inside a channel but the channel receives the command as "MODE #miocanale -o <nickname>"
+	else if(compStr(aStr, "HALFOP"))
+		half_cmd();					// /HALFOP <nickname> works only inside a channel but the channel receives the command as "MODE #miocanale +h <nickname>"
+	else if(compStr(aStr, "DEHALFOP"))
+		dehalf_cmd();				// /DEHALFOP <nickname> works only inside a channel but the channel receives the command as "MODE #miocanale -h <nickname>"
+	else if(compStr(aStr, "BAN"))
+		ban_cmd();					// /BAN <nickname>, the channel receives the command as "MODE #miocanale +b <nickname>"
+	//Since ban supports different parameters called "Masks", the string that the server receives may differ
+	else if(compStr(aStr, "UNBAN"))
+		unban_cmd();				// /UNBAN <nickname>, the channel receives the command as "MODE #miocanale -b <nickname>"
+	//Same as the ban command, unban is often used with different masks
+	else if(compStr(aStr, "VOICE"))
+		voice_cmd(client, clientConvert(splitted));
+	else if(compStr(aStr, "UNVOICE"))
+		unvoice_cmd();
+}
+
 std::vector<Channel *> Server::clientConvert(std::vector<std::string> splitted)
 {
 	std::vector<Channel *> channel_list;
@@ -278,23 +300,7 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 			kick_cmd(splitted[1], splitted[2]);
 	}
 	else if(compStr(aStr, "JOIN"))
-		join_cmd();
-	else if(compStr(aStr, "OP"))
-		op_cmd();
-	else if(compStr(aStr, "DEOP"))
-		deop_cmd();
-	else if(compStr(aStr, "HALFOP"))
-		half_cmd();
-	else if(compStr(aStr, "DEHALFOP"))
-		dehalf_cmd();
-	else if(compStr(aStr, "BAN"))
-		ban_cmd();
-	else if(compStr(aStr, "UNBAN"))
-		unban_cmd();
-	else if(compStr(aStr, "VOICE"))
-		voice_cmd();
-	else if(compStr(aStr, "UNVOICE"))
-		unvoice_cmd();
+		join_cmd(client, splitted);
 	else if(compStr(aStr, "WHO"))
 		who_cmd();
 	else if(compStr(aStr, "WHOIS"))
@@ -302,7 +308,7 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	else if(compStr(aStr, "PRIVMSG"))
 		privmsg_cmd()
 	else if(compStr(aStr, "MODE"))
-		mode_cmd();
+		mode_cmd(client, splitted);
 	else if(compStr(aStr, "LEAVE"))
 		leave_cmd(channelConvert(splitted));
 	else if(compStr(aStr, "PASS"))
