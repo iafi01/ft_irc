@@ -37,6 +37,7 @@ Scrivere parsing per MODE command
 Scrivere messaggio di benvenuto contenete le informazioni riguardo i comandi disponibili
 L'halfop, ogni qualvolta tentera' di togliere/mettere/kickare/bannare un channel operator,
 ricevera' il messaggio "... 482 <nickname> <channel_name> :You are not channel operator"
+//facoltativo aggiungeree piú files cpp per ogni classe: example (comandi, getters, setters ecc)
 */
 
 class Client;
@@ -84,12 +85,13 @@ class Server
         std::string getDate() const;
 
         //utils
-        int get_max_fd(int sockfd);
+        //int get_max_fd(int sockfd);
         std::string toUpper(std::string toUp); //Convert a character from lower case to upper case
         bool compStr(std::string buf, std::string str); //Compare two given strings
         std::vector<Client *> clientConvert(std::vector<std::string> toConv); //Return a vector of clients, they are extrapolated from a splitted string (std::vector<std::string>)
         std::string topicConvert(std::vector<std::string> toConv); //Return a string that contains the topic of a channel, same as clientConvert
-        
+        std::vector<std::string> parseBanMask(std::string banMask);//function parse mode cmds banmask
+
         //commands 
         bool parse_commands(Client *client, char *buf, int valrecv); //Function used to parse commands sent by clients
         
@@ -103,19 +105,19 @@ class Server
 
         //other cmd
         bool join_cmd(Client *client, std::string channel_name, std::string psw);
-        bool op_cmd(std::string channel_name, std::vector<Client *> clientToOp);
-        bool deop_cmd(std::string channel_name, std::vector<Client *> clientToDeOp);
-        bool half_cmd(std::string channel_name, std::vector<Client *> clientToHalfOp);
-        bool dehalf_cmd(std::string channel_name, std::vector<Client *> clientToDeHalfOp);
-        bool ban_cmd(std::string channel_name, std::vector<Client *> clientToBan);
-        bool unban_cmd(std::string channel_name, std::vector<Client *> clientToUnBan);
-        bool voice_cmd(std::string channel_name, std::vector<Client *> clientToVoice);
-        bool unvoice_cmd(std::string channel_name, std::vector<Client *> clientToUnVoice);
+        bool op_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToOp);
+        bool deop_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeOp);
+        bool half_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToHalfOp);
+        bool dehalf_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeHalfOp);
+        bool ban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToBan);
+        bool unban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnBan);
+        bool voice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToVoice);
+        bool unvoice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnVoice);
         bool who_cmd(std::string filter);   //The filter is the name of the channel that contains the list of users that you want to visualize [channel or a client] (# or ' ')
         bool whois_cmd(std::string nickname);
-        bool privmsg_cmd(std::string target, std::string text); //The target could be a channel or a client (# or ' ')
-        bool leave_cmd(std::vector<Channel *> channel); //Leaves a channel/s
-        bool pass_cmd(Client *client, std::string);
+        bool privmsg_cmd(Client *admin, std::string target, std::string text); //The target could be a channel or a client (# or ' ')
+        bool leave_cmd(Client *client, std::vector<Channel *> channel); //Leaves a channel/s
+        bool pass_cmd(Client *admin, std::string);
 
         //clients and channels management by server
         Client getClient(int sockfd);

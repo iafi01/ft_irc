@@ -1,28 +1,156 @@
 #include "../includes/Server.hpp"
 
-bool mode_cmd(Client *client, std::vector<std::string> splitted)
+bool Server::mode_cmd(Client *client, std::vector<std::string> splitted)
 {
-	if(compStr(aStr, "OP"))	// /OP <nickname> works only inside a channel but the channel receives the command as "MODE #miocanale +o <nickname>"
-		op_cmd();
-	else if(compStr(aStr, "DEOP"))
-		deop_cmd();					// /DEOP <nickname> works only inside a channel but the channel receives the command as "MODE #miocanale -o <nickname>"
-	else if(compStr(aStr, "HALFOP"))
-		half_cmd();					// /HALFOP <nickname> works only inside a channel but the channel receives the command as "MODE #miocanale +h <nickname>"
-	else if(compStr(aStr, "DEHALFOP"))
-		dehalf_cmd();				// /DEHALFOP <nickname> works only inside a channel but the channel receives the command as "MODE #miocanale -h <nickname>"
-	else if(compStr(aStr, "BAN"))
-		ban_cmd();					// /BAN <nickname>, the channel receives the command as "MODE #miocanale +b <nickname>"
+	std::string flag = splitted[2];															//+o, -o, +v, -v, +h, -h, +b, -b
+	std::vector<std::string> channel_name = channelConvert(splitted);			//#<channel_name>
+	std::vector<Client *client> users = clientConvert(splitted);				//List of users
+	if(compStr(flag, "+o"))	// /OP <nickname> works only inside a channel but the server receives the command as "MODE #miocanale +o <nickname>"
+		op_cmd(client, channel_name[0], users);
+	else if(compStr(flag, "-o"))
+		deop_cmd(client, channel_name[0], users); // /DEOP <nickname> works only inside a channel but the server receives the command as "MODE #miocanale -o <nickname>"
+	else if(compStr(flag, "+h"))
+		half_cmd(client, channel_name[0], users); // /HALFOP <nickname> works only inside a channel but the server receives the command as "MODE #miocanale +h <nickname>"
+	else if(compStr(flag, "-h"))
+		dehalf_cmd(client, channel_name[0], users);	// /DEHALFOP <nickname> works only inside a channel but the server receives the command as "MODE #miocanale -h <nickname>"
+	else if(compStr(flag, "+b"))
+		ban_cmd(client, channel_name, splitted[3]);	// /BAN <nickname>, the server receives the command as "MODE #miocanale +b <nickname>"
 	//Since ban supports different parameters called "Masks", the string that the server receives may differ
-	else if(compStr(aStr, "UNBAN"))
-		unban_cmd();				// /UNBAN <nickname>, the channel receives the command as "MODE #miocanale -b <nickname>"
+	else if(compStr(flag, "-b"))
+		unban_cmd(client, channel_name, splitted[3]); // /UNBAN <nickname>, the server receives the command as "MODE #miocanale -b <nickname>"
 	//Same as the ban command, unban is often used with different masks
-	else if(compStr(aStr, "VOICE"))
-		voice_cmd(client, clientConvert(splitted));
-	else if(compStr(aStr, "UNVOICE"))
-		unvoice_cmd();
+	else if(compStr(flag, "+v"))
+		voice_cmd(client, channel_name[0], users);
+	else if(compStr(flag, "-v"))
+		unvoice_cmd(client, channel_name[0], users);
 }
 
-std::vector<Channel *> Server::clientConvert(std::vector<std::string> splitted)
+std::vector<std::string> Server::parseBanMask(std::string banMask)
+{
+	std::vector<std::string> str1;
+	std::vector<std::string> str2;
+	std::vector<std::string> result;
+
+	if (banMask.find("!") == std::string::npos)
+	{
+		return (ft_split(banMask, "!"));
+	}
+	else if (banMask.find("!") >= 0)
+	{
+		if (banMask.find("@") == std::string::npos)
+		{
+			return (ft_split(banMask, "!"));
+		}
+		else
+		{
+			str1 = ft_split(banMask, "!");
+			str2 = ft_split(str1[1], "@");
+			result.push_back(str[0]);
+			result.push_back(str2[0]);
+			result.push_back(str2[1]);
+			return (result);
+		}
+	}
+}
+
+void Server::op_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToOp)
+{
+	Channel *channel;
+
+	if (!channel->isOp(admin))
+		return ;
+	channel = this->getChannel(channel_name);
+	for (uint i = 0; i < clientToOp.size(); i++)
+		if (!channel->op(clientToOp[i]))
+			return ;
+}
+
+void Server::deop_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeOp)
+{
+	Channel *channel;
+
+	if (!channel->isOp(admin))
+		return ;
+	channel = this->getChannel(channel_name);
+	for (uint i = 0; i < clientToDeOp.size(); i++)
+		if (!channel->deop(clientToDeOp[i]))
+			return ;
+}
+
+void Server::half_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToHalfOp)
+{
+	Channel *channel;
+
+	if (!channel->isOp(admin))
+		return ;
+	channel = this->getChannel(channel_name);
+	for (uint i = 0; i < clientToHalfOp.size(); i++)
+		if (!channel->halfOp(clientToHalfOp[i]))
+			return ;
+}
+
+void Server::dehalf_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeHalfOp)
+{
+	Channel *channel;
+
+	if (!channel->isOp(admin))
+		return ;
+	channel = this->getChannel(channel_name);
+	for (uint i = 0; i < clientToDeHalfOp.size(); i++)
+		if (!channel->deHalfOp(clientToDeHalfOp[i]))
+			return ;
+}
+
+void Server::voice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToVoice)
+{
+	Channel *channel;
+
+	if (!channel->isHalfOp(admin))
+		return ;
+	channel = this->getChannel(channel_name);
+	for (uint i = 0; i < clientToHalfOp.size(); i++)
+		if (!channel->voiceOp(clientToHalfOp[i]))
+			return ;
+}
+
+void Server::unvoice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnVoice)
+{
+	Channel *channel;
+
+	if (!channel->isHalfOp(admin))
+		return ;
+	channel = this->getChannel(channel_name);
+	for (uint i = 0; i < clientToUnVoice.size(); i++)
+		if (!channel->deVoiceOp(clientToUnVoice[i]))
+			return ;
+}
+
+
+void Server::ban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToBan)
+{
+	Channel *channel;
+
+	if (!channel->isOp(admin))
+		return ;
+	channel = this->getChannel(channel_name);
+	for (uint i = 0; i < clientToBan.size(); i++)
+		if (!channel->ban(clientToBan[i]))
+			return ;
+}
+
+void Server::unban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnBan)
+{
+	Channel *channel;
+
+	if (!channel->isOp(admin))
+		return ;
+	channel = this->getChannel(channel_name);
+	for (uint i = 0; i < clientToUnBan.size(); i++)
+		if (!channel->unBan(clientToUnBan[i]))
+			return ;
+}
+
+std::vector<Channel *> Server::channelConvert(std::vector<std::string> splitted)
 {
 	std::vector<Channel *> channel_list;
 	for(std::map<std::string, Channel*>::iterator it = channel_map.begin(); it != channel_map.end(); it++)
@@ -271,10 +399,10 @@ std::string Server::getDate() const
 	return (time_string);
 }
 
-int Server::get_max_fd(int sockfd)
-{
+// int Server::get_max_fd(int sockfd)
+// {
 
-}
+// }
 
 bool Server::parse_commands(Client *client, char *buf, int valrecv)
 {
@@ -291,7 +419,7 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	else if(compStr(aStr, "INVITE"))
 		invite_cmd(clientConvert(splitted), splitted[splitted.size() - 1]);
 	else if(compStr(aStr, "TOPIC"))
-		topic_cmd(splitted[1] ,topicConvert(splitted));
+		topic_cmd(splitted[1] ,topicConvert(splitted + 2));
 	else if(compStr(aStr, "KICK"))
 	{
 		if (splitted[3])
@@ -377,11 +505,6 @@ bool Server::privmsg_cmd(std::string mex, Client *receiver, Client *sender)
 			fatal();
 	}
 	return true;
-}
-
-bool Server::mode_cmd()
-{
-
 }
 
 bool Server::invite_cmd(std::vector<Client *> invited, std::string channel_name)
