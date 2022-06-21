@@ -23,6 +23,15 @@
 /*
 Per testare il programma scriviamo sul terminale, dopo aver avviato il server,:
 >nc 0.0.0.0 8080
+
+Prototipi dei comandi (per server) - OK
+Prototipi dei comandi (per channel) - OK(penso)
+Aggiungere parametri alle chiamate di funzione dei comandi - DA FINIRE
+Scrivere le funzioni dei comandi - DA FARE
+Scrivere la stampa dei messaggi a video dei vari comandi - DA FARE
+Controllare bene Channel.hpp, manca l'identitá del canale (name, topic, eccc.) - DA FARE
+Scrivere i controlli inerenti agli operatori (op, halfop) per i vari comandi - DA FARE
+
 */
 
 class Client;
@@ -56,7 +65,7 @@ class Server
 /**/    Server& operator=(const Server &obj);
 
         void accept_client(int sockfd);
-        void send_all(std::string mex, Client sender);
+        void send_all(std::string mex, Client sender); //Sends a message to every connected clients
         
         //setters
         void setDate();
@@ -71,23 +80,37 @@ class Server
 
         //utils
         int get_max_fd(int sockfd);
-        std::string toUpper(std::string toUp);
-        bool compStr(std::string buf, std::string str);
-        std::vector<Client *> clientConvert(std::vector<std::string> toConv);
+        std::string toUpper(std::string toUp); //Convert a character from lower case to upper case
+        bool compStr(std::string buf, std::string str); //Compare two given strings
+        std::vector<Client *> clientConvert(std::vector<std::string> toConv); //Return a vector of clients, they are extrapolated from a splitted string (std::vector<std::string>)
+        std::string topicConvert(std::vector<std::string> toConv); //Return a string that contains the topic of a channel, same as clientConvert
         
         //commands 
-        bool parse_commands(Client *client, char *buf, int valrecv);
+        bool parse_commands(Client *client, char *buf, int valrecv); //Function used to parse commands sent by clients
         bool quit_cmd();
 
         //channel cmd
-        bool mode_cmd();
+        bool mode_cmd(); //quiiiiiii!!
         bool invite_cmd(std::vector<Client *> invited, std::string channel_name);
         bool topic_cmd(std::string channel_name, std::string topic);
-        bool kick_cmd();
+        bool kick_cmd(std::string channel_name, std::string client_name, std::string reason);
 
         //other cmd
-
         bool join_cmd(Client *client, std::string channel_name, std::string psw);
+        bool op_cmd(std::string channel_name, std::vector<Client *> clientToOp);
+        bool deop_cmd(std::string channel_name, std::vector<Client *> clientToDeOp);
+        bool half_cmd(std::string channel_name, std::vector<Client *> clientToHalfOp);
+        bool dehalf_cmd(std::string channel_name, std::vector<Client *> clientToDeHalfOp);
+        bool ban_cmd(std::string channel_name, std::vector<Client *> clientToBan);
+        bool unban_cmd(std::string channel_name, std::vector<Client *> clientToUnBan);
+        bool voice_cmd(std::string channel_name, std::vector<Client *> clientToVoice);
+        bool unvoice_cmd(std::string channel_name, std::vector<Client *> clientToUnVoice);
+        bool who_cmd(std::string filter);   //The filter is the name of the channel that contains the list of users that you want to visualize [channel or a client] (# or ' ')
+        bool whois_cmd(std::string nickname);
+        bool privmsg_cmd(std::string target, std::string text); //The target could be a channel or a client (# or ' ')
+        bool leave_cmd(std::vector<Channel *> channel); //Leaves a channel/s
+        bool pass_cmd(Client *client, std::string);
+
         //clients and channels management by server
         Client getClient(int sockfd);
         Channel getChannel(std::string nameCh);

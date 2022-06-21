@@ -1,5 +1,48 @@
 #include "../includes/Server.hpp"
 
+std::vector<Channel *> Server::clientConvert(std::vector<std::string> splitted)
+{
+	std::vector<Channel *> channel_list;
+	for(std::map<std::string, Channel*>::iterator it = channel_map.begin(); it != channel_map.end(); it++)
+	{
+		for (uint i = 1; i < splitted.size(); i++)
+		{
+			if (splitted[i] == it->second)
+				channel_list.push_back(*it->second);
+		}
+	}
+	return (channel_list);
+}
+
+//se i nick passati sono nel server, crea un nuovo vettore di clients
+std::vector<Client *> Server::clientConvert(std::vector<std::string> splitted)
+{
+	std::vector<Client *> new_clients;
+	for (uint j = 0; j < clients.size() - 1; j++)
+	{
+		for (uint i = 1; i < splitted.size(); i++)
+		{
+			if (splitted[i] == clients[j]->getNick())
+				new_clients.push_back(clients[j]);
+		}
+	}
+	return (new_clients);
+}
+
+std::string topicConvert(std::vector<std::string> toConv)
+{
+	std::string result;
+
+	for (uint i = 0; i < toConv.size(); i++)
+		result += toConv[i];
+		if (i == toConv.size() - 1) //se é l'ultima stringa prima del nome del channel
+			result += "\0";
+		else
+			result +=  " ";
+		
+	return (result);
+}
+
 std::string Server::toUpper(std::string toUp)
 {
 	std::transform(toUp.begin(), toUp.end(),toUp.begin(), ::toupper);
@@ -151,6 +194,7 @@ void Server::accept_client(int sockfd)
 	send_all(this->server_buffer, getClient(sockfd));
 	FD_SET(new_fd, &this->curr_fds);
 	client_map.insert(std::make_pair(new_fd, getClient(new_fd)));
+	clients.push_back(getClient(new_fd));
 }
 
 void Server::send_all(std::string mex, Client sender)
@@ -225,9 +269,14 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	else if(compStr(aStr, "INVITE"))
 		invite_cmd(clientConvert(splitted), splitted[splitted.size() - 1]);
 	else if(compStr(aStr, "TOPIC"))
-		topic_cmd(append(splitted[2], ));
+		topic_cmd(splitted[1] ,topicConvert(splitted));
 	else if(compStr(aStr, "KICK"))
-		kick_cmd();
+	{
+		if (splitted[3])
+			kick_cmd(splitted[1], splitted[2], splitted[3]);
+		else
+			kick_cmd(splitted[1], splitted[2]);
+	}
 	else if(compStr(aStr, "JOIN"))
 		join_cmd();
 	else if(compStr(aStr, "OP"))
@@ -254,6 +303,10 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 		privmsg_cmd()
 	else if(compStr(aStr, "MODE"))
 		mode_cmd();
+	else if(compStr(aStr, "LEAVE"))
+		leave_cmd(channelConvert(splitted));
+	else if(compStr(aStr, "PASS"))
+		leave_cmd(client, splitted[1]);
 	else
 		return false;
 }
@@ -323,9 +376,15 @@ bool Server::topic_cmd(std::string channel_name, std::string topic = "")
     return false;
 }
 
-bool Server::kick_cmd()
+bool Server::kick_cmd(std::string channel_name, std::string client_name, std::string reason = "")
 {
+	Channel *channel;
 
+	channel = this->getChannel(channel_name);
+	for (uint i = 0; i < clients.size(); i++)
+		if (clients[i].getNick() == client_name)
+			return (channel.kickCmd(clients[i], reason));
+	return false;
 }
 
 bool Server::join_cmd(Client *client, std::string channel_name, std::string psw = "")
