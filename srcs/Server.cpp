@@ -265,7 +265,7 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	splitted = ft_split(clientCommand, " ");
 	aStr = toUpper(splitted[0]);
 	if(compStr(aStr, "QUIT"))
-		quit_cmd();
+		quit_cmd(client, splitted + 1);
 	else if(compStr(aStr, "INVITE"))
 		invite_cmd(clientConvert(splitted), splitted[splitted.size() - 1]);
 	else if(compStr(aStr, "TOPIC"))
@@ -311,9 +311,41 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 		return false;
 }
 
-bool Server::quit_cmd()
+bool Server::quit_cmd(Client *client, std::vector<std::string> words)
 {
+	//quitta dal server e puoi mandare un messaggio (no fucking flags)
+	int id = client->getFd();
+	int fd = client->getId();
+	std::string msg_quit;
+	std::string msg;
 
+	std::cout << "The disconnected host was named " << client->getUser() << std::endl;
+	
+	for (std::map<std::string, Channel*>::iterator i = client_map.begin(); i < client_map.end(); i++)
+	{
+		//deve mandare questo messaggio a tutti gli utenti di tutti i canali di cui facevi parte e uscire kickarti dai canali
+		//iafi [~kvirc@Azzurra-3476AEA0.business.telecomitalia.it] has quit IRC: Quit: vafammoc
+
+		//channel_map.begin()
+		//lista dei canali di cui fai parte
+		//ciclati e con un send all
+	}
+	for (uint i = 0; i < words.size(); i++) 
+	{
+		msg_quit += words[i];
+		if (i < words.size() - 1)
+			msg_quit += " ";
+		else
+			msg_quit += '\0';
+	}
+	msg += "Server ERROR: :Closing Link: host" << client->getHost() << " " << "(Quit: " << msg_quit << ")";
+	std::cout << msg << std::endl;
+	//remove client from clients client_map
+	msg.clear();
+	client_map.erase(fd);
+	clients.erase(id);
+	close(fd);
+	exit(0);
 }
 
 bool Server::privmsg_cmd(std::string mex, Client *receiver, Client *sender)
