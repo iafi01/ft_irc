@@ -321,23 +321,37 @@ bool Server::quit_cmd(Client *client, std::vector<std::string> words)
 
 	std::cout << "The disconnected host was named " << client->getUser() << std::endl;
 	
-	for (std::map<std::string, Channel*>::iterator i = client_map.begin(); i < client_map.end(); i++)
+	Channel* i = channel_map.begin()->second;
+	while (i < channel_map.end()->second)
 	{
 		//deve mandare questo messaggio a tutti gli utenti di tutti i canali di cui facevi parte e uscire kickarti dai canali
-		//iafi [~kvirc@Azzurra-3476AEA0.business.telecomitalia.it] has quit IRC: Quit: vafammoc
+		//iafi [~kvirc@Azzurra-3476AEA0.business.telecomitalia.it] has quit IRC: Quit: sono uscito
 
-		//channel_map.begin()
+		
 		//lista dei canali di cui fai parte
 		//ciclati e con un send all
+		for (uint j = 0; j < words.size(); j++) 
+		{
+			msg_quit += words[j];
+			if (j < words.size() - 1)
+				msg_quit += " ";
+			else
+				msg_quit += '\0';
+		}
+		std::vector<Client *> channel_clients = i->getClients();
+		for (std::vector<Client *>::iterator l = channel_clients.begin(); l < channel_clients.end(); l++)
+		{
+			if (client == channel_clients[l])
+			{
+				//fa parte di questo canale
+				msg += client->getUser() << " " << client->getHost() << " has quit IRC: Quit: " << msg_quit;
+				send_all(msg, client);
+				i->kickCmd(client, "quit");
+			}
+		}
+		i++;
 	}
-	for (uint i = 0; i < words.size(); i++) 
-	{
-		msg_quit += words[i];
-		if (i < words.size() - 1)
-			msg_quit += " ";
-		else
-			msg_quit += '\0';
-	}
+	msg.clear();
 	msg += "Server ERROR: :Closing Link: host" << client->getHost() << " " << "(Quit: " << msg_quit << ")";
 	std::cout << msg << std::endl;
 	//remove client from clients client_map
