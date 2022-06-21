@@ -31,6 +31,8 @@ Scrivere le funzioni dei comandi - DA FARE
 Scrivere la stampa dei messaggi a video dei vari comandi - DA FARE
 Controllare bene Channel.hpp, manca l'identitá del canale (name, topic, eccc.) - DA FARE
 Scrivere i controlli inerenti agli operatori (op, halfop) per i vari comandi - DA FARE
+Il channel operator (op) puo' eseguire qualsiasi comando mentre l'halfop non puo' dare alcun
+tipo di potere tranne voice e unvoice
 
 */
 
