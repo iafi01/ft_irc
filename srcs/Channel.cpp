@@ -117,7 +117,7 @@ bool Channel::deVoiceOp(Client *client)
     return (false);
 }
 
-bool Channel::ban(std::string nick = "*", std::string user = "*", std::string host = "*", Client *admin, std::string _reason = "")
+bool Channel::ban(Client *admin, std::string nick = "*", std::string user = "*", std::string host = "*", std::string _reason = "")
 {
     try {
         Banned victim;
@@ -130,7 +130,7 @@ bool Channel::ban(std::string nick = "*", std::string user = "*", std::string ho
 
         victim.reason = _reason;
         victim.ban_time = ctime(&now);
-        victim.admin->nickname = admin;
+        victim.admin = admin;
 
         this->banned_vec.push_back(&victim);
         return (true);
@@ -141,7 +141,7 @@ bool Channel::ban(std::string nick = "*", std::string user = "*", std::string ho
     }
 }
 
-bool Channel::unBan(std::string nick = "*", std::string user = "*", std::string host = "*")
+bool Channel::unBan(Client *admin, std::string nick = "*", std::string user = "*", std::string host = "*")
 {
     std::vector<Banned*>::iterator i;
 
@@ -263,34 +263,34 @@ bool Channel::topicCmd(std::string setTopic)
     }
 }
 
-bool Channel::modeCmd(enum modOp type, Client *client, std::string _reason = "")
-{
-    try
-    {
-        if (type == _op)
-            op(client);
-        else if (type == _deop)
-            deop(client);
-        else if (type == _halfOp)
-            halfOp(client);
-        else if (type == _deHalfOp)
-            deHalfOp(client);
-        else if (type == _voiceOp)
-            voiceOp(client);
-        else if (type == _deVoiceOp)
-            deVoiceOp(client);
-        else if (type == _ban)
-            ban(client->getNick(), client->getUser(), client->getHost(), _reason);
-        else if (type == _unBan)
-            unBan(client->getNick(), client->getUser(), client->getHost());
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-        return false;
-    }
-    return true;
-}
+// bool Channel::modeCmd(enum modOp type, Client *client, std::string _reason = "")
+// {
+//     try
+//     {
+//         if (type == _op)
+//             op(client);
+//         else if (type == _deop)
+//             deop(client);
+//         else if (type == _halfOp)
+//             halfOp(client);
+//         else if (type == _deHalfOp)
+//             deHalfOp(client);
+//         else if (type == _voiceOp)
+//             voiceOp(client);
+//         else if (type == _deVoiceOp)
+//             deVoiceOp(client);
+//         else if (type == _ban)
+//             ban(client->getNick(), client->getUser(), client->getHost(), , _reason);
+//         else if (type == _unBan)
+//             unBan(client->getNick(), client->getUser(), client->getHost());
+//     }
+//     catch(const std::exception& e)
+//     {
+//         std::cerr << e.what() << '\n';
+//         return false;
+//     }
+//     return true;
+// }
 
 bool Channel::isInvited(const Client* client)
 {
