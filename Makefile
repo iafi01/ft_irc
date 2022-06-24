@@ -7,6 +7,9 @@ CFLAGS = -Wall -Wextra -Werror -std=98
 RM = rm -f
 OBJS = $(SRCS:.cpp=.o)
 
+#make &> file.txt
+#sed '/Applications*/d' file.txt && sed '/operator<<*/d' file.txt
+
 all:		$(NAME)
 
 $(NAME):	$(OBJS)

@@ -5,7 +5,7 @@ std::vector<std::string> ft_split(std::string toSplit, std::string toFind)
 	std::vector<std::string> splitted;
 	while(toSplit.size())
 	{
-		unsigned long index = splitted.find(toFind);
+		unsigned long index = toSplit.find(toFind);
 		if (index!=std::string::npos)
 		{
 			if (index != 0)
@@ -35,10 +35,13 @@ bool Server::mode_cmd(Client *client, std::vector<std::string> splitted)
 	else if(compStr(flag, "-h"))
 		dehalf_cmd(client, channel_name, users);	// /DEHALFOP <nickname> works only inside a channel but the server receives the command as "MODE #miocanale -h <nickname>"
 	else if(compStr(flag, "+b"))
-		ban_cmd(client, channel_name, splitted[3], topicConvert(splitted + 4));	// /BAN <nickname>, the server receives the command as "MODE #miocanale +b <nickname>"
+	{
+		std::vector<std::string>::iterator it;
+		ban_cmd(client, channel_name, users, topicConvert(*it + 4));
+	}	// /BAN <nickname>, the server receives the command as "MODE #miocanale +b <nickname>"
 	//Since ban supports different parameters called "Masks", the string that the server receives may differ
 	else if(compStr(flag, "-b"))
-		unban_cmd(client, channel_name, splitted[3]); // /UNBAN <nickname>, the server receives the command as "MODE #miocanale -b <nickname>"
+		unban_cmd(client, channel_name, users); // /UNBAN <nickname>, the server receives the command as "MODE #miocanale -b <nickname>"
 	//Same as the ban command, unban is often used with different masks
 	else if(compStr(flag, "+v"))
 		voice_cmd(client, channel_name, users);
@@ -162,12 +165,12 @@ bool Server::ban_cmd(Client *admin, std::string channel_name, std::vector<Client
 		return false;
 	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToBan.size(); i++)
-		if (!channel->ban(clientToBan[i]->getNick(), clientToBan[i]->getUser(), clientToBan[i]->getHost(), admin, reason))
+		if (!channel->ban(admin, clientToBan[i]->getNick(), clientToBan[i]->getUser(), clientToBan[i]->getHost(), reason))
 			return false;
 	return true;
 }
 
-bool Server::unban_cmd(Client *admin, std::string channel_name, std::string clientToUnBan)
+bool Server::unban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnBan)
 {
 	Channel *channel;
 
@@ -175,7 +178,7 @@ bool Server::unban_cmd(Client *admin, std::string channel_name, std::string clie
 		return false;
 	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToUnBan.size(); i++)
-		if (!channel->unBan(clientToUnBan[i]->getNick(), clientToUnBan[i]->getUser(), clientToUnBan[i]->getHost(), admin))
+		if (!channel->unBan(admin, clientToUnBan[i]->getNick(), clientToUnBan[i]->getUser(), clientToUnBan[i]->getHost()))
 			return false;
 	return true;
 }
@@ -187,8 +190,8 @@ std::vector<Channel *> Server::channelConvert(std::vector<std::string> splitted)
 	{
 		for (uint i = 1; i < splitted.size(); i++)
 		{
-			if (splitted[i] == it->second)
-				channel_list.push_back(*it->second);
+			if (splitted[i] == it->first)
+				channel_list.push_back(it->second);
 		}
 	}
 	return (channel_list);
@@ -291,7 +294,7 @@ void Server::start_server()
 					else
 					{
 						buf[valrecv] = '\0';
-						Client *client = &getClient(fd);
+						Client *client = this->getClient(fd);
 						if(client->getIsMsg() && buf[0] == '/')
 						{
 							sprintf(this->server_buffer, "client %d: ", client->getId());
@@ -533,7 +536,7 @@ bool Server::invite_cmd(std::vector<Client *> invited, std::string channel_name)
 	channel = this->getChannel(channel_name);
 	it = client_map.begin();
 
-	for (int i = 0; i < invited.lenght(); i++)
+	for (int i = 0; i < invited.size(); i++)
 	{
 		while(it != client_map.end())
 		{
