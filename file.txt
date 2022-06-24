@@ -1,0 +1,157 @@
+c++    -c -o srcs/Server.o srcs/Server.cpp
+srcs/Server.cpp:40:57: error: invalid operands to binary expression ('std::__1::basic_string<char>' and 'int')
+                ban_cmd(client, channel_name, users, topicConvert(*it + 4));
+                                                                  ~~~ ^ ~
+^
+^
+^
+    ^
+^
+^
+^
+^
+srcs/Server.cpp:287:53: warning: more '%' conversions than data arguments [-Wformat]
+                                                sprintf(this->server_buffer, "server: client %d just left\n");
+                                                                                             ~^
+srcs/Server.cpp:288:14: error: cannot take the address of an rvalue of type 'Client *'
+                                                delete &getClient(fd);
+                                                       ^~~~~~~~~~~~~~
+srcs/Server.cpp:435:29: error: invalid operands to binary expression ('std::vector<std::string>' (aka 'vector<basic_string<char, char_traits<char>, allocator<char> > >') and 'int')
+                quit_cmd(client, splitted + 1);
+                                 ~~~~~~~~ ^ ~
+^
+^
+    ^
+^
+^
+^
+^
+^
+srcs/Server.cpp:439:48: error: invalid operands to binary expression ('std::vector<std::string>' (aka 'vector<basic_string<char, char_traits<char>, allocator<char> > >') and 'int')
+                topic_cmd(splitted[1] ,topicConvert(splitted + 2));
+                                                    ~~~~~~~~ ^ ~
+^
+^
+    ^
+^
+^
+^
+^
+^
+srcs/Server.cpp:442:7: error: no viable conversion from 'std::__1::__vector_base<std::__1::basic_string<char>, std::__1::allocator<std::__1::basic_string<char> > >::value_type' (aka 'std::__1::basic_string<char>') to 'bool'
+                if (splitted[3])
+                    ^~~~~~~~~~~
+    ^
+srcs/Server.cpp:445:37: error: too few arguments to function call, expected 3, have 2
+                        kick_cmd(splitted[1], splitted[2]);
+                        ~~~~~~~~                         ^
+srcs/../includes/Server.hpp:102:9: note: 'kick_cmd' declared here
+        bool kick_cmd(std::string channel_name, std::string client_name, std::string reason);
+        ^
+srcs/Server.cpp:450:11: error: too few arguments to function call, single argument 'filter' was not specified
+                who_cmd();
+                ~~~~~~~ ^
+srcs/../includes/Server.hpp:115:9: note: 'who_cmd' declared here
+        bool who_cmd(std::string filter);   //The filter is the name of the channel that contains the list of users that you want to visualize [channel or a client] (# or ' ')
+        ^
+srcs/Server.cpp:452:13: error: too few arguments to function call, single argument 'nickname' was not specified
+                whois_cmd();
+                ~~~~~~~~~ ^
+srcs/../includes/Server.hpp:116:9: note: 'whois_cmd' declared here
+        bool whois_cmd(std::string nickname);
+        ^
+srcs/Server.cpp:454:15: error: too few arguments to function call, expected 3, have 0
+                privmsg_cmd()
+                ~~~~~~~~~~~ ^
+srcs/../includes/Server.hpp:117:9: note: 'privmsg_cmd' declared here
+        bool privmsg_cmd(Client *admin, std::string target, std::string text); //The target could be a channel or a client (# or ' ')
+        ^
+srcs/Server.cpp:458:37: error: too few arguments to function call, expected 2, have 1
+                leave_cmd(channelConvert(splitted));
+                ~~~~~~~~~                         ^
+srcs/../includes/Server.hpp:118:9: note: 'leave_cmd' declared here
+        bool leave_cmd(Client *client, std::vector<Channel *> channel); //Leaves a channel/s
+        ^
+srcs/Server.cpp:460:21: error: no viable conversion from 'std::__1::__vector_base<std::__1::basic_string<char>, std::__1::allocator<std::__1::basic_string<char> > >::value_type' (aka 'std::__1::basic_string<char>') to 'std::vector<Channel *>'
+                leave_cmd(client, splitted[1]);
+                                  ^~~~~~~~~~~
+    vector(const vector& __x);
+    ^
+    ^
+srcs/../includes/Server.hpp:118:63: note: passing argument to parameter 'channel' here
+        bool leave_cmd(Client *client, std::vector<Channel *> channel); //Leaves a channel/s
+                                                              ^
+                        if (client == channel_clients[l])
+                                      ~~~~~~~~~~~~~~~^~
+                                              ^
+                                              ^
+srcs/Server.cpp:498:30: error: invalid operands to binary expression ('std::string' (aka 'basic_string<char, char_traits<char>, allocator<char> >') and 'const char [2]')
+                                msg += client->getUser() << " " << client->getHost() << " has quit IRC: Quit: " << msg_quit;
+                                       ~~~~~~~~~~~~~~~~~ ^  ~~~
+^
+^
+^
+^
+^
+^
+^
+^
+^
+^
+^
+^
+^
+^
+^
+^
+srcs/Server.cpp:499:19: error: no viable conversion from 'Client *' to 'Client'
+                                send_all(msg, client);
+                                              ^~~~~~
+srcs/../includes/Client.hpp:26:9: note: candidate constructor not viable: no known conversion from 'Client *' to 'const Client &' for 1st argument; dereference the argument with *
+        Client(const Client &obj);
+        ^
+srcs/../includes/Client.hpp:25:9: note: candidate constructor not viable: no known conversion from 'Client *' to 'int' for 1st argument
+        Client(int fd);
+        ^
+srcs/Server.cpp:362:47: note: passing argument to parameter 'sender' here
+void Server::send_all(std::string mex, Client sender)
+                                              ^
+srcs/Server.cpp:506:45: error: invalid operands to binary expression ('const char [34]' and 'std::string' (aka 'basic_string<char, char_traits<char>, allocator<char> >'))
+        msg += "Server ERROR: :Closing Link: host" << client->getHost() << " " << "(Quit: " << msg_quit << ")";
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^  ~~~~~~~~~~~~~~~~~
+^
+^
+^
+^
+^
+^
+^
+^
+^
+^
+^
+^
+^
+^
+^
+^
+srcs/Server.cpp:511:10: error: no matching member function for call to 'erase'
+        clients.erase(id);
+        ~~~~~~~~^~~~~
+    _LIBCPP_INLINE_VISIBILITY iterator erase(const_iterator __position);
+                                       ^
+    iterator erase(const_iterator __first, const_iterator __last);
+             ^
+srcs/Server.cpp:516:14: error: out-of-line definition of 'privmsg_cmd' does not match any declaration in 'Server'
+bool Server::privmsg_cmd(std::string mex, Client *receiver, Client *sender)
+             ^~~~~~~~~~~
+srcs/Server.cpp:543:19: error: invalid operands to binary expression ('std::__1::__vector_base<Client *, std::__1::allocator<Client *> >::value_type' (aka 'Client *') and 'Client')
+                        if (invited[i] == *it->second)
+                            ~~~~~~~~~~ ^  ~~~~~~~~~~~
+srcs/Server.cpp:577:17: error: member reference type 'std::__1::__vector_base<Client *, std::__1::allocator<Client *> >::value_type' (aka 'Client *') is a pointer; did you mean to use '->'?
+                if (clients[i].getNick() == client_name)
+                    ~~~~~~~~~~^
+                              ->
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
+1 warning and 20 errors generated.
+make: *** [srcs/Server.o] Error 1
