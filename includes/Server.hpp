@@ -24,12 +24,10 @@
 Per testare il programma scriviamo sul terminale, dopo aver avviato il server,:
 >nc 0.0.0.0 8080
 
-Prototipi dei comandi (per server) - OK
 Prototipi dei comandi (per channel) - OK(penso)
 Aggiungere parametri alle chiamate di funzione dei comandi - DA FINIRE
 Scrivere le funzioni dei comandi - DA FARE
 Scrivere la stampa dei messaggi a video dei vari comandi - DA FARE
-Controllare bene Channel.hpp, manca l'identitá del canale (name, topic, eccc.) - DA FARE
 Scrivere i controlli inerenti agli operatori (op, halfop) per i vari comandi - DA FARE
 Il channel operator (op) puo' eseguire qualsiasi comando mentre l'halfop non puo' dare alcun
 tipo di potere tranne voice e unvoice (gestire i permessi)
@@ -91,6 +89,7 @@ class Server
         std::vector<Client *> clientConvert(std::vector<std::string> toConv); //Return a vector of clients, they are extrapolated from a splitted string (std::vector<std::string>)
         std::string topicConvert(std::vector<std::string> toConv); //Return a string that contains the topic of a channel, same as clientConvert
         std::vector<std::string> parseBanMask(std::string banMask);//function parse mode cmds banmask
+        std::vector<Channel *> channelConvert(std::vector<std::string> splitted);
 
         //commands 
         bool parse_commands(Client *client, char *buf, int valrecv); //Function used to parse commands sent by clients
@@ -120,6 +119,6 @@ class Server
         bool pass_cmd(Client *admin, std::string);
 
         //clients and channels management by server
-        Client getClient(int sockfd);
-        Channel getChannel(std::string nameCh);
+        Client* getClient(int sockfd);
+        Channel* getChannel(std::string nameCh);
 };
