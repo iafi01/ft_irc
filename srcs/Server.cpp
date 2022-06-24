@@ -295,12 +295,12 @@ void Server::start_server()
 						if(client->getIsMsg() && buf[0] == '/')
 						{
 							sprintf(this->server_buffer, "client %d: ", client->getId());
-							send_all(this->server_buffer, getClient(fd));
+							send_all(this->server_buffer, *getClient(fd));
 						}
 						if (!parse_commands(client, buf, valrecv))
 						{
 							client->setIsMsg(c == '\n');
-							send_all(&c, getClient(fd));
+							send_all(&c, *getClient(fd));
 						}
 					}
 				}
@@ -350,7 +350,7 @@ void Server::accept_client(int sockfd)
 	if((new_fd = accept(this->sockfd, NULL, NULL)) < 0)
 		fatal();
 	sprintf(this->server_buffer, "server: client %d just arrived\n", new_fd);
-	send_all(this->server_buffer, getClient(sockfd));
+	send_all(this->server_buffer, *getClient(sockfd));
 	FD_SET(new_fd, &this->curr_fds);
 	client_map.insert(std::make_pair(new_fd, getClient(new_fd)));
 	clients.push_back(getClient(new_fd));
@@ -398,6 +398,11 @@ int Server::get_max_id() const
 	return (max_id);
 }
 
+int Server::get_max_fd(int sockfd)
+{
+
+}
+
 std::string Server::get_pass() const
 {
 	return (pass);
@@ -437,7 +442,7 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 			kick_cmd(splitted[1], splitted[2]);
 	}
 	else if(compStr(aStr, "JOIN"))
-		join_cmd(client, splitted);
+		join_cmd(client, splitted[1], splitted[2]);
 	else if(compStr(aStr, "WHO"))
 		who_cmd();
 	else if(compStr(aStr, "WHOIS"))
