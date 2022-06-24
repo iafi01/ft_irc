@@ -83,7 +83,7 @@ class Server
         std::string getDate() const;
 
         //utils
-        //int get_max_fd(int sockfd);
+        int get_max_fd(int sockfd);
         std::string toUpper(std::string toUp); //Convert a character from lower case to upper case
         bool compStr(std::string buf, std::string str); //Compare two given strings
         std::vector<Client *> clientConvert(std::vector<std::string> toConv); //Return a vector of clients, they are extrapolated from a splitted string (std::vector<std::string>)
@@ -108,7 +108,7 @@ class Server
         bool deop_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeOp);
         bool half_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToHalfOp);
         bool dehalf_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeHalfOp);
-        bool ban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToBan);
+        bool ban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToBan, std::string reason);
         bool unban_cmd(Client *admin, std::string channel_name, std::string clientToUnBan);
         bool voice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToVoice);
         bool unvoice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnVoice);
