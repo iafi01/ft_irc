@@ -1,5 +1,26 @@
 #include "../includes/Server.hpp"
 
+std::vector<std::string> ft_split(std::string toSplit, std::string toFind)
+{
+	std::vector<std::string> splitted;
+	while(toSplit.size())
+	{
+		unsigned long index = splitted.find(toFind);
+		if (index!=std::string::npos)
+		{
+			if (index != 0)
+				splitted.push_back(toSplit.substr(0, index));
+			toSplit = toSplit.substr(index + toFind.size());
+		}
+		else
+		{
+			splitted.push_back(toSplit);
+			toSplit = "";
+		}
+	}
+	return (splitted);
+}
+
 bool Server::mode_cmd(Client *client, std::vector<std::string> splitted)
 {
 	std::string flag = splitted[2];												//+o, -o, +v, -v, +h, -h, +b, -b
@@ -54,101 +75,109 @@ std::vector<std::string> Server::parseBanMask(std::string banMask)
 	}
 }
 
-void Server::op_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToOp)
+bool Server::op_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToOp)
 {
 	Channel *channel;
 
 	if (!channel->isOp(admin))
-		return ;
+		return false;
 	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToOp.size(); i++)
 		if (!channel->op(clientToOp[i]))
-			return ;
+			return false;
+	return true;
 }
 
-void Server::deop_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeOp)
+bool Server::deop_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeOp)
 {
 	Channel *channel;
 
 	if (!channel->isOp(admin))
-		return ;
+		return false;
 	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToDeOp.size(); i++)
 		if (!channel->deop(clientToDeOp[i]))
-			return ;
+			return false;
+	return true;
 }
 
-void Server::half_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToHalfOp)
+bool Server::half_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToHalfOp)
 {
 	Channel *channel;
 
 	if (!channel->isOp(admin))
-		return ;
+		return false;
 	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToHalfOp.size(); i++)
 		if (!channel->halfOp(clientToHalfOp[i]))
-			return ;
+			return true;
+	return false;
 }
 
-void Server::dehalf_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeHalfOp)
+bool Server::dehalf_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeHalfOp)
 {
 	Channel *channel;
 
 	if (!channel->isOp(admin))
-		return ;
+		return false;
 	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToDeHalfOp.size(); i++)
 		if (!channel->deHalfOp(clientToDeHalfOp[i]))
-			return ;
+			return true;
+	return false;
 }
 
-void Server::voice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToVoice)
+bool Server::voice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToVoice)
 {
 	Channel *channel;
 
 	if (!channel->isHalfOp(admin))
-		return ;
+		return false;
 	channel = this->getChannel(channel_name);
-	for (uint i = 0; i < clientToHalfOp.size(); i++)
-		if (!channel->voiceOp(clientToHalfOp[i]))
-			return ;
+	for (uint i = 0; i < clientToVoice.size(); i++)
+		if (!channel->voiceOp(clientToVoice[i]))
+			return true;
+	return false;
 }
 
-void Server::unvoice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnVoice)
+bool Server::unvoice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnVoice)
 {
 	Channel *channel;
 
 	if (!channel->isHalfOp(admin))
-		return ;
+		return false;
 	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToUnVoice.size(); i++)
 		if (!channel->deVoiceOp(clientToUnVoice[i]))
-			return ;
+			return true;
+	return false;
 }
 
 
-void Server::ban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToBan, std::string reason)
+bool Server::ban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToBan, std::string reason)
 {
 	Channel *channel;
 
 	if (!channel->isOp(admin))
-		return ;
+		return false;
 	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToBan.size(); i++)
 		if (!channel->ban(clientToBan[i]->getNick(), clientToBan[i]->getUser(), clientToBan[i]->getHost(), admin, reason))
-			return ;
+			return false;
+	return true;
 }
 
-void Server::unban_cmd(Client *admin, std::string channel_name, std::string clientToUnBan)
+bool Server::unban_cmd(Client *admin, std::string channel_name, std::string clientToUnBan)
 {
 	Channel *channel;
 
 	if (!channel->isOp(admin))
-		return ;
+		return false;
 	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToUnBan.size(); i++)
 		if (!channel->unBan(clientToUnBan[i]->getNick(), clientToUnBan[i]->getUser(), clientToUnBan[i]->getHost(), admin))
-			return ;
+			return false;
+	return true;
 }
 
 std::vector<Channel *> Server::channelConvert(std::vector<std::string> splitted)
@@ -205,27 +234,6 @@ bool Server::compStr(std::string buffer, std::string str)
 	if(!std::strncmp(buffer.c_str(), str.c_str(), str.length() + 1))
 		return true;
 	return false;
-}
-
-std::vector<std::string> ft_split(std::string toSplit, std::string toFind)
-{
-	std::vector<std::string> splitted;
-	while(toSplit.size())
-	{
-		unsigned long index = splitted.find(toFind);
-		if (index!=std::string::npos)
-		{
-			if (index != 0)
-				splitted.push_back(toSplit.substr(0, index));
-			toSplit = toSplit.substr(index + toFind.size());
-		}
-		else
-		{
-			splitted.push_back(toSplit);
-			toSplit = "";
-		}
-	}
-	return (splitted);
 }
 
 //private used by contructors
@@ -584,7 +592,7 @@ Client Server::getClient(int sockfd)
 	}
 }
 
-Channel Server::getChannel(std::string nameCh)
+Channel* Server::getChannel(std::string nameCh)
 {
 	for(std::map<std::string, Channel*>::iterator it = channel_map.begin(); it != channel_map.end(); it++)
 	{

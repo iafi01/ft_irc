@@ -48,6 +48,7 @@ class Channel {
         int nClient;
         int is_only_invite;
 
+    public:
         //only admin functions
         bool setPass(std::string psw);
         bool op(Client *client);
@@ -59,9 +60,11 @@ class Channel {
         bool ban(Client *admin, std::string nick, std::string user, std::string host, std::string _reason);
         bool unBan(Client *admin, std::string nick, std::string user, std::string host);
         bool modInvite(enum modInvite i);
-    public:
+        
         std::string getName() const;
         std::string getTopic() const;
+        bool setTopic(std::string topic);
+
         std::vector<Client*> getClients() const;
         std::vector<Client*> getOp() const;
         std::vector<Client*> halfOp() const;
@@ -77,7 +80,7 @@ class Channel {
         void connect(Client* client, std::string psw);
         void disconnect(Client* client);
         void sendMessage(const Client* sender, std::string msg) const;
-        bool setTopic(std::string topic);
+        
         //cmds
         bool kickCmd(Client *client, std::string _reason);
         bool inviteCmd(Client *client);
