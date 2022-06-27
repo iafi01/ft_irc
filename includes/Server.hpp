@@ -96,27 +96,27 @@ class Server
         
 
         //channel cmd
-        bool mode_cmd(Client *client, std::vector<std::string> splitted);
-        bool invite_cmd(std::vector<Client *> invited, std::string channel_name);
-        bool topic_cmd(std::string channel_name, std::string topic);
-        bool kick_cmd(std::string channel_name, std::string client_name, std::string reason);
-        bool quit_cmd(Client *client, std::vector<std::string> words);
+        void mode_cmd(Client *client, std::vector<std::string> splitted);
+        void invite_cmd(std::vector<Client *> invited, std::string channel_name, Client *sender);
+        void topic_cmd(std::string channel_name, std::string topic, Client *sender);
+        void kick_cmd(std::string channel_name, std::string client_name, std::string reason, Client *sender);
+        void quit_cmd(Client *client, std::vector<std::string> words);
 
         //other cmd
-        bool join_cmd(Client *client, std::string channel_name, std::string psw);
-        bool op_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToOp);
-        bool deop_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeOp);
-        bool half_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToHalfOp);
-        bool dehalf_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeHalfOp);
-        bool ban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToBan, std::string reason);
-        bool unban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnBan);
-        bool voice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToVoice);
-        bool unvoice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnVoice);
-        bool who_cmd(std::string filter);   //The filter is the name of the channel that contains the list of users that you want to visualize [channel or a client] (# or ' ')
-        bool whois_cmd(std::string nickname);
-        bool privmsg_cmd(Client *admin, std::string target, std::string text); //The target could be a channel or a client (# or ' ')
-        bool leave_cmd(Client *client, std::vector<Channel *> channel); //Leaves a channel/s
-        bool pass_cmd(Client *admin, std::string);
+        void join_cmd(Client *client, std::string channel_name, std::string psw);
+        void op_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToOp);
+        void deop_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeOp);
+        void half_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToHalfOp);
+        void dehalf_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeHalfOp);
+        void ban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToBan, std::string reason);
+        void unban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnBan);
+        void voice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToVoice);
+        void unvoice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnVoice);
+        void who_cmd(std::string filter, Client *sender);   //The filter is the name of the channel that contains the list of users that you want to visualize [channel or a client] (# or ' ')
+        void whois_cmd(std::string nickname, Client *sender);
+        void privmsg_cmd(Client *admin, std::string target, std::vector<std::string> text); //The target could be a channel or a client (# or ' ')
+        void leave_cmd(Client *client, std::vector<Channel *> channel); //Leaves a channel/s
+        void pass_cmd(Client *admin, std::string pass);
 
         //clients and channels management by server
         Client* getClient(int sockfd);

@@ -21,7 +21,7 @@ std::vector<std::string> ft_split(std::string toSplit, std::string toFind)
 	return (splitted);
 }
 
-bool Server::mode_cmd(Client *client, std::vector<std::string> splitted)
+void Server::mode_cmd(Client *client, std::vector<std::string> splitted)
 {
 	std::string flag = splitted[2];												//+o, -o, +v, -v, +h, -h, +b, -b
 	std::string channel_name = splitted[1];										//#<channel_name>
@@ -78,109 +78,139 @@ std::vector<std::string> Server::parseBanMask(std::string banMask)
 	}
 }
 
-bool Server::op_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToOp)
+void Server::op_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToOp)
 {
 	Channel *channel;
+	std::string msg;
 
 	if (!channel->isOp(admin))
-		return false;
+	{
+		msg += channel_name + ": You are not channel operator";
+		send(admin->getFd(), msg.c_str(), msg.length(), 0);
+		return ;
+	}
 	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToOp.size(); i++)
-		if (!channel->op(clientToOp[i]))
-			return false;
-	return true;
+		channel->op(clientToOp[i]);
 }
 
-bool Server::deop_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeOp)
+void Server::deop_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeOp)
 {
 	Channel *channel;
+	std::string msg;
 
 	if (!channel->isOp(admin))
-		return false;
+	{
+		msg += channel_name + ": You are not channel operator";
+		send(admin->getFd(), msg.c_str(), msg.length(), 0);
+		return ;
+	}
 	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToDeOp.size(); i++)
-		if (!channel->deop(clientToDeOp[i]))
-			return false;
-	return true;
+		channel->deop(clientToDeOp[i]);
 }
 
-bool Server::half_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToHalfOp)
+void Server::half_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToHalfOp)
 {
 	Channel *channel;
+	std::string msg;
 
 	if (!channel->isOp(admin))
-		return false;
+	{
+		msg += channel_name + ": You are not channel operator";
+		send(admin->getFd(), msg.c_str(), msg.length(), 0);
+		return ;
+	}
 	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToHalfOp.size(); i++)
-		if (!channel->halfOp(clientToHalfOp[i]))
-			return true;
-	return false;
+		channel->halfOp(clientToHalfOp[i]);
 }
 
-bool Server::dehalf_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeHalfOp)
+void Server::dehalf_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeHalfOp)
 {
 	Channel *channel;
+	std::string msg;
 
 	if (!channel->isOp(admin))
-		return false;
+	{
+		msg += channel_name + ": You are not channel operator";
+		send(admin->getFd(), msg.c_str(), msg.length(), 0);
+		return ;
+	}
 	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToDeHalfOp.size(); i++)
-		if (!channel->deHalfOp(clientToDeHalfOp[i]))
-			return true;
-	return false;
+		channel->deHalfOp(clientToDeHalfOp[i]);
 }
 
-bool Server::voice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToVoice)
+void Server::voice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToVoice)
 {
 	Channel *channel;
+	std::string msg;
 
-	if (!channel->isHalfOp(admin))
-		return false;
-	channel = this->getChannel(channel_name);
-	for (uint i = 0; i < clientToVoice.size(); i++)
-		if (!channel->voiceOp(clientToVoice[i]))
-			return true;
-	return false;
+	if (channel->isOp(admin) || channel->isHalfOp(admin))
+	{
+		channel = this->getChannel(channel_name);
+		for (uint i = 0; i < clientToVoice.size(); i++)
+			channel->voiceOp(clientToVoice[i]);
+	}
+	else
+	{
+		msg += channel_name + ": You are not channel operator";
+		send(admin->getFd(), msg.c_str(), msg.length(), 0);
+		return ;
+	}
 }
 
-bool Server::unvoice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnVoice)
+void Server::unvoice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnVoice)
 {
 	Channel *channel;
+	std::string msg;
 
-	if (!channel->isHalfOp(admin))
-		return false;
-	channel = this->getChannel(channel_name);
-	for (uint i = 0; i < clientToUnVoice.size(); i++)
-		if (!channel->deVoiceOp(clientToUnVoice[i]))
-			return true;
-	return false;
+	if (channel->isOp(admin) || !channel->isHalfOp(admin))
+	{
+		channel = this->getChannel(channel_name);
+		for (uint i = 0; i < clientToUnVoice.size(); i++)
+			channel->deVoiceOp(clientToUnVoice[i]);
+	}
+	else
+	{
+		msg += channel_name + ": You are not channel operator";
+		send(admin->getFd(), msg.c_str(), msg.length(), 0);
+		return ;
+	}
 }
 
 
-bool Server::ban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToBan, std::string reason)
+void Server::ban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToBan, std::string reason)
 {
 	Channel *channel;
+	std::string msg;
 
 	if (!channel->isOp(admin))
-		return false;
+	{
+		msg += channel_name + ": You are not channel operator";
+		send(admin->getFd(), msg.c_str(), msg.length(), 0);
+		return ;
+	}
 	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToBan.size(); i++)
-		if (!channel->ban(admin, clientToBan[i]->getNick(), clientToBan[i]->getUser(), clientToBan[i]->getHost(), reason))
-			return false;
-	return true;
+		channel->ban(admin, clientToBan[i]->getNick(), clientToBan[i]->getUser(), clientToBan[i]->getHost(), reason);
 }
 
-bool Server::unban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnBan)
+void Server::unban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnBan)
 {
 	Channel *channel;
+	std::string msg;
 
 	if (!channel->isOp(admin))
-		return false;
+	{
+		msg += channel_name + ": You are not channel operator";
+		send(admin->getFd(), msg.c_str(), msg.length(), 0);
+		return ;
+	}
 	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToUnBan.size(); i++)
-		if (!channel->unBan(admin, clientToUnBan[i]->getNick(), clientToUnBan[i]->getUser(), clientToUnBan[i]->getHost()))
-			return false;
-	return true;
+		channel->unBan(admin, clientToUnBan[i]->getNick(), clientToUnBan[i]->getUser(), clientToUnBan[i]->getHost());
 }
 
 std::vector<Channel *> Server::channelConvert(std::vector<std::string> splitted)
@@ -359,7 +389,7 @@ void Server::accept_client(int sockfd)
 	clients.push_back(getClient(new_fd));
 }
 
-void Server::send_all(std::string mex, Client sender)
+void Server::send_all(std::string mex, Client *sender)		/**** Da rivedere ****/
 {
 	int i = 0;
 	while(clients[i])
@@ -432,37 +462,41 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	splitted = ft_split(clientCommand, " ");
 	aStr = toUpper(splitted[0]);
 	if(compStr(aStr, "QUIT"))
-		quit_cmd(client, splitted + 1);
+		quit_cmd(client, splitted);	//Estrapoliamo la reason direttamente in questa funzione
 	else if(compStr(aStr, "INVITE"))
-		invite_cmd(clientConvert(splitted), splitted[splitted.size() - 1]);
+		invite_cmd(clientConvert(splitted), splitted[splitted.size() - 1], client);
 	else if(compStr(aStr, "TOPIC"))
-		topic_cmd(splitted[1] ,topicConvert(splitted + 2));
+		topic_cmd(splitted[1], splitted, client);  //topicConvert non va bene, mandiamogli la splitted direttamente, poi in topic_cmd estrapoliamo il messaggio
 	else if(compStr(aStr, "KICK"))
 	{
-		if (splitted[3])
-			kick_cmd(splitted[1], splitted[2], splitted[3]);
+		if (!splitted[3].empty())
+			kick_cmd(splitted[1], splitted[2], splitted[3], client);
 		else
-			kick_cmd(splitted[1], splitted[2]);
+			kick_cmd(splitted[1], splitted[2], NULL, client);
 	}
 	else if(compStr(aStr, "JOIN"))
 		join_cmd(client, splitted[1], splitted[2]);
 	else if(compStr(aStr, "WHO"))
-		who_cmd();
+		who_cmd(splitted[1], client);
 	else if(compStr(aStr, "WHOIS"))
-		whois_cmd();
+		whois_cmd(splitted[1], client);
 	else if(compStr(aStr, "PRIVMSG"))
-		privmsg_cmd()
+		privmsg_cmd(client, splitted[1], splitted);
 	else if(compStr(aStr, "MODE"))
 		mode_cmd(client, splitted);
 	else if(compStr(aStr, "LEAVE"))
-		leave_cmd(channelConvert(splitted));
+		leave_cmd(client, channelConvert(splitted));
 	else if(compStr(aStr, "PASS"))
-		leave_cmd(client, splitted[1]);
+		pass_cmd(client, splitted[1]);
 	else
-		return false;
+	{
+		aStr.clear();
+		aStr += splitted[0] + " is an unkown server command";
+		send(client->getFd(), aStr.c_str(), aStr.length(), 0);
+	}
 }
 
-bool Server::quit_cmd(Client *client, std::vector<std::string> words)
+void Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da rivedere  *****/
 {
 	//quitta dal server e puoi mandare un messaggio (no fucking flags)
 	int id = client->getFd();
@@ -492,10 +526,10 @@ bool Server::quit_cmd(Client *client, std::vector<std::string> words)
 		std::vector<Client *> channel_clients = i->getClients();
 		for (std::vector<Client *>::iterator l = channel_clients.begin(); l < channel_clients.end(); l++)
 		{
-			if (client == channel_clients[l])
+			if (client->getNick() == channel_clients[l]->getNick())
 			{
 				//fa parte di questo canale
-				msg += client->getUser() << " " << client->getHost() << " has quit IRC: Quit: " << msg_quit;
+				msg += client->getUser() + " " + client->getHost() + " has quit IRC: Quit: " + msg_quit;
 				send_all(msg, client);
 				i->kickCmd(client, "quit");
 			}
@@ -503,56 +537,84 @@ bool Server::quit_cmd(Client *client, std::vector<std::string> words)
 		i++;
 	}
 	msg.clear();
-	msg += "Server ERROR: :Closing Link: host" << client->getHost() << " " << "(Quit: " << msg_quit << ")";
+	msg += "Server ERROR: :Closing Link: host " + client->getHost() + " " + "(Quit: " + msg_quit + ")";
 	std::cout << msg << std::endl;
 	//remove client from clients client_map
 	msg.clear();
 	client_map.erase(fd);
-	clients.erase(id);
+	clients.erase(fd);		//Serve la posizione nel vettore, non l'fd
 	close(fd);
 	exit(0);
 }
 
-bool Server::privmsg_cmd(std::string mex, Client *receiver, Client *sender)
+void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::string> mex)
 {
 	//controllare sia sul server
-	if(receiver != sender && FD_ISSET(receiver->getFd(), &write_fds))
+	// if(receiver != sender && FD_ISSET(receiver->getFd(), &write_fds))	//
+	// {																	//
+	// 	if((receiver->getFd(), mex.c_str(), mex.length(), 0) < 0)			//???
+	// 		fatal();														//
+	// }																	//
+
+	std::string msg;
+	std::vector<std::string>::iterator msgIt;
+	for(msgIt = mex.begin() + 2; msgIt != mex.end(); msgIt++)
+		msg += mex[msgIt] + " ";									//Gli rompe le palle sto msgIt
+	if(receiver[0] == '#')
 	{
-		if((receiver->getFd(), mex.c_str(), mex.length(), 0) < 0)
-			fatal();
+		Channel *channel = getChannel(receiver);
+		std::vector<Client *> clients = channel->getClients();
+		std::vector<Client *>::iterator iter;
+		for(iter = clients.begin(); iter != clients.end(); iter++)
+			send(clients[iter]->getFd(), msg.c_str(), msg.length(), 0);
 	}
-	return true;
+	
 }
 
-bool Server::invite_cmd(std::vector<Client *> invited, std::string channel_name)
+void Server::invite_cmd(std::vector<Client *> invited, std::string channel_name, Client *sender)
 {
 	//gli inviti possono essere una lista di nomi
 	//in funzione di questo controllo se quei client sono nel server
 	//PS: vengono invitati solo se presenti
 
 	Channel *channel;
-	std::map<int, Client*>::iterator it;
+	std::string msg;
+	std::map<int, Client*>::iterator it = client_map.begin();
+	std::map<int, Channel*>::iterator iter = channel_map.begin();
 
+	while(iter != channel_map.end())
+	{
+		if(channel_name == *iter->first)
+			break;
+		if(iter == channel_map.end())
+		{
+			msg += "401 " + sender->getNick() + " " + invited[0]->getNick() + ": No such name/channel";
+			send(sender->getFd(), msg.c_str(), msg.size(), 0);
+			return ;
+		}
+		iter++;
+	}
 	channel = this->getChannel(channel_name);
-	it = client_map.begin();
 
 	for (int i = 0; i < invited.size(); i++)
 	{
 		while(it != client_map.end())
 		{
-			if (invited[i] == *it->second)
+			if (invited[i]->getNick() == it->second->getNick())
 				break;
 			it++;
 			if (it == client_map.end())
-				return false;
+			{
+				msg += "401 " + sender->getNick() + " " + invited[0]->getNick() + ": No such name/channel";
+				send(sender->getFd(), msg.c_str(), msg.size(), 0);
+				return ;
+			}
 		}
-		if (channel->invite(invited[i]))
-			return true;
-		return false;
+		channel->invite(invited[i]);
 	}
 }
 
-bool Server::topic_cmd(std::string channel_name, std::string topic = "")
+void Server::topic_cmd(std::string channel_name, std::string topic = "", std::string sender)
 {
 	Channel *channel;
 	
@@ -568,7 +630,7 @@ bool Server::topic_cmd(std::string channel_name, std::string topic = "")
     return false;
 }
 
-bool Server::kick_cmd(std::string channel_name, std::string client_name, std::string reason = "")
+void Server::kick_cmd(std::string channel_name, std::string client_name, std::string reason = "", std::string sender)
 {
 	Channel *channel;
 
@@ -579,7 +641,7 @@ bool Server::kick_cmd(std::string channel_name, std::string client_name, std::st
 	return false;
 }
 
-bool Server::join_cmd(Client *client, std::string channel_name, std::string psw = "")
+void Server::join_cmd(Client *client, std::string channel_name, std::string psw = "")
 {
 	//controlla che channel_name esiste nel map e accedi al second
 	Channel *channel;
