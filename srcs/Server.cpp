@@ -36,8 +36,9 @@ void Server::mode_cmd(Client *client, std::vector<std::string> splitted)
 		dehalf_cmd(client, channel_name, users);	// /DEHALFOP <nickname> works only inside a channel but the server receives the command as "MODE #miocanale -h <nickname>"
 	else if(compStr(flag, "+b"))
 	{
-		std::vector<std::string>::iterator it;
-		ban_cmd(client, channel_name, users, topicConvert(*it + 4));
+		std::vector<std::string> tmp;
+		tmp.assign(splitted.begin() + 4, splitted.end());
+		ban_cmd(client, channel_name, users, topicConvert(tmp));
 	}	// /BAN <nickname>, the server receives the command as "MODE #miocanale +b <nickname>"
 	//Since ban supports different parameters called "Masks", the string that the server receives may differ
 	else if(compStr(flag, "-b"))
@@ -620,14 +621,9 @@ void Server::topic_cmd(std::string channel_name, std::string topic = "", std::st
 	
 	channel = this->getChannel(channel_name);
 	if (topic == "")
-	{
 		channel->getTopic();
-		//getTime e Sender
-		return true;
-	}
-	else if (channel->setTopic(topic)) //setTime e Sender
-		return true;
-    return false;
+	else
+		channel->setTopic(topic)
 }
 
 void Server::kick_cmd(std::string channel_name, std::string client_name, std::string reason = "", std::string sender)
@@ -636,9 +632,8 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, std::st
 
 	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clients.size(); i++)
-		if (clients[i].getNick() == client_name)
-			return (channel.kickCmd(clients[i], reason));
-	return false;
+		if (clients[i]->getNick() == client_name)
+			channel->kickCmd(clients[i], reason);
 }
 
 void Server::join_cmd(Client *client, std::string channel_name, std::string psw = "")
@@ -647,9 +642,7 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 	Channel *channel;
 	
 	channel = this->getChannel(channel_name);
-	if (channel->connect(client, psw))
-		return true;
-    return false;
+	channel->connect(client, psw);
 }
 
 //clients and channels management by server
