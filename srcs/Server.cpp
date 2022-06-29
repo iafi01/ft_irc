@@ -98,7 +98,7 @@ std::vector<std::string> Server::parseBanMask(std::string banMask)
 
 void Server::op_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToOp)
 {
-	Channel *channel;
+	Channel *channel = this->getChannel(channel_name);
 	std::string msg;
 
 	if (!channel->isOp(admin))
@@ -107,14 +107,13 @@ void Server::op_cmd(Client *admin, std::string channel_name, std::vector<Client 
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
-	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToOp.size(); i++)
 		channel->op(clientToOp[i]);
 }
 
 void Server::deop_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeOp)
 {
-	Channel *channel;
+	Channel *channel = this->getChannel(channel_name);
 	std::string msg;
 
 	if (!channel->isOp(admin))
@@ -123,14 +122,13 @@ void Server::deop_cmd(Client *admin, std::string channel_name, std::vector<Clien
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
-	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToDeOp.size(); i++)
 		channel->deop(clientToDeOp[i]);
 }
 
 void Server::half_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToHalfOp)
 {
-	Channel *channel;
+	Channel *channel = this->getChannel(channel_name);
 	std::string msg;
 
 	if (!channel->isOp(admin))
@@ -139,14 +137,13 @@ void Server::half_cmd(Client *admin, std::string channel_name, std::vector<Clien
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
-	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToHalfOp.size(); i++)
 		channel->halfOp(clientToHalfOp[i]);
 }
 
 void Server::dehalf_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeHalfOp)
 {
-	Channel *channel;
+	Channel *channel = this->getChannel(channel_name);
 	std::string msg;
 
 	if (!channel->isOp(admin))
@@ -155,19 +152,17 @@ void Server::dehalf_cmd(Client *admin, std::string channel_name, std::vector<Cli
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
-	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToDeHalfOp.size(); i++)
 		channel->deHalfOp(clientToDeHalfOp[i]);
 }
 
 void Server::voice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToVoice)
 {
-	Channel *channel;
+	Channel *channel = this->getChannel(channel_name);
 	std::string msg;
 
 	if (channel->isOp(admin) || channel->isHalfOp(admin))
 	{
-		channel = this->getChannel(channel_name);
 		for (uint i = 0; i < clientToVoice.size(); i++)
 			channel->voiceOp(clientToVoice[i]);
 	}
@@ -181,12 +176,11 @@ void Server::voice_cmd(Client *admin, std::string channel_name, std::vector<Clie
 
 void Server::unvoice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnVoice)
 {
-	Channel *channel;
+	Channel *channel = this->getChannel(channel_name);
 	std::string msg;
 
 	if (channel->isOp(admin) || !channel->isHalfOp(admin))
 	{
-		channel = this->getChannel(channel_name);
 		for (uint i = 0; i < clientToUnVoice.size(); i++)
 			channel->deVoiceOp(clientToUnVoice[i]);
 	}
@@ -201,7 +195,7 @@ void Server::unvoice_cmd(Client *admin, std::string channel_name, std::vector<Cl
 
 void Server::ban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToBan, std::string reason)
 {
-	Channel *channel;
+	Channel *channel = this->getChannel(channel_name);
 	std::string msg;
 
 	if (!channel->isOp(admin))
@@ -210,14 +204,13 @@ void Server::ban_cmd(Client *admin, std::string channel_name, std::vector<Client
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
-	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToBan.size(); i++)
 		channel->ban(admin, clientToBan[i]->getNick(), clientToBan[i]->getUser(), clientToBan[i]->getHost(), reason);
 }
 
 void Server::unban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnBan)
 {
-	Channel *channel;
+	Channel *channel = this->getChannel(channel_name);
 	std::string msg;
 
 	if (!channel->isOp(admin))
@@ -226,7 +219,6 @@ void Server::unban_cmd(Client *admin, std::string channel_name, std::vector<Clie
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
-	channel = this->getChannel(channel_name);
 	for (uint i = 0; i < clientToUnBan.size(); i++)
 		channel->unBan(admin, clientToUnBan[i]->getNick(), clientToUnBan[i]->getUser(), clientToUnBan[i]->getHost());
 }
@@ -520,7 +512,7 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 void Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da rivedere  *****/
 {
 	//quitta dal server e puoi mandare un messaggio (no fucking flags)
-	int id = client->getFd();
+	//int id = client->getFd();
 	int fd = client->getId();
 	std::string msg_quit;
 	std::string msg;
@@ -620,7 +612,7 @@ void Server::invite_cmd(std::vector<Client *> invited, std::string channel_name,
 	}
 	channel = this->getChannel(channel_name);
 
-	for (int i = 0; i < invited.size(); i++)
+	for (uint i = 0; i < invited.size(); i++)
 	{
 		while(it != client_map.end())
 		{
