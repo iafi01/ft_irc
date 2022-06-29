@@ -77,6 +77,7 @@ std::vector<std::string> Server::parseBanMask(std::string banMask)
 			return (result);
 		}
 	}
+	return std::vector<std::string>(); //return a void vector of strings
 }
 
 void Server::op_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToOp)
@@ -315,9 +316,9 @@ void Server::start_server()
 						fatal();
 					else if((valrecv = recv(fd, &buf, 1, 0)) == 0)
 					{
-						sprintf(this->server_buffer, "server: client %d just left\n");
-						delete &getClient(fd);
-						send_all(this->server_buffer, fd);
+						sprintf(this->server_buffer, "server: client %d just left\n", fd);
+						delete getClient(fd);
+						send_all(this->server_buffer, *getClient(fd));
 						FD_CLR(fd, &this->curr_fds);
 						close(fd);
 						break;
@@ -390,7 +391,7 @@ void Server::accept_client(int sockfd)
 	clients.push_back(getClient(new_fd));
 }
 
-void Server::send_all(std::string mex, Client *sender)		/**** Da rivedere ****/
+void Server::send_all(std::string mex, Client sender)		/**** Da rivedere ****/
 {
 	int i = 0;
 	while(clients[i])
@@ -434,7 +435,14 @@ int Server::get_max_id() const
 
 int Server::get_max_fd(int sockfd)
 {
-
+	int max = sockfd;
+	std::vector<Client *>::iterator i = clients.begin();
+	while (i != clients.end())
+	{
+		max = max > (*i)->getFd() ? max : (*i)->getFd();
+		i++;
+	}
+	return (max);
 }
 
 std::string Server::get_pass() const
@@ -446,11 +454,6 @@ std::string Server::getDate() const
 {
 	return (time_string);
 }
-
-// int Server::get_max_fd(int sockfd)
-// {
-
-// }
 
 bool Server::parse_commands(Client *client, char *buf, int valrecv)
 {
@@ -531,7 +534,7 @@ void Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da
 			{
 				//fa parte di questo canale
 				msg += client->getUser() + " " + client->getHost() + " has quit IRC: Quit: " + msg_quit;
-				send_all(msg, client);
+				send_all(msg, *client);
 				i->kickCmd(client, "quit");
 			}
 		}
