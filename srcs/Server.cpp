@@ -1,5 +1,21 @@
 #include "../includes/Server.hpp"
 
+std::vector<Client*>::iterator Server::findIterClient(Client *client)
+{
+	std::vector<Client*>::iterator i;
+
+    i = clients.begin();
+    while (i != clients.end())
+    {
+        if ((*i) == client)
+        {   
+            return (i);
+        }
+        i++;
+    }
+    return std::vector<Client*>::iterator();
+}
+
 std::vector<std::string> ft_split(std::string toSplit, std::string toFind)
 {
 	std::vector<std::string> splitted;
@@ -317,7 +333,7 @@ void Server::start_server()
 					else if((valrecv = recv(fd, &buf, 1, 0)) == 0)
 					{
 						sprintf(this->server_buffer, "server: client %d just left\n", fd);
-						delete getClient(fd);
+						//delete getClient(fd);
 						send_all(this->server_buffer, *getClient(fd));
 						FD_CLR(fd, &this->curr_fds);
 						close(fd);
@@ -326,7 +342,7 @@ void Server::start_server()
 					else
 					{
 						buf[valrecv] = '\0';
-						Client *client = this->getClient(fd);
+						Client *client = getClient(fd);
 						if(client->getIsMsg() && buf[0] == '/')
 						{
 							sprintf(this->server_buffer, "client %d: ", client->getId());
@@ -498,6 +514,7 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 		aStr += splitted[0] + " is an unkown server command";
 		send(client->getFd(), aStr.c_str(), aStr.length(), 0);
 	}
+	return (false);
 }
 
 void Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da rivedere  *****/
@@ -528,9 +545,10 @@ void Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da
 				msg_quit += '\0';
 		}
 		std::vector<Client *> channel_clients = i->getClients();
-		for (std::vector<Client *>::iterator l = channel_clients.begin(); l < channel_clients.end(); l++)
+		int it = 0;
+		for (std::vector<Client *>::iterator l = channel_clients.begin(); l != channel_clients.end(); l++)
 		{
-			if (client->getNick() == channel_clients[l]->getNick())
+			if (client->getNick() == channel_clients[it++]->getNick())
 			{
 				//fa parte di questo canale
 				msg += client->getUser() + " " + client->getHost() + " has quit IRC: Quit: " + msg_quit;
@@ -546,7 +564,7 @@ void Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da
 	//remove client from clients client_map
 	msg.clear();
 	client_map.erase(fd);
-	clients.erase(fd);		//Serve la posizione nel vettore, non l'fd
+	clients.erase(findIterClient(getClient(fd)));
 	close(fd);
 	exit(0);
 }
@@ -562,15 +580,17 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 
 	std::string msg;
 	std::vector<std::string>::iterator msgIt;
+	int i = 0;
 	for(msgIt = mex.begin() + 2; msgIt != mex.end(); msgIt++)
-		msg += mex[msgIt] + " ";									//Gli rompe le palle sto msgIt
+		msg += mex[i++] + " ";
 	if(receiver[0] == '#')
 	{
 		Channel *channel = getChannel(receiver);
 		std::vector<Client *> clients = channel->getClients();
 		std::vector<Client *>::iterator iter;
+		int j = 0;
 		for(iter = clients.begin(); iter != clients.end(); iter++)
-			send(clients[iter]->getFd(), msg.c_str(), msg.length(), 0);
+			send(clients[j++]->getFd(), msg.c_str(), msg.length(), 0);
 	}
 	
 }
@@ -584,11 +604,11 @@ void Server::invite_cmd(std::vector<Client *> invited, std::string channel_name,
 	Channel *channel;
 	std::string msg;
 	std::map<int, Client*>::iterator it = client_map.begin();
-	std::map<int, Channel*>::iterator iter = channel_map.begin();
+	std::map<std::string, Channel*>::iterator iter = channel_map.begin();
 
 	while(iter != channel_map.end())
 	{
-		if(channel_name == *iter->first)
+		if(channel_name == iter->first)
 			break;
 		if(iter == channel_map.end())
 		{
@@ -618,18 +638,24 @@ void Server::invite_cmd(std::vector<Client *> invited, std::string channel_name,
 	}
 }
 
-void Server::topic_cmd(std::string channel_name, std::string topic = "", std::string sender)
+void Server::topic_cmd(std::string channel_name, std::vector<std::string> splitted, Client *sender = NULL)
 {
 	Channel *channel;
-	
+
+	//estrapoliamo il messaggio
+	std::string topic = "";
+	std::vector<std::string> tmp;
+	tmp.assign(splitted.begin() + 2, splitted.end());
+	topic  = topicConvert(tmp);
+
 	channel = this->getChannel(channel_name);
 	if (topic == "")
 		channel->getTopic();
 	else
-		channel->setTopic(topic)
+		channel->setTopic(topic);
 }
 
-void Server::kick_cmd(std::string channel_name, std::string client_name, std::string reason = "", std::string sender)
+void Server::kick_cmd(std::string channel_name, std::string client_name, std::string reason = "", Client *sender = NULL)
 {
 	Channel *channel;
 
@@ -649,13 +675,14 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 }
 
 //clients and channels management by server
-Client Server::getClient(int sockfd)
+Client* Server::getClient(int sockfd)
 {
 	for(std::map<int, Client*>::iterator it = client_map.begin(); it != client_map.end(); it++)
 	{
 		if(sockfd == it->first)
-			return (*it->second);
+			return (it->second);
 	}
+	return (NULL);
 }
 
 Channel* Server::getChannel(std::string nameCh)
@@ -663,6 +690,7 @@ Channel* Server::getChannel(std::string nameCh)
 	for(std::map<std::string, Channel*>::iterator it = channel_map.begin(); it != channel_map.end(); it++)
 	{
 		if(nameCh == it->first)
-			return (*it->second);
+			return (it->second);
 	}
+	return (NULL);
 }

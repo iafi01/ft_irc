@@ -99,7 +99,7 @@ class Server
         //channel cmd
         void mode_cmd(Client *client, std::vector<std::string> splitted);
         void invite_cmd(std::vector<Client *> invited, std::string channel_name, Client *sender);
-        void topic_cmd(std::string channel_name, std::string topic, Client *sender);
+        void topic_cmd(std::string channel_name, std::vector<std::string> splitted, Client *sender);
         void kick_cmd(std::string channel_name, std::string client_name, std::string reason, Client *sender);
         void quit_cmd(Client *client, std::vector<std::string> words);
 
@@ -120,6 +120,7 @@ class Server
         void pass_cmd(Client *admin, std::string pass);
 
         //clients and channels management by server
-        Client* getClient(int sockfd);
+        Client *getClient(int sockfd);
+        std::vector<Client*>::iterator findIterClient(Client *client);
         Channel* getChannel(std::string nameCh);
 };
