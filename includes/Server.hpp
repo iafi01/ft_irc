@@ -48,6 +48,7 @@ class Server
         int port;
         int sockfd;
         int max_id;
+        int max_fd;
         fd_set curr_fds, read_fds, write_fds;
         char server_buffer[64];
         std::map<int, Client*> client_map;
