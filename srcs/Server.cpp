@@ -220,7 +220,7 @@ void Server::unban_cmd(Client *admin, std::string channel_name, std::vector<Clie
 		return ;
 	}
 	for (uint i = 0; i < clientToUnBan.size(); i++)
-		channel->unBan(admin, clientToUnBan[i]->getNick(), clientToUnBan[i]->getUser(), clientToUnBan[i]->getHost());
+		channel->unBan(clientToUnBan[i]->getNick(), clientToUnBan[i]->getUser(), clientToUnBan[i]->getHost());
 }
 
 std::vector<Channel *> Server::channelConvert(std::vector<std::string> splitted)
@@ -319,7 +319,7 @@ void Server::start_server()
 				}
 				else
 				{
-					char c;
+					//char c;
 					if((valrecv = recv(fd, &buf, 1, 0)) < 0)
 						fatal();
 					else if((valrecv = recv(fd, &buf, 1, 0)) == 0)
@@ -342,8 +342,8 @@ void Server::start_server()
 						}
 						if (!parse_commands(client, buf, valrecv))
 						{
-							client->setIsMsg(c == '\n');
-							send_all(&c, *getClient(fd));
+							client->setIsMsg(buf[0] == '\n'); //da controllare
+							send_all(buf, *getClient(fd));
 						}
 					}
 				}
@@ -369,8 +369,10 @@ Server::~Server()
 
 }
 
-Server::Server(const int port, const std::string pass): port(port), pass(pass)
+Server::Server(const int port, const std::string pass)
 {
+	this->port = port;
+	this->pass = pass;
     setup_server(port, pass);
     start_server();
 }
@@ -482,9 +484,9 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	else if(compStr(aStr, "KICK"))
 	{
 		if (!splitted[3].empty())
-			kick_cmd(splitted[1], splitted[2], splitted[3], client);
+			kick_cmd(splitted[1], splitted[2], client, splitted[3]);
 		else
-			kick_cmd(splitted[1], splitted[2], NULL, client);
+			kick_cmd(splitted[1], splitted[2], client, NULL);
 	}
 	else if(compStr(aStr, "JOIN"))
 		join_cmd(client, splitted[1], splitted[2]);
@@ -574,7 +576,11 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 	std::vector<std::string>::iterator msgIt;
 	int i = 0;
 	for(msgIt = mex.begin() + 2; msgIt != mex.end(); msgIt++)
-		msg += mex[i++] + " ";
+	{
+		msg += mex[i++]
+		if (msgIt != mex.end() - 1)
+			msg += " ";
+	}
 	if(receiver[0] == '#')
 	{
 		Channel *channel = getChannel(receiver);
@@ -584,7 +590,10 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 		for(iter = clients.begin(); iter != clients.end(); iter++)
 			send(clients[j++]->getFd(), msg.c_str(), msg.length(), 0);
 	}
-	
+	else //manda ad un utente //controllare che chi manda il messaggio sia autorizzato a mandarlo (ban, voice)
+	{
+
+	}
 }
 
 void Server::invite_cmd(std::vector<Client *> invited, std::string channel_name, Client *sender)
@@ -630,7 +639,7 @@ void Server::invite_cmd(std::vector<Client *> invited, std::string channel_name,
 	}
 }
 
-void Server::topic_cmd(std::string channel_name, std::vector<std::string> splitted, Client *sender = NULL)
+void Server::topic_cmd(std::string channel_name, std::vector<std::string> splitted, Client *sender)
 {
 	Channel *channel;
 
@@ -642,12 +651,20 @@ void Server::topic_cmd(std::string channel_name, std::vector<std::string> splitt
 
 	channel = this->getChannel(channel_name);
 	if (topic == "")
-		channel->getTopic();
+	{
+		if (!channel->getTopic().empty())
+			std::cout << "Channel topic is: " << channel->getTopic() << std::endl;
+		else
+			std::cout << "No channel topic is set" << std::endl;
+	}
 	else
-		channel->setTopic(topic);
+	{
+		if (channel->setTopic(topic))
+			std::cout << sender->getUser() << "[" << sender->getHost() << "] changed the topic to :" << topic << std::endl;
+	}
 }
 
-void Server::kick_cmd(std::string channel_name, std::string client_name, std::string reason = "", Client *sender = NULL)
+void Server::kick_cmd(std::string channel_name, std::string client_name, Client *sender, std::string reason = "")
 {
 	Channel *channel;
 
@@ -655,6 +672,10 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, std::st
 	for (uint i = 0; i < clients.size(); i++)
 		if (clients[i]->getNick() == client_name)
 			channel->kickCmd(clients[i], reason);
+	if (reason != "")
+		std::cout << client_name << " was kicked from " << channel_name << " by " << sender->getUser() << " because " << reason << std::endl;
+	else
+		std::cout << client_name << " was kicked from " << channel_name << " by " << sender->getUser() << " for no reason"<< std::endl;
 }
 
 void Server::join_cmd(Client *client, std::string channel_name, std::string psw = "")

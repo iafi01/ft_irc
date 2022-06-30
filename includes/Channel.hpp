@@ -58,7 +58,7 @@ class Channel {
         bool voiceOp(Client *client);
         bool deVoiceOp(Client *client);
         bool ban(Client *admin, std::string nick, std::string user, std::string host, std::string _reason);
-        bool unBan(Client *admin, std::string nick, std::string user, std::string host);
+        bool unBan(std::string nick, std::string user, std::string host);
         bool modInvite(enum modInvite i);
         
         std::string getName() const;
