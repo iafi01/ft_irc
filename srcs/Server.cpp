@@ -252,7 +252,7 @@ std::vector<Client *> Server::clientConvert(std::vector<std::string> splitted)
 	return (new_clients);
 }
 
-std::string topicConvert(std::vector<std::string> toConv)
+std::string Server::topicConvert(std::vector<std::string> toConv)
 {
 	std::string result;
 	for (uint i = 0; i < toConv.size(); i++)
