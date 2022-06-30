@@ -573,7 +573,6 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 
 	std::string msg;
 	std::vector<std::string>::iterator msgIt;
-	size_t i = 0;
 	
 	if(receiver[0] == '#')
 	{
@@ -589,7 +588,7 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 			msg += "<" + sender->getNick() + ">: ";
 		for(msgIt = mex.begin() + 2; msgIt != mex.end(); msgIt++)
 		{
-			msg += mex[i++];
+			msg += *msgIt;
 			if (msgIt != mex.end() - 1)
 				msg += " ";
 		}
