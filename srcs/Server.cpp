@@ -733,6 +733,26 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 	channel->connect(client, psw);
 }
 
+void Server::pass_cmd()
+{
+	
+}
+
+void Server::leave_cmd()
+{
+
+}
+
+void Server::who_cmd()
+{
+
+}
+
+void Server::whois_cmd()
+{
+
+}
+
 //clients and channels management by server
 Client* Server::getClient(int sockfd)
 {
