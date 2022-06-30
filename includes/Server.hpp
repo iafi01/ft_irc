@@ -100,7 +100,7 @@ class Server
         void mode_cmd(Client *client, std::vector<std::string> splitted);
         void invite_cmd(std::vector<Client *> invited, std::string channel_name, Client *sender);
         void topic_cmd(std::string channel_name, std::vector<std::string> splitted, Client *sender);
-        void kick_cmd(std::string channel_name, std::string client_name, std::string reason, Client *sender);
+        void kick_cmd(std::string channel_name, std::string client_name, Client *sender, std::string reason);
         void quit_cmd(Client *client, std::vector<std::string> words);
 
         //other cmd

@@ -141,7 +141,7 @@ bool Channel::ban(Client *admin, std::string nick = "*", std::string user = "*",
     }
 }
 
-bool Channel::unBan(Client *admin, std::string nick = "*", std::string user = "*", std::string host = "*")
+bool Channel::unBan(std::string nick = "*", std::string user = "*", std::string host = "*")
 {
     std::vector<Banned*>::iterator i;
 
@@ -463,5 +463,11 @@ void Channel::disconnect(Client* client)
 
 void Channel::sendMessage(const Client* sender, std::string msg) const
 {
-    int i = 0;
+    /*é solo per farlo compilare*/
+    const Client* s = sender;
+    int compilastronzo = s->getFd();
+    if (compilastronzo == 435345)
+        return ;
+    std::string m = msg;
+    return;
 }
