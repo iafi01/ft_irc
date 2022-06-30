@@ -577,7 +577,7 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 	int i = 0;
 	for(msgIt = mex.begin() + 2; msgIt != mex.end(); msgIt++)
 	{
-		msg += mex[i++]
+		msg += mex[i++];
 		if (msgIt != mex.end() - 1)
 			msg += " ";
 	}
