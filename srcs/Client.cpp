@@ -14,6 +14,10 @@ Client::Client(const Client &obj)
     *this = obj;
 }
 
+Client::~Client()
+{
+}
+
 Client &Client::operator=(const Client &obj)
 {
     this->nickname = obj.nickname;

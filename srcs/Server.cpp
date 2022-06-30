@@ -320,9 +320,9 @@ void Server::start_server()
 				else
 				{
 					//char c;
-					if((valrecv = recv(fd, &buf, 1, 0)) < 0)
+					if((valrecv = recv(fd, &buf, 512, 0)) < 0)
 						fatal();
-					else if((valrecv = recv(fd, &buf, 1, 0)) == 0)
+					else if((valrecv = recv(fd, &buf, 512, 0)) == 0)
 					{
 						sprintf(this->server_buffer, "server: client %d just left\n", fd);
 						//delete getClient(fd);
@@ -333,7 +333,6 @@ void Server::start_server()
 					}
 					else
 					{
-						buf[valrecv] = '\0';
 						Client *client = getClient(fd);
 						if(client->getIsMsg() && buf[0] == '/')
 						{
@@ -342,7 +341,7 @@ void Server::start_server()
 						}
 						if (!parse_commands(client, buf, valrecv))
 						{
-							client->setIsMsg(buf[0] == '\n'); //da controllare
+							client->setIsMsg(buf[valrecv] == '\n');
 							send_all(buf, *getClient(fd));
 						}
 					}
@@ -574,25 +573,73 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 
 	std::string msg;
 	std::vector<std::string>::iterator msgIt;
-	int i = 0;
-	for(msgIt = mex.begin() + 2; msgIt != mex.end(); msgIt++)
-	{
-		msg += mex[i++]
-		if (msgIt != mex.end() - 1)
-			msg += " ";
-	}
+	size_t i = 0;
+	
 	if(receiver[0] == '#')
 	{
 		Channel *channel = getChannel(receiver);
 		std::vector<Client *> clients = channel->getClients();
 		std::vector<Client *>::iterator iter;
+
+		if(channel->isOp(sender))
+			msg += "<@" + sender->getNick() + ">: ";
+		else if(channel->isHalfOp(sender))
+			msg += "<%" + sender->getNick() + ">: ";
+		else
+			msg += "<" + sender->getNick() + ">: ";
+		for(msgIt = mex.begin() + 2; msgIt != mex.end(); msgIt++)
+		{
+			msg += mex[i++];
+			if (msgIt != mex.end() - 1)
+				msg += " ";
+		}
 		int j = 0;
 		for(iter = clients.begin(); iter != clients.end(); iter++)
 			send(clients[j++]->getFd(), msg.c_str(), msg.length(), 0);
 	}
 	else //manda ad un utente //controllare che chi manda il messaggio sia autorizzato a mandarlo (ban, voice)
 	{
-
+		int fd = -1;
+		int j = 0;
+		for(std::vector<Client *>::iterator i = clients.begin(); i < clients.end(); i++)
+			if(receiver == clients.at(j++)->getNick())
+				fd = clients.at(j)->getFd();
+		if(fd == -1)
+		{
+			msg += "[PRIVMSG > > > " + receiver + "]: ";
+			for(msgIt = mex.begin() + 2; msgIt != mex.end(); msgIt++)
+			{
+				msg += *msgIt;
+				if (msgIt != mex.end() - 1)
+					msg += " ";
+			}
+			send(sender->getFd(), msg.c_str(), msg.length(), 0);
+			msg.clear();
+			msg += receiver + ": no such nick/channel";
+			send(sender->getFd(), msg.c_str(), msg.length(), 0);
+			return ;
+		}
+		else
+		{
+			msg += "[PRIVMSG > > > " + receiver + "]: ";
+			for(msgIt = mex.begin() + 2; msgIt != mex.end(); msgIt++)
+			{
+				msg += *msgIt;
+				if (msgIt != mex.end() - 1)
+					msg += " ";
+			}
+			send(sender->getFd(), msg.c_str(), msg.length(), 0);
+			msg.clear();
+			Client *msgReceiver = getClient(fd);
+			msg += "<" + sender->getNick() + "> ";
+			for(msgIt = mex.begin() + 2; msgIt != mex.end(); msgIt++)
+			{
+				msg += *msgIt;
+				if (msgIt != mex.end() - 1)
+					msg += " ";
+			}
+			send(msgReceiver->getFd(), msg.c_str(), msg.length(), 0);
+		}
 	}
 }
 
