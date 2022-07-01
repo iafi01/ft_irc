@@ -497,14 +497,3 @@ void Channel::disconnect(Client* client)
     if (op_vec.empty())
         op_vec.push_back(clients.at(0));
 }
-
-void Channel::sendMessage(const Client* sender, std::string msg) const
-{
-    /*é solo per farlo compilare*/
-    const Client* s = sender;
-    int compilastronzo = s->getFd();
-    if (compilastronzo == 435345)
-        return ;
-    std::string m = msg;
-    return;
-}
