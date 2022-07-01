@@ -358,7 +358,7 @@ void Server::fatal()
 }
 
 //public
-Server::Server()
+Server::Server() : server_name("localhost")
 {
 
 }
@@ -368,7 +368,7 @@ Server::~Server()
 
 }
 
-Server::Server(const int port, const std::string pass)
+Server::Server(const int port, const std::string pass) : server_name("localhost")
 {
 	this->port = port;
 	this->pass = pass;
@@ -798,7 +798,38 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 
 void Server::who_cmd(std::string filter, Client *sender)
 {
-	
+	Channel *channel;
+	Client *channel_clients;
+	Client *user;
+
+	if (filter[0] == '#')
+	{
+		channel = getChannel(filter);
+		if (channel == NULL) //se il channel non esiste
+		{
+			std::cout << "Error Channel does not exist" << std::endl;
+			return ;
+		}
+		channel_clients = channel->getClients();
+		for (std::vector<Client *>::iterator i = channel_clients.begin(); i != channel_clients.end(); i++)
+		{
+			std::cout << "WHO entry for " << (*i)->getUser() << " [" << (*i)->getHost() << "]: Channel: " << channel->getName() << ", Server: " << this->server_name << std::endl;
+			std::cout << "End of WHO list for " << channel->getName() << std::endl;
+		}
+	}
+	else if (filter[0] != '#')
+	{
+		//cerco il client con filter come username
+		for(std::map<int, Client*>::iterator it = client_map.begin(); it != client_map.end(); it++)
+		{
+			if(filter == it->second->getUser())
+			{
+				user = it->second;
+				break;
+			}
+		}
+		std::cout << "WHO entry for " << user->getUser() << " [" << user->getHost() << "]: Channel: " << channel->getName() << ", Server: " << this->server_name << std::endl;
+	}
 }
 
 void Server::whois_cmd(std::string nickname, Client *sender)
