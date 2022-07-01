@@ -509,7 +509,7 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	else if(compStr(aStr, "WHO"))
 		who_cmd(splitted[1], client);
 	else if(compStr(aStr, "WHOIS"))
-		whois_cmd(splitted[1], client);
+		whois_cmd(splitted, client);
 	else if(compStr(aStr, "PRIVMSG"))
 		privmsg_cmd(client, splitted[1], splitted);
 	else if(compStr(aStr, "MODE"))
@@ -798,12 +798,57 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 
 void Server::who_cmd(std::string filter, Client *sender)
 {
-	
+
 }
 
-void Server::whois_cmd(std::string nickname, Client *sender)
+void Server::whois_cmd(std::vector<std::string> splitted, Client *sender)
 {
+	std::string msg;
+	Client *infoUser;
+	std::vector<Channel *> channelList;
+	int userFd = -1;
+	std::map<int, Client *>::iterator iter;
+	std::map<int, Channel *>::iterator cIter;
 
+	if(splitted.size() == 2)
+	{
+		for(iter = client_map.begin(); iter != client_map.end(); iter++)
+			if(splitted[1] == iter->second->getNick() && splitted[1] != "localhost")
+				userFd = iter->second->getFd();
+		if(userFd != -1)
+		{
+			infoUser = getClient(userFd);
+			for(cIter = channel_map.begin(); cIter != channel_map.end(); cIter++)
+				if(cIter->second->isClient(infoUser))
+					channelList.push_back(cIter->second);
+			msg += infoUser->getNick() + "'s username is: " + infoUser->getUser() + "\n";
+			if(!channelList.empty())
+			{
+				msg += infoUser->getNick() + "'s channel/s: ";
+				for(std::vector<Channel *>::iterator lIter = channelList.end(); lIter != channelList.end(); lIter++)
+				{
+					if(lIter == channelList.end() - 1)
+						msg += *lIter;
+					else
+						msg += *lIter + ", ";
+				}
+			}
+			send(sender->getFd(), msg.c_str(), msg.length(), 0);
+		}
+		else
+		{
+			msg += "No such nick";
+			send(sender->getFd(), msg.c_str(), msg.length(), 0);
+		}
+	}
+	else if(splitted.size() == 3)
+	{
+		
+	}
+	else
+	{
+		msg += ""
+	}
 }
 
 //clients and channels management by server
