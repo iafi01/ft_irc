@@ -388,30 +388,33 @@ Server& Server::operator=(const Server &obj)
 	return (*this);
 }
 
-void Server::accept_client(int sockfd)
+void Server::clientRegister(Client *client)
 {
-	int new_fd;
 	std::string msgOne = "Welcome to IRC Server!\nPlease Insert your nickname: ";
 	std::string msgTwo = "now insert your username: ";
 	std::string names;
-	Client *newClient;
-	if((new_fd = accept(this->sockfd, NULL, NULL)) < 0)
-		fatal();
-	//Register function
-	newClient = getClient(new_fd);
 	send(new_fd, msgOne.c_str(), msgOne.length(), 0);
 	recv(new_fd, names, 32, 0);
-	newClient.setNick(names);
+	client.setNick(names);
 	names.clear();
 	send(new_fd, msgTwo.c_str(), msgTwo.length(), 0);
 	recv(new_fd, names, 32, 0);
-	newClient.setUser(names);
-	//End of Register function
+	client.setUser(names);
+}
+
+void Server::accept_client(int sockfd)
+{
+	int new_fd;
+	Client *newClient;
+	if((new_fd = accept(this->sockfd, NULL, NULL)) < 0)
+		fatal();
+	newClient = new Client(new_fd);
+	clientRegister(newClient);
 	sprintf(this->server_buffer, "server: client %d just arrived\n", new_fd);
 	send_all(this->server_buffer, *getClient(sockfd));
 	FD_SET(new_fd, &this->curr_fds);
-	client_map.insert(std::make_pair(new_fd, getClient(new_fd)));
-	clients.push_back(getClient(new_fd));
+	client_map.insert(std::make_pair(new_fd, newClient));
+	clients.push_back(newClient);
 }
 
 void Server::send_all(std::string mex, Client sender)		/**** Da rivedere ****/
@@ -795,7 +798,7 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 
 void Server::who_cmd(std::string filter, Client *sender)
 {
-
+	
 }
 
 void Server::whois_cmd(std::string nickname, Client *sender)
