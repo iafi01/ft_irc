@@ -24,17 +24,11 @@
 Per testare il programma scriviamo sul terminale, dopo aver avviato il server,:
 >nc 0.0.0.0 8080
 
-Prototipi dei comandi (per channel) - OK(penso)
-Aggiungere parametri alle chiamate di funzione dei comandi - DA FINIRE
-Scrivere le funzioni dei comandi - DA FARE
-Scrivere la stampa dei messaggi a video dei vari comandi - DA FARE
-Scrivere i controlli inerenti agli operatori (op, halfop) per i vari comandi - DA FARE
-Il channel operator (op) puo' eseguire qualsiasi comando mentre l'halfop non puo' dare alcun
-tipo di potere tranne voice e unvoice (gestire i permessi)
-Scrivere parsing per MODE command
+Scrivere la stampa dei messaggi a video dei vari comandi
+Gestire i codici di errori dei commands
 Scrivere messaggio di benvenuto contenete le informazioni riguardo i comandi disponibili
-L'halfop, ogni qualvolta tentera' di togliere/mettere/kickare/bannare un channel operator,
-ricevera' il messaggio "... 482 <nickname> <channel_name> :You are not channel operator"
+
+//facoltativo spostare buona parte dei commands di channel in server per unificarli
 //facoltativo aggiungeree piú files cpp per ogni classe: example (comandi, getters, setters ecc)
 */
 
@@ -117,7 +111,7 @@ class Server
         void whois_cmd(std::string nickname, Client *sender);
         void privmsg_cmd(Client *admin, std::string target, std::vector<std::string> text); //The target could be a channel or a client (# or ' ')
         void part_cmd(Client *client, std::vector<std::string > splitted); //Leaves a channel/s
-        void pass_cmd(Client *admin, std::string pass);
+        //void pass_cmd(Client *admin, std::string pass);
 
         //clients and channels management by server
         Client *getClient(int sockfd);

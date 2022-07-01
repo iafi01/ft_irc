@@ -733,10 +733,10 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 	channel->connect(client, psw);
 }
 
-void Server::pass_cmd(Client *admin, std::string pass)
+/*void Server::pass_cmd(Client *admin, std::string pass)
 {
 	
-}
+}*/
 
 void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 {
