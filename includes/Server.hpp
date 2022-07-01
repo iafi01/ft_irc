@@ -116,7 +116,7 @@ class Server
         void who_cmd(std::string filter, Client *sender);   //The filter is the name of the channel that contains the list of users that you want to visualize [channel or a client] (# or ' ')
         void whois_cmd(std::string nickname, Client *sender);
         void privmsg_cmd(Client *admin, std::string target, std::vector<std::string> text); //The target could be a channel or a client (# or ' ')
-        void leave_cmd(Client *client, std::vector<std::string > splitted); //Leaves a channel/s
+        void part_cmd(Client *client, std::vector<std::string > splitted); //Leaves a channel/s
         void pass_cmd(Client *admin, std::string pass);
 
         //clients and channels management by server

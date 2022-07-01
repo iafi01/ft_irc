@@ -497,8 +497,8 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 		privmsg_cmd(client, splitted[1], splitted);
 	else if(compStr(aStr, "MODE"))
 		mode_cmd(client, splitted);
-	else if(compStr(aStr, "LEAVE"))
-		leave_cmd(client, splitted);
+	else if(compStr(aStr, "PART"))
+		part_cmd(client, splitted);
 	else if(compStr(aStr, "PASS"))
 		pass_cmd(client, splitted[1]);
 	else
@@ -738,7 +738,7 @@ void Server::pass_cmd(Client *admin, std::string pass)
 	
 }
 
-void Server::leave_cmd(Client *client, std::vector<std::string> splitted)
+void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 {
 	Channel *channel;
 	std::string	msg;
