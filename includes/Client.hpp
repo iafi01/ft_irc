@@ -34,6 +34,8 @@ class Client
         std::string getHost() const;
 
         //setters
+        void setNick(std::string str);
+		void setUser(std::string str);
         void setIsMsg(int i);
         void setFd(int fd);
         void setId(int id);

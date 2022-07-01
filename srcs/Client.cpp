@@ -52,6 +52,16 @@ std::string Client::getHost() const
     return (this->hostname);
 }
 
+void Client::setNick(std::string str)
+{
+    nickname = str;
+}
+
+void Client::setUser(std::string str)
+{
+    username = str;
+}
+
 int Client::getId() const
 {
     return (this->id);
