@@ -391,8 +391,22 @@ Server& Server::operator=(const Server &obj)
 void Server::accept_client(int sockfd)
 {
 	int new_fd;
+	std::string msgOne = "Welcome to IRC Server!\nPlease Insert your nickname: ";
+	std::string msgTwo = "now insert your username: ";
+	std::string names;
+	Client *newClient;
 	if((new_fd = accept(this->sockfd, NULL, NULL)) < 0)
 		fatal();
+	//Register function
+	newClient = getClient(new_fd);
+	send(new_fd, msgOne.c_str(), msgOne.length(), 0);
+	recv(new_fd, names, 32, 0);
+	newClient.setNick(names);
+	names.clear();
+	send(new_fd, msgTwo.c_str(), msgTwo.length(), 0);
+	recv(new_fd, names, 32, 0);
+	newClient.setUser(names);
+	//End of Register function
 	sprintf(this->server_buffer, "server: client %d just arrived\n", new_fd);
 	send_all(this->server_buffer, *getClient(sockfd));
 	FD_SET(new_fd, &this->curr_fds);
