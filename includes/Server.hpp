@@ -65,7 +65,8 @@ class Server
 
         void accept_client(int sockfd);
         void send_all(std::string mex, Client sender); //Sends a message to every connected clients
-        
+        void clientRegister(Client *client);
+
         //setters
         void setDate();
         void setPass(std::string new_pass);
