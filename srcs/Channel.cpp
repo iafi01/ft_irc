@@ -12,6 +12,29 @@ bool Channel::setPass(std::string psw)
     }
 }
 
+bool removeClient(Client *client)
+{
+    std::vector<Client*>::iterator i;
+
+    i = clients.begin();
+    while (i != clients.end())
+    {
+        if ((*i) == client)
+        {   
+            try {
+                this->clients.erase(i);
+                return (true);
+            }
+            catch (std::exception& e) {
+                std::cerr << e.what();
+                return (false);
+            }
+        }
+        i++;
+    }
+    return (false);
+}
+
 bool Channel::op(Client *client)
 {
     try {
@@ -291,6 +314,20 @@ bool Channel::topicCmd(std::string setTopic)
 //     }
 //     return true;
 // }
+
+bool Channel::isClient(const Client* client)
+{
+    std::vector<Client*>::iterator i;
+
+    i = clients.begin();
+    while (i != clients.end())
+    {
+        if ((*i) == client)
+            return (true);
+        i++;
+    }
+    return (false);
+}
 
 bool Channel::isInvited(const Client* client)
 {

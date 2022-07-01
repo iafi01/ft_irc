@@ -51,6 +51,7 @@ class Channel {
     public:
         //only admin functions
         bool setPass(std::string psw);
+        bool removeClient(Client *client);
         bool op(Client *client);
         bool deop(Client *client);
         bool halfOp(Client *client);
@@ -70,6 +71,7 @@ class Channel {
         std::vector<Client*> halfOp() const;
         std::vector<Client*> voiceOp() const;
         std::vector<Banned*> getBanned() const;
+        bool isClient(const Client* client);
         bool isInvited(const Client* client);
         bool isOp(const Client* client);
         bool isHalfOp(const Client* client);
