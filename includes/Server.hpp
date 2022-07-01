@@ -37,6 +37,7 @@ class Client;
 class Server
 {
     private:
+        std::string server_name;
         struct sockaddr_in serveraddr;
         std::string pass;
         int port;

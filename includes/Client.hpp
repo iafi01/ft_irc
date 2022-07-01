@@ -39,5 +39,5 @@ class Client
         void setIsMsg(int i);
         void setFd(int fd);
         void setId(int id);
-        void setIsLogged(bool log);      
+        void setIsLogged(bool log);
 };
