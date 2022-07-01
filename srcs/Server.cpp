@@ -223,7 +223,7 @@ void Server::unban_cmd(Client *admin, std::string channel_name, std::vector<Clie
 		channel->unBan(clientToUnBan[i]->getNick(), clientToUnBan[i]->getUser(), clientToUnBan[i]->getHost());
 }
 
-std::vector<Channel *> Server::channelConvert(std::vector<std::string> splitted)
+std::vector<Channel *> Server::channelConvert(std::vector<std::string> splitted) //non serve, viene passato un solo param diviso da < , >
 {
 	std::vector<Channel *> channel_list;
 	for(std::map<std::string, Channel*>::iterator it = channel_map.begin(); it != channel_map.end(); it++)
@@ -498,7 +498,7 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	else if(compStr(aStr, "MODE"))
 		mode_cmd(client, splitted);
 	else if(compStr(aStr, "LEAVE"))
-		leave_cmd(client, channelConvert(splitted));
+		leave_cmd(client, splitted);
 	else if(compStr(aStr, "PASS"))
 		pass_cmd(client, splitted[1]);
 	else
@@ -733,22 +733,58 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 	channel->connect(client, psw);
 }
 
-void Server::pass_cmd()
+void Server::pass_cmd(Client *admin, std::string pass)
 {
 	
 }
 
-void Server::leave_cmd()
+void Server::leave_cmd(Client *client, std::vector<std::string> splitted)
+{
+	Channel *channel;
+	std::string	msg;
+	std::vector<std::string> names;
+
+	names = ft_split(splitted[1], ",");
+	if (splitted.size() == 1)
+	{
+		msg.append(": 461 " + client->getNick() + " PART :Not enough parameters\n");
+		send(client->getSd(), msg.c_str(), msg.length(), 0);
+	}
+	else if (splitted.size() == 2)
+	{
+		for (uint i = 0; i < names.size(); i++)
+		{
+			channel = getChannel(names[i]);
+			if (!channel)
+			{
+				msg.append(": 403 " + client->getNick() + " " + names[i] + " :No such channel\n");
+				send(client->getSd(), msg.c_str(), msg.length(), 0);
+			}
+			else
+			{
+				if (!channel->isClient(client))
+				{
+					msg.append(" :442 " + client->getNick() + " " + chan->getName() + " :You're not on that channel\n");
+					send(client->getSd(), msg.c_str(), msg.length(), 0);
+				}
+				else
+				{
+					msg.append(":" + client->getNick() + "!~" + client->getUser() + " PART " + chan->getName() + DEL);
+					send_all(msg, client);
+					send(client->getSd(), msg.c_str(), msg.length(), 0);
+					channel->removeClient(client);
+				}
+			}
+		}
+	}
+}
+
+void Server::who_cmd(std::string filter, Client *sender)
 {
 
 }
 
-void Server::who_cmd()
-{
-
-}
-
-void Server::whois_cmd()
+void Server::whois_cmd(std::string nickname, Client *sender)
 {
 
 }
