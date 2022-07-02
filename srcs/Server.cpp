@@ -314,7 +314,7 @@ void Server::start_server()
 			{
 				if(fd == this->sockfd)
 				{
-					accept_client(this->sockfd);
+					accept_client();
 					break;
 				}
 				else
@@ -358,7 +358,7 @@ void Server::fatal()
 }
 
 //public
-Server::Server() : server_name("localhost")
+Server::Server() : server_name("localhost"), now(time(0)), time_string(ctime(&now))
 {
 
 }
@@ -368,7 +368,7 @@ Server::~Server()
 
 }
 
-Server::Server(const int port, const std::string pass) : server_name("localhost")
+Server::Server(const int port, const std::string pass) : server_name("localhost"), now(time(0)), time_string(ctime(&now))
 {
 	this->port = port;
 	this->pass = pass;
@@ -390,21 +390,23 @@ Server& Server::operator=(const Server &obj)
 
 void Server::clientRegister(Client *client)
 {
-	std::string msgOne = "Welcome to IRC Server!\nPlease Insert your nickname: ";
+	std::string msgOne = "Welcome to IRC Server!\n" + this->time_string + "Please Insert your nickname: ";
 	std::string msgTwo = "now insert your username: ";
 	std::string names;
 	int new_fd = client->getFd();
 
 	send(new_fd, msgOne.c_str(), msgOne.length(), 0);
-	recv(new_fd, &names, 32, 0);
+	if (recv(new_fd, &names, 32, 0) <= 0)
+		fatal();
 	client->setNick(names);
 	names.clear();
 	send(new_fd, msgTwo.c_str(), msgTwo.length(), 0);
-	recv(new_fd, &names, 32, 0);
+	if (recv(new_fd, &names, 32, 0) <= 0)
+		fatal();
 	client->setUser(names);
 }
 
-void Server::accept_client(int sockfd)
+void Server::accept_client()
 {
 	int new_fd;
 	Client *newClient;
@@ -413,7 +415,7 @@ void Server::accept_client(int sockfd)
 	newClient = new Client(new_fd);
 	clientRegister(newClient);
 	sprintf(this->server_buffer, "server: client %d just arrived\n", new_fd);
-	send_all(this->server_buffer, *getClient(sockfd));
+	send_all(this->server_buffer, *getClient(new_fd)); //segfault
 	FD_SET(new_fd, &this->curr_fds);
 	client_map.insert(std::make_pair(new_fd, newClient));
 	clients.push_back(newClient);
@@ -470,6 +472,7 @@ int Server::get_max_fd(int sockfd)
 		max = max > (*i)->getFd() ? max : (*i)->getFd();
 		i++;
 	}
+	this->max_fd = max;
 	return (max);
 }
 
@@ -509,9 +512,9 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	else if(compStr(aStr, "JOIN"))
 		join_cmd(client, splitted[1], splitted[2]);
 	else if(compStr(aStr, "WHO"))
-		who_cmd(splitted[1], client);
+		who_cmd(splitted[1]);
 	else if(compStr(aStr, "WHOIS"))
-		whois_cmd(splitted, client);
+		/*whois_cmd(splitted, client)*/;
 	else if(compStr(aStr, "PRIVMSG"))
 		privmsg_cmd(client, splitted[1], splitted);
 	else if(compStr(aStr, "MODE"))
@@ -796,11 +799,11 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 	}
 }
 
-void Server::who_cmd(std::string filter, Client *sender)
+void Server::who_cmd(std::string filter)
 {
-	Channel *channel;
+	Channel *channel = NULL;
 	std::vector <Client *>channel_clients;
-	Client *user;
+	Client *user = NULL;
 
 	if (filter[0] == '#')
 	{
@@ -832,7 +835,7 @@ void Server::who_cmd(std::string filter, Client *sender)
 	}
 }
 
-void Server::whois_cmd(std::vector<std::string> splitted, Client *sender)
+/*void Server::whois_cmd(std::vector<std::string> splitted, Client *sender)
 {
 	std::string msg;
 	Client *infoUser;
@@ -878,9 +881,9 @@ void Server::whois_cmd(std::vector<std::string> splitted, Client *sender)
 	}
 	else
 	{
-		msg += ""
+		msg += "";
 	}
-}
+}*/
 
 //clients and channels management by server
 Client* Server::getClient(int sockfd)
