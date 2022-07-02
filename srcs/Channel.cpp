@@ -12,7 +12,7 @@ bool Channel::setPass(std::string psw)
     }
 }
 
-bool removeClient(Client *client)
+bool Channel::removeClient(Client *client)
 {
     std::vector<Client*>::iterator i;
 

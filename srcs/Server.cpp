@@ -393,13 +393,15 @@ void Server::clientRegister(Client *client)
 	std::string msgOne = "Welcome to IRC Server!\nPlease Insert your nickname: ";
 	std::string msgTwo = "now insert your username: ";
 	std::string names;
+	int new_fd = client->getFd();
+
 	send(new_fd, msgOne.c_str(), msgOne.length(), 0);
-	recv(new_fd, names, 32, 0);
-	client.setNick(names);
+	recv(new_fd, &names, 32, 0);
+	client->setNick(names);
 	names.clear();
 	send(new_fd, msgTwo.c_str(), msgTwo.length(), 0);
-	recv(new_fd, names, 32, 0);
-	client.setUser(names);
+	recv(new_fd, &names, 32, 0);
+	client->setUser(names);
 }
 
 void Server::accept_client(int sockfd)
@@ -516,8 +518,6 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 		mode_cmd(client, splitted);
 	else if(compStr(aStr, "PART"))
 		part_cmd(client, splitted);
-	else if(compStr(aStr, "PASS"))
-		pass_cmd(client, splitted[1]);
 	else
 	{
 		aStr.clear();
@@ -765,7 +765,7 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 	if (splitted.size() == 1)
 	{
 		msg.append(": 461 " + client->getNick() + " PART :Not enough parameters\n");
-		send(client->getSd(), msg.c_str(), msg.length(), 0);
+		send(client->getFd(), msg.c_str(), msg.length(), 0);
 	}
 	else if (splitted.size() == 2)
 	{
@@ -775,20 +775,20 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 			if (!channel)
 			{
 				msg.append(": 403 " + client->getNick() + " " + names[i] + " :No such channel\n");
-				send(client->getSd(), msg.c_str(), msg.length(), 0);
+				send(client->getFd(), msg.c_str(), msg.length(), 0);
 			}
 			else
 			{
 				if (!channel->isClient(client))
 				{
-					msg.append(" :442 " + client->getNick() + " " + chan->getName() + " :You're not on that channel\n");
-					send(client->getSd(), msg.c_str(), msg.length(), 0);
+					msg.append(" :442 " + client->getNick() + " " + channel->getName() + " :You're not on that channel\n");
+					send(client->getFd(), msg.c_str(), msg.length(), 0);
 				}
 				else
 				{
-					msg.append(":" + client->getNick() + "!~" + client->getUser() + " PART " + chan->getName() + DEL);
-					send_all(msg, client);
-					send(client->getSd(), msg.c_str(), msg.length(), 0);
+					msg.append(":" + client->getNick() + "!~" + client->getUser() + " PART " + channel->getName() + "\n");
+					send_all(msg, *client);
+					send(client->getFd(), msg.c_str(), msg.length(), 0);
 					channel->removeClient(client);
 				}
 			}
@@ -799,7 +799,7 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 void Server::who_cmd(std::string filter, Client *sender)
 {
 	Channel *channel;
-	Client *channel_clients;
+	std::vector <Client *>channel_clients;
 	Client *user;
 
 	if (filter[0] == '#')
