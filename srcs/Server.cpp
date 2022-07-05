@@ -290,72 +290,63 @@ void Server::setup_server(int port, std::string password)
 
 	this->sockfd = -1;
 	if((this->sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-		fatal();
+		fatal("err: creation socket");
 	if(bind(this->sockfd, (const struct sockaddr *) &serveraddr, sizeof(serveraddr)) < 0)
-		fatal();
+		fatal("err: bind socket");
 	if(listen(this->sockfd, 0) < 0)
-		fatal();
+		fatal("err: listen socket");
 }
 
 void Server::start_server()
 {
-	/*FD_ZERO(&this->curr_fds);
-	FD_SET(this->sockfd, &this->curr_fds);
-	char buf[512];
-	int valrecv = 0;
-	while(1)
+	int valread = 0;
+	char buffer[1025];
+	int fd = -1;
+	while (1)
 	{
-		this->write_fds = this->read_fds = this->curr_fds;
-		if(select(get_max_fd(this->sockfd) + 1, &this->read_fds, &this->write_fds, NULL, NULL) < 0)
-			continue;
-		for(int fd = 0; fd <= get_max_fd(this->sockfd); fd++)
+		FD_ZERO(&read_fds);
+		FD_SET(sockfd, &read_fds);
+		max_fd = sockfd;
+		
+		std::map<int, Client*>::iterator cli = client_map.begin();
+		while (cli != client_map.end())
 		{
-			if(FD_ISSET(fd, &this->read_fds))
-			{
-				if(fd == this->sockfd)
-				{
-					std::cout << "File Descriptor " << this->sockfd << " si é connesso al server" << std::endl;
-					accept_client();
-					break;
-				}
-				else
-				{
-					//char c;
-					std::cout << "Scrivi il tuo nick stronzo:" << std::endl;
-					if((valrecv = recv(fd, &buf, 512, 0)) < 0)
-						fatal();
-					else if((valrecv = recv(fd, &buf, 512, 0)) == 0)
-					{
-						sprintf(this->server_buffer, "server: client %d just left\n", fd);
-						//delete getClient(fd);
-						send_all(this->server_buffer, *getClient(fd));
-						FD_CLR(fd, &this->curr_fds);
-						close(fd);
-						break;
-					}
-					else
-					{
-						Client *client = getClient(fd);
-						if(client->getIsMsg() && buf[0] == '/')
-						{
-							sprintf(this->server_buffer, "client %d: ", client->getId());
-							send_all(this->server_buffer, *getClient(fd));
-						}
-						if (!parse_commands(client, buf, valrecv))
-						{
-							client->setIsMsg(buf[valrecv] == '\n');
-							send_all(buf, *getClient(fd));
-						}
-					}
-				}
-			}
+			fd = cli->first;
+			if (fd > 0)
+				FD_SET(fd, &read_fds);
+			if (fd > max_fd)
+				max_fd = fd;
+			i++;
 		}
-	}*/
+		if (select(max_fd + 1, &read_fds, NULL, NULL, NULL) < 0)
+			perror("err: select socket");
+		if (FD_ISSET(fd, &read_fds))
+		{
+			if ((new_sd = accept(sock, (struct sockaddr *)&addr, (socklen_t *)&addrlen)) < 0)
+				fatal("err: accept client");
+			printf("New connection , socket fd is %d , ip is : %s , port : %d \n" , new_sd , inet_ntoa(addr.sin_addr) , ntohs(addr.sin_port));
+			if (setsockopt(new_sd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+			{
+			 	fatal("err: socket options");
+			}
+			std::string w;
+			w.append ("Welcome! Please insert the password:\n");
+			if ((send(new_sd, w.c_str(), w.length(), 0)) < 0)
+				perror("err: send welcome message");
+			Client *new_client = new Client;
+			new_client->setFd(new_fd);
+			clients.push_back(new_client);
+			client_map.insert(std::make_pair(fd, new_client));
+			break;
+		}
+		//controllo nuove_connessioni/disconnessioni e comandi per ogni user
+	}
+	
 }
 
-void Server::fatal()
+void Server::fatal(std::string s)
 {
-	std::perror(ERR_FAT);
+	std::perror(s);
 	exit(1);
 }
 
@@ -425,7 +416,7 @@ void Server::send_all(std::string mex, Client sender)		/**** Da rivedere ****/
 		if(clients[i] != &sender && FD_ISSET(clients[i]->getFd(), &write_fds))
 		{
 			if(send(clients[i]->getFd(), mex.c_str(), mex.length(), 0) < 0)
-				fatal();
+				fatal("err: send error on send_all funtion");
 		}
 		i++;
 	}
@@ -468,7 +459,6 @@ int Server::get_max_fd(int sockfd)
 		max = max > (*i)->getFd() ? max : (*i)->getFd();
 		i++;
 	}
-	this->max_fd = max;
 	return (max);
 }
 
