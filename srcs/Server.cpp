@@ -789,6 +789,13 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 					send_all(msg, *client);
 					send(client->getFd(), msg.c_str(), msg.length(), 0);
 					channel->removeClient(client);
+					if (channel->getClients().empty()) //se esce l'ultimo utente il canale viene eliminato
+					{
+						std::map<std::string, Channel*>::iterator i;
+
+						i = channel_map.find(channel->getName());
+						channel_map.erase(i);
+					}
 				}
 			}
 		}
