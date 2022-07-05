@@ -299,7 +299,7 @@ void Server::setup_server(int port, std::string password)
 
 void Server::start_server()
 {
-	FD_ZERO(&this->curr_fds);
+	/*FD_ZERO(&this->curr_fds);
 	FD_SET(this->sockfd, &this->curr_fds);
 	char buf[512];
 	int valrecv = 0;
@@ -314,12 +314,14 @@ void Server::start_server()
 			{
 				if(fd == this->sockfd)
 				{
+					std::cout << "File Descriptor " << this->sockfd << " si é connesso al server" << std::endl;
 					accept_client();
 					break;
 				}
 				else
 				{
 					//char c;
+					std::cout << "Scrivi il tuo nick stronzo:" << std::endl;
 					if((valrecv = recv(fd, &buf, 512, 0)) < 0)
 						fatal();
 					else if((valrecv = recv(fd, &buf, 512, 0)) == 0)
@@ -348,7 +350,7 @@ void Server::start_server()
 				}
 			}
 		}
-	}
+	}*/
 }
 
 void Server::fatal()
@@ -388,38 +390,32 @@ Server& Server::operator=(const Server &obj)
 	return (*this);
 }
 
-void Server::clientRegister(Client *client)
+/*void Server::clientRegister(Client *client)
 {
 	std::string msgOne = "Welcome to IRC Server!\n" + this->time_string + "Please Insert your nickname: ";
 	std::string msgTwo = "now insert your username: ";
-	std::string names;
 	int new_fd = client->getFd();
 
 	send(new_fd, msgOne.c_str(), msgOne.length(), 0);
-	if (recv(new_fd, &names, 32, 0) <= 0)
-		fatal();
-	client->setNick(names);
-	names.clear();
-	send(new_fd, msgTwo.c_str(), msgTwo.length(), 0);
-	if (recv(new_fd, &names, 32, 0) <= 0)
-		fatal();
-	client->setUser(names);
-}
+	
+	
+	
+}*/
 
-void Server::accept_client()
+/*void Server::accept_client()
 {
 	int new_fd;
 	Client *newClient;
-	if((new_fd = accept(this->sockfd, NULL, NULL)) < 0)
+	if((new_fd = accept(this->sockfd, (struct sockaddr *)&serveraddr, (socklen_t *)&addrlen)) < 0)
 		fatal();
 	newClient = new Client(new_fd);
-	clientRegister(newClient);
-	sprintf(this->server_buffer, "server: client %d just arrived\n", new_fd);
-	send_all(this->server_buffer, *getClient(new_fd)); //segfault
-	FD_SET(new_fd, &this->curr_fds);
-	client_map.insert(std::make_pair(new_fd, newClient));
-	clients.push_back(newClient);
-}
+	//clientRegister(newClient);
+	//sprintf(this->server_buffer, "server: client %d just arrived\n", new_fd);
+	// send_all(this->server_buffer, *getClient(new_fd)); //segfault
+	// FD_SET(new_fd, &this->curr_fds);
+	// client_map.insert(std::make_pair(new_fd, newClient));
+	// clients.push_back(newClient);
+}*/
 
 void Server::send_all(std::string mex, Client sender)		/**** Da rivedere ****/
 {
@@ -793,6 +789,13 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 					send_all(msg, *client);
 					send(client->getFd(), msg.c_str(), msg.length(), 0);
 					channel->removeClient(client);
+					if (channel->getClients().empty()) //se esce l'ultimo utente il canale viene eliminato
+					{
+						std::map<std::string, Channel*>::iterator i;
+
+						i = channel_map.find(channel->getName());
+						channel_map.erase(i);
+					}
 				}
 			}
 		}

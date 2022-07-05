@@ -39,6 +39,7 @@ class Server
     private:
         std::string server_name;
         struct sockaddr_in serveraddr;
+        int addrlen;
         std::string pass;
         int port;
         int sockfd;
