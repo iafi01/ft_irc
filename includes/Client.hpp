@@ -32,6 +32,7 @@ class Client
         std::string getNick() const;
         std::string getUser() const;
         std::string getHost() const;
+        bool        getLog() const;
 
         //setters
         void setNick(std::string str);
