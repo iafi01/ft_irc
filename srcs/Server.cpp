@@ -299,15 +299,16 @@ void Server::setup_server(int port, std::string password)
 
 void Server::start_server()
 {
+	std::string w;
 	int valread = 0;
 	char buffer[1025];
 	int fd = -1;
+	int new_sd = -1;
 	while (1)
 	{
 		FD_ZERO(&read_fds);
 		FD_SET(sockfd, &read_fds);
 		max_fd = sockfd;
-		
 		std::map<int, Client*>::iterator cli = client_map.begin();
 		while (cli != client_map.end())
 		{
@@ -316,37 +317,62 @@ void Server::start_server()
 				FD_SET(fd, &read_fds);
 			if (fd > max_fd)
 				max_fd = fd;
-			i++;
+			cli++;
 		}
 		if (select(max_fd + 1, &read_fds, NULL, NULL, NULL) < 0)
-			perror("err: select socket");
-		if (FD_ISSET(fd, &read_fds))
+			fatal("err: select socket");
+		if (FD_ISSET(sockfd, &read_fds))
 		{
-			if ((new_sd = accept(sock, (struct sockaddr *)&addr, (socklen_t *)&addrlen)) < 0)
+			if ((new_sd = accept(max_fd, (struct sockaddr *)&serveraddr, (socklen_t *)&addrlen)) < 0)
 				fatal("err: accept client");
-			printf("New connection , socket fd is %d , ip is : %s , port : %d \n" , new_sd , inet_ntoa(addr.sin_addr) , ntohs(addr.sin_port));
-			if (setsockopt(new_sd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-			{
-			 	fatal("err: socket options");
-			}
-			std::string w;
-			w.append ("Welcome! Please insert the password:\n");
+			printf("New connection , socket fd is %d , ip is : %s , port : %d \n" , new_sd , inet_ntoa(serveraddr.sin_addr) , ntohs(serveraddr.sin_port));
+			// if (setsockopt(new_sd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+			//  	fatal("err: socket options");
+			w.append ("Welcome to IRC!\n");
 			if ((send(new_sd, w.c_str(), w.length(), 0)) < 0)
-				perror("err: send welcome message");
-			Client *new_client = new Client;
-			new_client->setFd(new_fd);
-			clients.push_back(new_client);
-			client_map.insert(std::make_pair(fd, new_client));
-			break;
+				fatal("err: send welcome message");
+		}
+		for (int i = 0; i < MAX_CLIENTS; i++)
+		{
+			if (clients_fd[i] == 0)
+			{
+				Client *new_client = new Client;
+				clients_fd[i] = new_sd;
+				new_client->setFd(new_sd);
+				client_map.insert(std::make_pair(clients_fd[i], new_client));
+				break;
+			}
 		}
 		//controllo nuove_connessioni/disconnessioni e comandi per ogni user
+		for (int i = 0; i < MAX_CLIENTS; i++)
+		{
+			fd = clients_fd[i];
+			if (FD_ISSET(fd, &read_fds)) //Non entra qui dentro, va in segfault
+            {
+                if ((valread = read(fd, buffer, 1024)) == 0) //Cntrl+C
+					std::cout << "CNTRL+C" << std::endl;/*Creare funzione per gestire il cntrl+c (deve quittare)*/
+                else
+                {
+                    buffer[valread] = '\0';
+                    if (client_map.find(fd)->second->getLog() == false) //se é la prima connessione e non ha loggato
+					{
+						std::cout << "First time logging" << std::endl;/*
+						if (parse_info(client_map.find(sd)->second, buffer, valread, client_map) == -1)
+							// Stessa cosa del cntrl+c, deve quittare 
+					*/}
+					else
+						std::cout << "Already logged" << std::endl;
+                    	//parse_commands(client_map.find(sd)->second, buffer, valread, i);
+                }
+            }
+		}
 	}
 	
 }
 
 void Server::fatal(std::string s)
 {
-	std::perror(s);
+	std::cout << s << std::endl;
 	exit(1);
 }
 

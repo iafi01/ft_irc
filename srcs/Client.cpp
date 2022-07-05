@@ -52,6 +52,11 @@ std::string Client::getHost() const
     return (this->hostname);
 }
 
+bool Client::getLog() const
+{
+    return (this->isLogged);
+}
+
 void Client::setNick(std::string str)
 {
     nickname = str;

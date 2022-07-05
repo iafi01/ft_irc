@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <map>
@@ -19,6 +20,7 @@
 
 #define ERR_ARG "Wrong number of arguments\n"
 #define ERR_FAT "Fatal error\n"
+#define MAX_CLIENTS 200
 
 /*
 Per testare il programma scriviamo sul terminale, dopo aver avviato il server,:
@@ -45,6 +47,7 @@ class Server
         int sockfd;
         int max_id;
         int max_fd;
+        int clients_fd[MAX_CLIENTS];
         fd_set curr_fds, read_fds, write_fds;
         char server_buffer[64];
         std::map<int, Client*> client_map;
@@ -56,7 +59,7 @@ class Server
         //funzioni usate dal costruttore
         void setup_server(int port, std::string pass);
         void start_server();
-        void fatal();
+        void fatal(std::string string);
         
     public:
         Server();
