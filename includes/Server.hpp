@@ -20,7 +20,7 @@
 
 #define ERR_ARG "Wrong number of arguments\n"
 #define ERR_FAT "Fatal error\n"
-#define MAX_CLIENTS 200
+#define MAX_CLIENTS 35
 
 /*
 Per testare il programma scriviamo sul terminale, dopo aver avviato il server,:
@@ -71,6 +71,7 @@ class Server
         void accept_client();
         void send_all(std::string mex, Client sender); //Sends a message to every connected clients
         void clientRegister(Client *client);
+        void eraseClient(int fd);
 
         //setters
         void setDate();
@@ -91,10 +92,10 @@ class Server
         std::string topicConvert(std::vector<std::string> toConv); //Return a string that contains the topic of a channel, same as clientConvert
         std::vector<std::string> parseBanMask(std::string banMask);//function parse mode cmds banmask
         std::vector<Channel *> channelConvert(std::vector<std::string> splitted);
-
-        //commands 
+        void forceQuit(int fd, int i);
+        //parse
         bool parse_commands(Client *client, char *buf, int valrecv); //Function used to parse commands sent by clients
-        
+        void parse_info()
 
         //channel cmd
         void mode_cmd(Client *client, std::vector<std::string> splitted);

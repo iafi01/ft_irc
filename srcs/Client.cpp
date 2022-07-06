@@ -7,6 +7,7 @@ Client::Client()
 
 Client::Client(int fd): fd(fd)
 {
+    randomInfo();
 }
 
 Client::Client(const Client &obj)
@@ -90,4 +91,11 @@ void Client::setId(int id)
 void Client::setIsLogged(bool log)
 {
     this->isLogged = log;
+}
+
+void Client::randomInfo()
+{
+    int i = rand() % 9999 + 1;
+    nickname.append("nick#" + std::to_string(i));
+    username.append("user#" + std::to_string(i));
 }
