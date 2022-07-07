@@ -28,6 +28,8 @@ Per testare il programma scriviamo sul terminale, dopo aver avviato il server,:
 Scrivere la stampa dei messaggi a video dei vari comandi
 Gestire i codici di errori dei commands
 Scrivere messaggio di benvenuto contenete le informazioni riguardo i comandi disponibili
+Scrivere funzioni di parsing per lo username e il nickname
+quitCmd o notQuitCmd? Questo e' il dilemma
 
 //facoltativo spostare buona parte dei commands di channel in server per unificarli
 //facoltativo aggiungeree piú files cpp per ogni classe: example (comandi, getters, setters ecc)
@@ -90,8 +92,10 @@ class Server
         std::string topicConvert(std::vector<std::string> toConv); //Return a string that contains the topic of a channel, same as clientConvert
         std::vector<std::string> parseBanMask(std::string banMask);//function parse mode cmds banmask
         std::vector<Channel *> channelConvert(std::vector<std::string> splitted);
-        void forceQuit(int fd);
-        int	parse_info(Client *new_client, char *buffer, int valread, std::map<int, Client*> map);
+        //void forceQuit(int fd);
+        bool check_nick(Client *new_client, char *buffer, int valread);
+        bool check_user(Client *new_client, char *buffer, int valread);
+        bool	check_pass(Client *new_client, char *buffer, int valread);
 
 
         //commands 

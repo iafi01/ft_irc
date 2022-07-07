@@ -266,6 +266,43 @@ std::string Server::topicConvert(std::vector<std::string> toConv)
 	return (result);
 }
 
+bool Server::check_nick(Client *new_client, char *buffer, int valread)
+{
+	std::string	nick(buffer, (size_t)valread);
+	std::map<int, Client *>::iterator iter = client_map.begin();
+	std::map<int, Client *>::iterator clientPos = client_map.begin();
+	for (; clientPos != client_map.end(); clientPos++)
+		if(clientPos->first == new_client->getFd())
+			break;	
+	for( ; iter != client_map.end(); iter++)
+	{
+		if ()
+		{}
+	}
+}
+
+bool Server::check_user(Client *new_client, char *buffer, int valread)
+{
+	//va lasciata solo nell'user che é l'ultima cosa che chiediamo
+	new_client->setIsLogged(true);
+}
+
+bool	Server::check_pass(Client *new_client, char *buffer, int valread)
+{
+	std::vector<std::string> splitted;
+	std::string	strings(buffer, (size_t)valread);
+	std::string msg;
+
+	splitted = ft_split(strings, "\r\n"); //CRLF fine cmd
+	if (this->pass != splitted[0])
+	{
+		msg.append("Error : Password incorrect\n");
+		send(new_client->getFd(), msg.c_str(), msg.length(), 0);
+		return (-1);
+	}
+	return (1);
+}
+
 std::string Server::toUpper(std::string toUp)
 {
 	std::transform(toUp.begin(), toUp.end(),toUp.begin(), ::toupper);
@@ -345,22 +382,39 @@ void Server::start_server()
             fd = (*i)->getFd();
             if (FD_ISSET(fd, &read_fds))
             {
-                if ((valread = read(fd, buffer, 1024)) == 0)
-					forceQuit(fd, i);
-                else
-                {
-                    buffer[valread] = '\0';
-                    if (client_map.find(fd)->second->getIsLogged() == false)
-						if (parse_info(*i, buffer, valread, client_map) == -1)
+				int j = 0;
+				while (client_map.find(fd)->second->getIsLogged() == false)
+				{
+					bzero(buffer, valread);
+					valread = 0;
+					if ((valread = read(fd, buffer, 1024)) == 0)
+						forceQuit(fd);
+					buffer[valread] = '\0';
+					switch (j)
+					{
+					case 1:
+						if (!check_pass(*i, buffer, valread))
 							forceQuit(fd);
-					else
-                    	parse_commands(*i, buffer, valread);
-                }
+						break;
+					case 2:
+						if (!check_nick(*i, buffer, valread))
+							forceQuit(fd);
+						break;
+					case 3:
+						if (!check_user(*i, buffer, valread))
+							forceQuit(fd);
+						break;
+					default:
+						parse_commands(*i, buffer, valread);
+					}
+					j++;
+				}
             }
         }
 	}
-	
 }
+
+
 
 void Server::fatal(std::string s)
 {
