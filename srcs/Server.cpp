@@ -322,7 +322,7 @@ void Server::start_server()
 		}
 		if (select(max_fd + 1, &read_fds, NULL, NULL, NULL) < 0)
 			perror("err: select socket");
-		if (FD_ISSET(fd, &read_fds))
+		if (FD_ISSET(sockfd, &read_fds))
 		{
 			if ((new_fd = accept(sockfd, (struct sockaddr *)&serveraddr, (socklen_t *)&addrlen)) < 0)
 				fatal("err: accept client");
@@ -338,8 +338,7 @@ void Server::start_server()
 			Client *new_client = new Client;
 			new_client->setFd(new_fd);
 			clients.push_back(new_client);
-			client_map.insert(std::make_pair(fd, new_client));
-			break;
+			client_map.insert(std::make_pair(new_fd, new_client));
 		}
 		for (std::vector<Client *>::iterator i = clients.begin(); i != clients.end(); i++)
         {
@@ -347,15 +346,15 @@ void Server::start_server()
             if (FD_ISSET(fd, &read_fds))
             {
                 if ((valread = read(fd, buffer, 1024)) == 0)
-					notQuitCmd(fd, i);
+				{
+					forceQuit(fd, i);	
+				}
                 else
                 {
                     buffer[valread] = '\0';
                     if (client_map.find(fd)->second->getIsLogged() == false)
-					{
 						if (parse_info(*i, buffer, valread, client_map) == -1)
-							notQuitCmd(fd, i);
-					}
+							forceQuit(fd, i);
 					else
                     	parse_commands(*i, buffer, valread);
                 }
