@@ -92,6 +92,7 @@ class Server
         std::vector<Channel *> channelConvert(std::vector<std::string> splitted);
         void forceQuit(int fd);
         int	parse_info(Client *new_client, char *buffer, int valread, std::map<int, Client*> map);
+        void printTime(void);
 
 
         //commands 
