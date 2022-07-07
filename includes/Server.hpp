@@ -69,6 +69,7 @@ class Server
         void accept_client();
         void send_all(std::string mex, Client sender); //Sends a message to every connected clients
         void clientRegister(Client *client);
+        void eraseClient(int fd);
 
         //setters
         void setDate();
@@ -89,8 +90,8 @@ class Server
         std::string topicConvert(std::vector<std::string> toConv); //Return a string that contains the topic of a channel, same as clientConvert
         std::vector<std::string> parseBanMask(std::string banMask);//function parse mode cmds banmask
         std::vector<Channel *> channelConvert(std::vector<std::string> splitted);
-        //void notQuitCmd(int sd, int i);
-        //int	parse_info(Client *new_client, char *buffer, int valread, std::map<int, Client*> map);
+        void forceQuit(int fd);
+        int	parse_info(Client *new_client, char *buffer, int valread, std::map<int, Client*> map);
 
 
         //commands 

@@ -346,15 +346,13 @@ void Server::start_server()
             if (FD_ISSET(fd, &read_fds))
             {
                 if ((valread = read(fd, buffer, 1024)) == 0)
-				{
-					forceQuit(fd, i);	
-				}
+					forceQuit(fd, i);
                 else
                 {
                     buffer[valread] = '\0';
                     if (client_map.find(fd)->second->getIsLogged() == false)
 						if (parse_info(*i, buffer, valread, client_map) == -1)
-							forceQuit(fd, i);
+							forceQuit(fd);
 					else
                     	parse_commands(*i, buffer, valread);
                 }
