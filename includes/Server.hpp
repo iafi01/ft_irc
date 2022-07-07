@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <netinet/in.h>
-#include <arpa/inet.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <map>
@@ -14,13 +13,13 @@
 #include <sys/select.h>
 #include <unistd.h>
 #include <algorithm>
+#include <arpa/inet.h>
 
 #include "Channel.hpp"
 #include "Client.hpp"
 
 #define ERR_ARG "Wrong number of arguments\n"
 #define ERR_FAT "Fatal error\n"
-#define MAX_CLIENTS 35
 
 /*
 Per testare il programma scriviamo sul terminale, dopo aver avviato il server,:
@@ -47,7 +46,6 @@ class Server
         int sockfd;
         int max_id;
         int max_fd;
-        int clients_fd[MAX_CLIENTS];
         fd_set curr_fds, read_fds, write_fds;
         char server_buffer[64];
         std::map<int, Client*> client_map;
@@ -59,7 +57,7 @@ class Server
         //funzioni usate dal costruttore
         void setup_server(int port, std::string pass);
         void start_server();
-        void fatal(std::string string);
+        void fatal(std::string s);
         
     public:
         Server();
@@ -71,7 +69,6 @@ class Server
         void accept_client();
         void send_all(std::string mex, Client sender); //Sends a message to every connected clients
         void clientRegister(Client *client);
-        void eraseClient(int fd);
 
         //setters
         void setDate();
@@ -92,10 +89,13 @@ class Server
         std::string topicConvert(std::vector<std::string> toConv); //Return a string that contains the topic of a channel, same as clientConvert
         std::vector<std::string> parseBanMask(std::string banMask);//function parse mode cmds banmask
         std::vector<Channel *> channelConvert(std::vector<std::string> splitted);
-        void forceQuit(int fd, int i);
-        //parse
+        //void notQuitCmd(int sd, int i);
+        //int	parse_info(Client *new_client, char *buffer, int valread, std::map<int, Client*> map);
+
+
+        //commands 
         bool parse_commands(Client *client, char *buf, int valrecv); //Function used to parse commands sent by clients
-        void parse_info()
+        
 
         //channel cmd
         void mode_cmd(Client *client, std::vector<std::string> splitted);

@@ -29,10 +29,10 @@ class Client
         int         getFd() const;
         int         getId() const;
         int         getIsMsg() const;
+        int         getIsLogged() const;
         std::string getNick() const;
         std::string getUser() const;
         std::string getHost() const;
-        bool        getLog() const;
 
         //setters
         void setNick(std::string str);
@@ -41,5 +41,4 @@ class Client
         void setFd(int fd);
         void setId(int id);
         void setIsLogged(bool log);
-        void randomInfo();
 };
