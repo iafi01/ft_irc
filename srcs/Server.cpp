@@ -279,16 +279,6 @@ bool Server::compStr(std::string buffer, std::string str)
 	return false;
 }
 
-void Server::eraseClient(int fd)
-{
-	
-}
-
-void Server::forceQuit(int fd, int i)
-{
-	
-}
-
 //private used by contructors
 void Server::setup_server(int port, std::string password)
 {
@@ -312,78 +302,72 @@ void Server::start_server()
 	int valread = 0;
 	char buffer[1025];
 	int fd = -1;
+	int new_fd = -1;
 	int opt = 1;
-	int new_sd = -1;
 	while (1)
 	{
 		FD_ZERO(&read_fds);
 		FD_SET(sockfd, &read_fds);
 		max_fd = sockfd;
-		for(int i = 0; i < MAX_CLIENTS; i++)
+		
+		std::map<int, Client*>::iterator cli = client_map.begin();
+		while (cli != client_map.end())
 		{
-			fd = clients_fd[i];
+			fd = cli->first;
 			if (fd > 0)
 				FD_SET(fd, &read_fds);
 			if (fd > max_fd)
 				max_fd = fd;
+			cli++;
 		}
 		if (select(max_fd + 1, &read_fds, NULL, NULL, NULL) < 0)
-			fatal("err: select socket");
-		if (FD_ISSET(sockfd, &read_fds))
+			perror("err: select socket");
+		if (FD_ISSET(fd, &read_fds))
 		{
-			if ((new_sd = accept(sockfd, (struct sockaddr *)&serveraddr, (socklen_t *)&addrlen)) < 0)
+			if ((new_fd = accept(sockfd, (struct sockaddr *)&serveraddr, (socklen_t *)&addrlen)) < 0)
 				fatal("err: accept client");
-			printf("New connection , socket fd is %d , ip is : %s , port : %d \n" , new_sd , inet_ntoa(serveraddr.sin_addr) , ntohs(serveraddr.sin_port));
-			if (setsockopt(new_sd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-			  	fatal("err: socket options");
-			std::string w;
-			w.append ("Welcome to IRC!\n");
-			if ((send(new_sd, w.c_str(), w.length(), 0)) < 0)
-				fatal("err: send welcome message");
-		
-			for (int i = 0; i < MAX_CLIENTS; i++)
+			printf("New connection , socket fd is %d , ip is : %s , port : %d \n" , new_fd , inet_ntoa(serveraddr.sin_addr) , ntohs(serveraddr.sin_port));
+			if (setsockopt(new_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 			{
-				if (clients_fd[i] == 0)
-				{
-					Client *new_client = new Client;
-					clients_fd[i] = new_sd;
-					new_client->setFd(new_sd);
-					client_map.insert(std::make_pair(clients_fd[i], new_client));
-					break;
-				}
+			 	fatal("err: socket options");
 			}
+			std::string w;
+			w.append ("Welcome! Please insert the password:\n");
+			if ((send(new_fd, w.c_str(), w.length(), 0)) < 0)
+				perror("err: send welcome message");
+			Client *new_client = new Client;
+			new_client->setFd(new_fd);
+			clients.push_back(new_client);
+			client_map.insert(std::make_pair(fd, new_client));
+			break;
 		}
-		//controllo nuove_connessioni/disconnessioni e comandi per ogni user
-		for (int i = 0; i < MAX_CLIENTS; i++)
-		{
-			fd = clients_fd[i];
-			if (FD_ISSET(fd, &read_fds)) //Non entra qui dentro, va in segfault
+		for (std::vector<Client *>::iterator i = clients.begin(); i != clients.end(); i++)
+        {
+            fd = (*i)->getFd();
+            if (FD_ISSET(fd, &read_fds))
             {
-                if ((valread = read(fd, buffer, 1024)) == 0) //Cntrl+C
-					forceQuit(fd, i);
-				else
+                if ((valread = read(fd, buffer, 1024)) == 0)
+					notQuitCmd(fd, i);
+                else
                 {
                     buffer[valread] = '\0';
-                    if (client_map.find(fd)->second->getLog() == false) //se é la prima connessione e non ha loggato
+                    if (client_map.find(fd)->second->getIsLogged() == false)
 					{
-						std::cout << "First time logging" << std::endl;
-						client_map.find(fd)->second->setIsLogged(true);
-						if (parse_info(client_map.find(sd)->second, buffer, valread, client_map) == -1)
-							forceQuit(fd, i);
+						if (parse_info(*i, buffer, valread, client_map) == -1)
+							notQuitCmd(fd, i);
 					}
 					else
-						std::cout << "Already logged" << std::endl;
-                    	//parse_commands(client_map.find(sd)->second, buffer, valread, i);
+                    	parse_commands(*i, buffer, valread);
                 }
             }
-		}
+        }
 	}
 	
 }
 
 void Server::fatal(std::string s)
 {
-	std::cout << s << std::endl;
+	std::perror(s.c_str());
 	exit(1);
 }
 

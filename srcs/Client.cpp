@@ -7,7 +7,6 @@ Client::Client()
 
 Client::Client(int fd): fd(fd)
 {
-    randomInfo();
 }
 
 Client::Client(const Client &obj)
@@ -38,6 +37,11 @@ int Client::getIsMsg() const
     return (this->is_msg);
 }
 
+int Client::getIsLogged() const
+{
+    return (this->isLogged);
+}
+
 std::string Client::getNick() const
 {
     return (this->nickname);
@@ -51,11 +55,6 @@ std::string Client::getUser() const
 std::string Client::getHost() const
 {
     return (this->hostname);
-}
-
-bool Client::getLog() const
-{
-    return (this->isLogged);
 }
 
 void Client::setNick(std::string str)
@@ -91,11 +90,4 @@ void Client::setId(int id)
 void Client::setIsLogged(bool log)
 {
     this->isLogged = log;
-}
-
-void Client::randomInfo()
-{
-    int i = rand() % 9999 + 1;
-    nickname.append("nick#" + std::to_string(i));
-    username.append("user#" + std::to_string(i));
 }
