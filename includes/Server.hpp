@@ -95,7 +95,7 @@ class Server
         //void forceQuit(int fd);
         bool check_nick(Client *new_client, char *buffer, int valread);
         bool check_user(Client *new_client, char *buffer, int valread);
-        bool	check_pass(Client *new_client, char *buffer, int valread);
+        bool check_pass(Client *new_client, char *buffer, int valread);
 
 
         //commands 

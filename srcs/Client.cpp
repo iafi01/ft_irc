@@ -59,11 +59,16 @@ std::string Client::getHost() const
 
 void Client::setNick(std::string str)
 {
+    if (str.length() > 32)
+        return ;
+    std::cout << "Error: nick over 32 characters, if already exists 30" << std::endl;
     nickname = str;
 }
 
 void Client::setUser(std::string str)
 {
+    if (str.length() > 32)
+        return ;
     username = str;
 }
 

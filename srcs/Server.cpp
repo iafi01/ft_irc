@@ -268,7 +268,6 @@ std::string Server::topicConvert(std::vector<std::string> toConv)
 
 bool Server::check_nick(Client *new_client, char *buffer, int valread)
 {
-	std::string	nick(buffer, (size_t)valread);
 	std::map<int, Client *>::iterator iter = client_map.begin();
 	std::map<int, Client *>::iterator clientPos = client_map.begin();
 	for (; clientPos != client_map.end(); clientPos++)
@@ -276,15 +275,31 @@ bool Server::check_nick(Client *new_client, char *buffer, int valread)
 			break;	
 	for( ; iter != client_map.end(); iter++)
 	{
-		if ()
-		{}
+		if (std::distance(client_map.begin(), iter) < std::distance(client_map.begin(), clientPos))
+			if(iter->second->getNick() == clientPos->second->getNick())
+				clientPos->second->setNick(clientPos->second->getNick() + "|2");
+		else if(std::distance(client_map.begin(), iter) > std::distance(client_map.begin(), clientPos))
+			if(iter->second->getNick() == clientPos->second->getNick())
+				iter->second->setNick(iter->second->getNick() + "|2");
 	}
 }
 
 bool Server::check_user(Client *new_client, char *buffer, int valread)
 {
-	//va lasciata solo nell'user che é l'ultima cosa che chiediamo
-	new_client->setIsLogged(true);
+	std::map<int, Client *>::iterator iter = client_map.begin();
+	std::map<int, Client *>::iterator clientPos = client_map.begin();
+	for (; clientPos != client_map.end(); clientPos++)
+		if(clientPos->first == new_client->getFd())
+			break;	
+	for( ; iter != client_map.end(); iter++)
+	{
+		if (std::distance(client_map.begin(), iter) < std::distance(client_map.begin(), clientPos))
+			if(iter->second->getUser() == clientPos->second->getUser())
+				clientPos->second->setUser(clientPos->second->getUser() + "|2");
+		else if(std::distance(client_map.begin(), iter) > std::distance(client_map.begin(), clientPos))
+			if(iter->second->getUser() == clientPos->second->getUser())
+				iter->second->setUser(iter->second->getUser() + "|2");
+	}
 }
 
 bool	Server::check_pass(Client *new_client, char *buffer, int valread)
@@ -300,6 +315,7 @@ bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 		send(new_client->getFd(), msg.c_str(), msg.length(), 0);
 		return (-1);
 	}
+	new_client->setIsLogged(true);
 	return (1);
 }
 
@@ -382,32 +398,23 @@ void Server::start_server()
             fd = (*i)->getFd();
             if (FD_ISSET(fd, &read_fds))
             {
-				int j = 0;
-				while (client_map.find(fd)->second->getIsLogged() == false)
-				{
-					bzero(buffer, valread);
-					valread = 0;
-					if ((valread = read(fd, buffer, 1024)) == 0)
+				if ((valread = read(fd, buffer, 1024)) == 0)
 						forceQuit(fd);
+				else
+				{
 					buffer[valread] = '\0';
-					switch (j)
-					{
-					case 1:
-						if (!check_pass(*i, buffer, valread))
-							forceQuit(fd);
-						break;
-					case 2:
-						if (!check_nick(*i, buffer, valread))
-							forceQuit(fd);
-						break;
-					case 3:
-						if (!check_user(*i, buffer, valread))
-							forceQuit(fd);
-						break;
-					default:
+					Client *cli = client_map.find(fd)->second;
+					if (cli->getIsLogged() == false)
+						if (check_pass(*i, buffer, valread) == false)
+							/*forceQuit(fd)*/exit(1);
+					if (cli->getNick().empty())
+						if (check_nick(*i, buffer, valread) == false)
+							/*forceQuit(fd)*/exit(1);
+					if (cli->getUser().empty())
+						if (check_user(*i, buffer, valread) == false)
+							/*forceQuit(fd)*/exit(1);
+					if (cli->getIsLogged() == true && !cli->getNick().empty() && !cli->getUser().empty())
 						parse_commands(*i, buffer, valread);
-					}
-					j++;
 				}
             }
         }
