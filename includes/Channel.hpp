@@ -49,6 +49,10 @@ class Channel {
         int is_only_invite;
 
     public:
+        Channel();
+        ~Channel();
+        Channel(std::string name, int userLimit, int is_only_invite, std::string psw, std::string topic);
+
         //only admin functions
         bool setPass(std::string psw);
         bool removeClient(Client *client);
@@ -81,7 +85,6 @@ class Channel {
         bool removeInvite(const Client* client);
         void connect(Client* client, std::string psw);
         void disconnect(Client* client);
-        //void sendMessage(const Client* sender, std::string msg) const;
         
         //cmds
         bool kickCmd(Client *client, std::string _reason);

@@ -1,5 +1,25 @@
 #include "../includes/Channel.hpp"
 
+Channel::Channel()
+{
+
+}
+
+Channel::~Channel()
+{
+
+}
+
+Channel::Channel(std::string name, int userLimit, int is_only_invite, std::string psw = "", std::string topic = "")
+{
+    this->name = name;
+    this->userLimit = userLimit;
+    this->is_only_invite = is_only_invite;
+    this->setPass(psw);
+    this->setTopic(topic);
+    std::cout << "Creato canale " << name << std::endl;
+}
+
 bool Channel::setPass(std::string psw)
 {
     try {
@@ -442,14 +462,18 @@ void Channel::connect(Client* client, std::string psw = "")
 {
     std::vector<Banned*>::iterator i;
 
-    i = banned_vec.begin();
-    //se sei bannato esce dalla funzione
-    while (i != banned_vec.end())
+    if(!banned_vec.empty())
     {
-        if ((client->getNick() == (*i)->nick || client->getNick() == "*") &&
-            (client->getUser() == (*i)->user || client->getUser() == "*") &&
-            (client->getHost() == (*i)->host || client->getHost() == "*"))
-            return ;
+        i = banned_vec.begin();
+        //se sei bannato esce dalla funzione
+        while (i != banned_vec.end())
+        {
+            if ((client->getNick() == (*i)->nick || client->getNick() == "*") &&
+                (client->getUser() == (*i)->user || client->getUser() == "*") &&
+                (client->getHost() == (*i)->host || client->getHost() == "*"))
+                return ;
+            i++;
+        }
     }
     if (pass != psw)
         return ;
@@ -457,6 +481,7 @@ void Channel::connect(Client* client, std::string psw = "")
         return ;
     if (is_only_invite > 0)
     {
+        std::cout << "BRUH" << std::endl;
         std::vector<Client*>::iterator j;
         bool invited;
 

@@ -268,10 +268,13 @@ std::string Server::topicConvert(std::vector<std::string> toConv)
 
 bool Server::check_nick(Client *new_client, char *buffer, int valread)
 {
-	std::string nick(buffer, valread);
+	std::vector<std::string> splitted;
+	std::string	strings(buffer, (size_t)valread);
 	std::string msg;
-	//if not exists the name
-	new_client->setNick(nick);
+
+	splitted = ft_split(strings, "\n"); //CRLF fine cmd
+	splitted.resize(1);
+	new_client->setNick(splitted[0]);
 	std::map<int, Client *>::iterator iter = client_map.begin();
 	std::map<int, Client *>::iterator clientPos = client_map.begin();
 	for (; clientPos != client_map.end(); clientPos++)
@@ -297,9 +300,13 @@ bool Server::check_nick(Client *new_client, char *buffer, int valread)
 
 bool Server::check_user(Client *new_client, char *buffer, int valread)
 {
-	std::string user(buffer, valread);
-	//if not exists the name
-	new_client->setUser(user);
+	std::vector<std::string> splitted;
+	std::string	strings(buffer, (size_t)valread);
+	std::string msg;
+
+	splitted = ft_split(strings, "\n"); //CRLF fine cmd
+	splitted.resize(1);
+	new_client->setUser(splitted[0]);
 	std::map<int, Client *>::iterator iter = client_map.begin();
 	std::map<int, Client *>::iterator clientPos = client_map.begin();
 	for (; clientPos != client_map.end(); clientPos++)
@@ -323,12 +330,12 @@ bool Server::check_user(Client *new_client, char *buffer, int valread)
 
 bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 {
-	//printf("buffer: %s", buffer);
 	std::vector<std::string> splitted;
 	std::string	strings(buffer, (size_t)valread);
 	std::string msg;
 
 	splitted = ft_split(strings, "\n"); //CRLF fine cmd
+	splitted.resize(1);
 	if (this->pass != splitted[0])
 	{
 		msg.append("Error : Password incorrect\n");
@@ -450,6 +457,7 @@ void Server::start_server()
 					else if (cli->getIsLogged() == true && !cli->getNick().empty() && !cli->getUser().empty())
 					{
 						buffer[valread - 1] = '\0';
+						std::cout << "BUF: " << buffer << std::endl;
 						parse_commands(*i, buffer, valread);
 					}
 				}
@@ -615,8 +623,6 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 		join_cmd(client, splitted[1], splitted[2]);
 	else if(compStr(aStr, "WHO") || compStr(aStr, "/WHO"))
 		who_cmd(splitted[1]);
-	else if(compStr(aStr, "WHOIS") || compStr(aStr, "/WHOIS"))
-		/*whois_cmd(splitted, client)*/;
 	else if(compStr(aStr, "PRIVMSG") || compStr(aStr, "/PRIVMSG"))
 		privmsg_cmd(client, splitted[1], splitted);
 	else if(compStr(aStr, "MODE") || compStr(aStr, "/MODE"))
@@ -827,6 +833,7 @@ void Server::topic_cmd(std::string channel_name, std::vector<std::string> splitt
 	}
 	else
 	{
+		//controllo se sender é admin
 		if (channel->setTopic(topic))
 			std::cout << sender->getUser() << "[" << sender->getHost() << "] changed the topic to :" << topic << std::endl;
 	}
@@ -848,10 +855,14 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, Client 
 
 void Server::join_cmd(Client *client, std::string channel_name, std::string psw = "")
 {
-	//controlla che channel_name esiste nel map e accedi al second
 	Channel *channel;
-	
+	//controlla che channel_name esiste nel map e accedi al second
+	if(this->getChannel(channel_name) == NULL)
+	{
+		channel = new Channel(channel_name, 100, 0, psw, "");
+	}
 	channel = this->getChannel(channel_name);
+	std::cout << "Prendo" << std::endl;
 	channel->connect(client, psw);
 }
 
