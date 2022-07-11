@@ -276,12 +276,17 @@ bool Server::check_nick(Client *new_client, char *buffer, int valread)
 	for( ; iter != client_map.end(); iter++)
 	{
 		if (std::distance(client_map.begin(), iter) < std::distance(client_map.begin(), clientPos))
+		{
 			if(iter->second->getNick() == clientPos->second->getNick())
 				clientPos->second->setNick(clientPos->second->getNick() + "|2");
+		}
 		else if(std::distance(client_map.begin(), iter) > std::distance(client_map.begin(), clientPos))
+		{
 			if(iter->second->getNick() == clientPos->second->getNick())
 				iter->second->setNick(iter->second->getNick() + "|2");
+		}
 	}
+	return (true);
 }
 
 bool Server::check_user(Client *new_client, char *buffer, int valread)
@@ -294,12 +299,17 @@ bool Server::check_user(Client *new_client, char *buffer, int valread)
 	for( ; iter != client_map.end(); iter++)
 	{
 		if (std::distance(client_map.begin(), iter) < std::distance(client_map.begin(), clientPos))
+		{
 			if(iter->second->getUser() == clientPos->second->getUser())
 				clientPos->second->setUser(clientPos->second->getUser() + "|2");
+		}
 		else if(std::distance(client_map.begin(), iter) > std::distance(client_map.begin(), clientPos))
+		{
 			if(iter->second->getUser() == clientPos->second->getUser())
 				iter->second->setUser(iter->second->getUser() + "|2");
+		}
 	}
+	return (true);
 }
 
 bool	Server::check_pass(Client *new_client, char *buffer, int valread)
@@ -393,13 +403,14 @@ void Server::start_server()
 			clients.push_back(new_client);
 			client_map.insert(std::make_pair(new_fd, new_client));
 		}
+		std::vector<std::string> tmp_void;
 		for (std::vector<Client *>::iterator i = clients.begin(); i != clients.end(); i++)
         {
             fd = (*i)->getFd();
             if (FD_ISSET(fd, &read_fds))
             {
 				if ((valread = read(fd, buffer, 1024)) == 0)
-						forceQuit(fd);
+					quit_cmd(getClient(fd), tmp_void);
 				else
 				{
 					buffer[valread] = '\0';
