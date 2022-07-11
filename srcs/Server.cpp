@@ -448,7 +448,10 @@ void Server::start_server()
 						std::cout << cli->getUser() << std::endl;
 					}
 					else if (cli->getIsLogged() == true && !cli->getNick().empty() && !cli->getUser().empty())
+					{
+						buffer[valread - 1] = '\0';
 						parse_commands(*i, buffer, valread);
+					}
 				}
             }
         }
@@ -595,30 +598,30 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 
 	splitted = ft_split(clientCommand, " ");
 	aStr = toUpper(splitted[0]);
-	if(compStr(aStr, "QUIT"))
+	if(compStr(aStr, "QUIT") || compStr(aStr, "/QUIT"))
 		quit_cmd(client, splitted);	//Estrapoliamo la reason direttamente in questa funzione
-	else if(compStr(aStr, "INVITE"))
+	else if(compStr(aStr, "INVITE") || compStr(aStr, "/INVITE"))
 		invite_cmd(clientConvert(splitted), splitted[splitted.size() - 1], client);
-	else if(compStr(aStr, "TOPIC"))
+	else if(compStr(aStr, "TOPIC") || compStr(aStr, "/TOPIC"))
 		topic_cmd(splitted[1], splitted, client);  //topicConvert non va bene, mandiamogli la splitted direttamente, poi in topic_cmd estrapoliamo il messaggio
-	else if(compStr(aStr, "KICK"))
+	else if(compStr(aStr, "KICK") || compStr(aStr, "/KICK"))
 	{
 		if (!splitted[3].empty())
 			kick_cmd(splitted[1], splitted[2], client, splitted[3]);
 		else
 			kick_cmd(splitted[1], splitted[2], client, NULL);
 	}
-	else if(compStr(aStr, "JOIN"))
+	else if(compStr(aStr, "JOIN") || compStr(aStr, "/JOIN"))
 		join_cmd(client, splitted[1], splitted[2]);
-	else if(compStr(aStr, "WHO"))
+	else if(compStr(aStr, "WHO") || compStr(aStr, "/WHO"))
 		who_cmd(splitted[1]);
-	else if(compStr(aStr, "WHOIS"))
+	else if(compStr(aStr, "WHOIS") || compStr(aStr, "/WHOIS"))
 		/*whois_cmd(splitted, client)*/;
-	else if(compStr(aStr, "PRIVMSG"))
+	else if(compStr(aStr, "PRIVMSG") || compStr(aStr, "/PRIVMSG"))
 		privmsg_cmd(client, splitted[1], splitted);
-	else if(compStr(aStr, "MODE"))
+	else if(compStr(aStr, "MODE") || compStr(aStr, "/MODE"))
 		mode_cmd(client, splitted);
-	else if(compStr(aStr, "PART"))
+	else if(compStr(aStr, "PART") || compStr(aStr, "/PART"))
 		part_cmd(client, splitted);
 	else
 	{
