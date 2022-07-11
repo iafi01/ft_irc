@@ -268,6 +268,9 @@ std::string Server::topicConvert(std::vector<std::string> toConv)
 
 bool Server::check_nick(Client *new_client, char *buffer, int valread)
 {
+	std::string nick(buffer, valread);
+	//if not exists the name
+	//new_client->setNick(nick);
 	std::map<int, Client *>::iterator iter = client_map.begin();
 	std::map<int, Client *>::iterator clientPos = client_map.begin();
 	for (; clientPos != client_map.end(); clientPos++)
@@ -291,6 +294,9 @@ bool Server::check_nick(Client *new_client, char *buffer, int valread)
 
 bool Server::check_user(Client *new_client, char *buffer, int valread)
 {
+	std::string user(buffer, valread);
+	//if not exists the name
+	new_client->setUser(user);
 	std::map<int, Client *>::iterator iter = client_map.begin();
 	std::map<int, Client *>::iterator clientPos = client_map.begin();
 	for (; clientPos != client_map.end(); clientPos++)
@@ -314,6 +320,7 @@ bool Server::check_user(Client *new_client, char *buffer, int valread)
 
 bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 {
+	//printf("buffer: %s", buffer);
 	std::vector<std::string> splitted;
 	std::string	strings(buffer, (size_t)valread);
 	std::string msg;
@@ -322,6 +329,8 @@ bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 	if (this->pass != splitted[0])
 	{
 		msg.append("Error : Password incorrect\n");
+		//msg.append(this->pass);
+		//msg.append(splitted[0]);
 		send(new_client->getFd(), msg.c_str(), msg.length(), 0);
 		return (-1);
 	}
