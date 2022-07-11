@@ -269,8 +269,9 @@ std::string Server::topicConvert(std::vector<std::string> toConv)
 bool Server::check_nick(Client *new_client, char *buffer, int valread)
 {
 	std::string nick(buffer, valread);
+	std::string msg;
 	//if not exists the name
-	//new_client->setNick(nick);
+	new_client->setNick(nick);
 	std::map<int, Client *>::iterator iter = client_map.begin();
 	std::map<int, Client *>::iterator clientPos = client_map.begin();
 	for (; clientPos != client_map.end(); clientPos++)
@@ -289,6 +290,8 @@ bool Server::check_nick(Client *new_client, char *buffer, int valread)
 				iter->second->setNick(iter->second->getNick() + "|2");
 		}
 	}
+	msg.append("Now insert your username: ");
+	send(new_client->getFd(), msg.c_str(), msg.length(), 0);
 	return (true);
 }
 
@@ -325,16 +328,17 @@ bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 	std::string	strings(buffer, (size_t)valread);
 	std::string msg;
 
-	splitted = ft_split(strings, "\r\n"); //CRLF fine cmd
+	splitted = ft_split(strings, "\n"); //CRLF fine cmd
 	if (this->pass != splitted[0])
 	{
 		msg.append("Error : Password incorrect\n");
-		//msg.append(this->pass);
-		//msg.append(splitted[0]);
 		send(new_client->getFd(), msg.c_str(), msg.length(), 0);
 		return (-1);
 	}
 	new_client->setIsLogged(true);
+	msg.clear();
+	msg.append("Now insert your nickname: ");
+	send(new_client->getFd(), msg.c_str(), msg.length(), 0);
 	return (1);
 }
 
@@ -359,6 +363,7 @@ void Server::setup_server(int port, std::string password)
 	serveraddr.sin_addr.s_addr = htonl(2130706433);
 	serveraddr.sin_port = htons(port);
 	pass = password;
+	pass += "\0";
 
 	this->sockfd = -1;
 	if((this->sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -418,6 +423,7 @@ void Server::start_server()
             fd = (*i)->getFd();
             if (FD_ISSET(fd, &read_fds))
             {
+				bzero(buffer, sizeof(buffer));
 				if ((valread = read(fd, buffer, 1024)) == 0)
 					quit_cmd(getClient(fd), tmp_void);
 				else
@@ -425,15 +431,23 @@ void Server::start_server()
 					buffer[valread] = '\0';
 					Client *cli = client_map.find(fd)->second;
 					if (cli->getIsLogged() == false)
+					{
 						if (check_pass(*i, buffer, valread) == false)
 							/*forceQuit(fd)*/exit(1);
-					if (cli->getNick().empty())
+					}
+					else if (cli->getNick().empty() && cli->getIsLogged() == true)
+					{
 						if (check_nick(*i, buffer, valread) == false)
 							/*forceQuit(fd)*/exit(1);
-					if (cli->getUser().empty())
+						std::cout << cli->getNick() << std::endl;
+					}
+					else if (cli->getUser().empty() && !cli->getNick().empty())
+					{
 						if (check_user(*i, buffer, valread) == false)
 							/*forceQuit(fd)*/exit(1);
-					if (cli->getIsLogged() == true && !cli->getNick().empty() && !cli->getUser().empty())
+						std::cout << cli->getUser() << std::endl;
+					}
+					else if (cli->getIsLogged() == true && !cli->getNick().empty() && !cli->getUser().empty())
 						parse_commands(*i, buffer, valread);
 				}
             }
@@ -609,7 +623,7 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	else
 	{
 		aStr.clear();
-		aStr += splitted[0] + " is an unkown server command";
+		aStr += splitted[0] + " is an unkown server command\n";
 		send(client->getFd(), aStr.c_str(), aStr.length(), 0);
 	}
 	return (false);
