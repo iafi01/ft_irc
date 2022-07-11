@@ -376,13 +376,13 @@ void Server::start_server()
 						//if (parse_info(*i, buffer, valread, client_map) == -1)
 							//forceQuit(fd);
 					}
-					else if(client_map.find(fd)->second->getIsNickSet() == false)
+					else if(client_map.find(fd)->second->nickname.empty() && client_map.find(fd)->second->getIsLogged() == true)
 					{
 						setNick()
 						check_nick();
 						client_map.find(fd)->second->setIsUser(true);
 					}
-					else if(client_map.find(fd)->second->getIsUserSet() == false)
+					else if(client_map.find(fd)->second->username.empty() && !client_map.find(fd)->second->nickname.empty())
 					{
 						setUser();
 						check_user();
