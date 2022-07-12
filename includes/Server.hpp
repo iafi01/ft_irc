@@ -94,6 +94,8 @@ class Server
         std::string topicConvert(std::vector<std::string> toConv); //Return a string that contains the topic of a channel, same as clientConvert
         std::vector<std::string> parseBanMask(std::string banMask);//function parse mode cmds banmask
         std::vector<Channel *> channelConvert(std::vector<std::string> splitted);
+        bool compNames(std::string receiver, std::string nickname);
+
         //void forceQuit(int fd);
         bool check_nick(Client *new_client, char *buffer, int valread);
         bool check_user(Client *new_client, char *buffer, int valread);

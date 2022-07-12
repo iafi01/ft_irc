@@ -19,6 +19,8 @@ std::vector<Client*>::iterator Server::findIterClient(Client *client)
 std::vector<std::string> ft_split(std::string toSplit, std::string toFind)
 {
 	std::vector<std::string> splitted;
+	std::string str;
+	int i = 0;
 	while(toSplit.size())
 	{
 		unsigned long index = toSplit.find(toFind);
@@ -34,6 +36,14 @@ std::vector<std::string> ft_split(std::string toSplit, std::string toFind)
 			toSplit = "";
 		}
 	}
+	
+	while(splitted[splitted.size() - 1][i] != '\0')
+	{
+		str += splitted[splitted.size() - 1][i];
+		i++;
+	}
+	splitted.pop_back();
+	splitted.push_back(str);
 	return (splitted);
 }
 
@@ -235,6 +245,20 @@ std::vector<Channel *> Server::channelConvert(std::vector<std::string> splitted)
 		}
 	}
 	return (channel_list);
+}
+
+bool Server::compNames(std::string receiver, std::string nickname)
+{
+	int i = 0;
+	while(nickname[i] != '\0')
+	{
+		if(nickname[i] != receiver[i])
+			return false;
+		i++;
+	}
+	if(nickname[i] == receiver[i])
+		return true;
+	return false;
 }
 
 //se i nick passati sono nel server, crea un nuovo vettore di clients
@@ -605,6 +629,8 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	clientCommand.assign(buf, (size_t)valrecv);
 
 	splitted = ft_split(clientCommand, " ");
+	//splitted2 = ft_split(splitted[splitted.lenght(), "\r\n"]);
+	std::cout << splitted[0].length() << " " << splitted[1].length() << " " << splitted[2].length() << std::endl;
 	aStr = toUpper(splitted[0]);
 	if(compStr(aStr, "QUIT") || compStr(aStr, "/QUIT"))
 		quit_cmd(client, splitted);	//Estrapoliamo la reason direttamente in questa funzione
@@ -701,10 +727,11 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 
 	std::string msg;
 	std::vector<std::string>::iterator msgIt;
-	
-	if(receiver[0] == '#')
+
+	if(receiver[0] == '#')//controllare che chi manda il messaggio sia autorizzato a mandarlo (ban, voice)
 	{
-		Channel *channel = getChannel(receiver);
+		Channel *channel = getChannel("mario");
+		std::cout << "Channel name: " << channel->getName() << std::endl;
 		std::vector<Client *> clients = channel->getClients();
 		std::vector<Client *>::iterator iter;
 
@@ -721,16 +748,23 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 				msg += " ";
 		}
 		int j = 0;
+		msg += "\n";
 		for(iter = clients.begin(); iter != clients.end(); iter++)
 			send(clients[j++]->getFd(), msg.c_str(), msg.length(), 0);
 	}
-	else //manda ad un utente //controllare che chi manda il messaggio sia autorizzato a mandarlo (ban, voice)
+	else //manda ad un utente 
 	{
 		int fd = -1;
-		int j = 0;
-		for(std::vector<Client *>::iterator i = clients.begin(); i < clients.end(); i++)
-			if(receiver == clients.at(j++)->getNick())
-				fd = clients.at(j)->getFd();
+		std::string test;
+		for(std::vector<Client *>::iterator i = clients.begin(); i != clients.end(); i++)
+		{
+			if(receiver == (*i)->getNick())
+			{
+				fd = (*i)->getFd();
+				std::cout << receiver << " :: " << (*i)->getNick() << std::endl;
+				break;
+			}
+		}
 		if(fd == -1)
 		{
 			msg += "[PRIVMSG > > > " + receiver + "]: ";
@@ -740,9 +774,10 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 				if (msgIt != mex.end() - 1)
 					msg += " ";
 			}
+			msg += "\n";
 			send(sender->getFd(), msg.c_str(), msg.length(), 0);
 			msg.clear();
-			msg += receiver + ": no such nick/channel";
+			msg += receiver + ": no such nick/channel\n";
 			send(sender->getFd(), msg.c_str(), msg.length(), 0);
 			return ;
 		}
@@ -755,6 +790,7 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 				if (msgIt != mex.end() - 1)
 					msg += " ";
 			}
+			msg += "\n";
 			send(sender->getFd(), msg.c_str(), msg.length(), 0);
 			msg.clear();
 			Client *msgReceiver = getClient(fd);
@@ -765,6 +801,7 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 				if (msgIt != mex.end() - 1)
 					msg += " ";
 			}
+			msg += "\n";
 			send(msgReceiver->getFd(), msg.c_str(), msg.length(), 0);
 		}
 	}
@@ -867,9 +904,6 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 	{
 		Channel *channel = getChannel(channel_name);
 		channel->connect(client, psw);
-		std::vector<Client *> clienti = channel->getClients();
-		for(std::vector<Client *>::iterator i = clienti.begin(); i != clienti.end(); i++)
-			std::cout << (*i)->getNick() << std::endl;
 	}
 }
 
@@ -930,7 +964,6 @@ void Server::who_cmd(std::string filter)
 {
 	Channel *channel = NULL;
 	std::vector <Client *>channel_clients;
-	Client *user = NULL;
 
 	if (filter[0] == '#')
 	{
@@ -954,11 +987,10 @@ void Server::who_cmd(std::string filter)
 		{
 			if(filter == it->second->getUser())
 			{
-				user = it->second;
+				std::cout << "WHO entry for " << it->second->getUser() << " [" << it->second->getHost() << "]: Server: " << this->server_name << std::endl;
 				break;
 			}
 		}
-		std::cout << "WHO entry for " << user->getUser() << " [" << user->getHost() << "]: Channel: " << channel->getName() << ", Server: " << this->server_name << std::endl;
 	}
 }
 
@@ -1027,7 +1059,7 @@ Channel* Server::getChannel(std::string nameCh)
 {
 	for(std::map<std::string, Channel*>::iterator it = channel_map.begin(); it != channel_map.end(); it++)
 	{
-		if(nameCh == it->first)
+		if(nameCh == it->first) //qui é il problema, lenght 5 su #ppp
 			return (it->second);
 	}
 	return (NULL);
@@ -1035,5 +1067,6 @@ Channel* Server::getChannel(std::string nameCh)
 
 void Server::addChannel(Channel *toAdd)
 {
+	std::cout << "crei nome_chan" << toAdd->getName() << "lenght " << toAdd->getName().length() << std::endl;
 	this->channel_map.insert(std::make_pair(toAdd->getName(), toAdd));
 }
