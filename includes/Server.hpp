@@ -30,6 +30,8 @@ Gestire i codici di errori dei commands
 Scrivere messaggio di benvenuto contenete le informazioni riguardo i comandi disponibili
 Scrivere funzioni di parsing per lo username e il nickname
 quitCmd o notQuitCmd? Questo e' il dilemma
+Controllare se chi inserisce il topic e' un admin
+Controllare se chi fa il JOIN non sia gia' presente nel suddetto channel
 
 //facoltativo spostare buona parte dei commands di channel in server per unificarli
 //facoltativo aggiungeree piú files cpp per ogni classe: example (comandi, getters, setters ecc)
@@ -129,4 +131,5 @@ class Server
         Client *getClient(int sockfd);
         std::vector<Client*>::iterator findIterClient(Client *client);
         Channel* getChannel(std::string nameCh);
+        void addChannel(Channel *toAdd);
 };

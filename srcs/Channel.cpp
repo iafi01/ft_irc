@@ -17,7 +17,6 @@ Channel::Channel(std::string name, int userLimit, int is_only_invite, std::strin
     this->is_only_invite = is_only_invite;
     this->setPass(psw);
     this->setTopic(topic);
-    std::cout << "Creato canale " << name << std::endl;
 }
 
 bool Channel::setPass(std::string psw)
@@ -30,6 +29,11 @@ bool Channel::setPass(std::string psw)
         std::cerr << e.what();
         return (false);
     }
+}
+
+void Channel::addClient(Client *toAdd)
+{
+    clients.push_back(toAdd);
 }
 
 bool Channel::removeClient(Client *client)
@@ -481,7 +485,6 @@ void Channel::connect(Client* client, std::string psw = "")
         return ;
     if (is_only_invite > 0)
     {
-        std::cout << "BRUH" << std::endl;
         std::vector<Client*>::iterator j;
         bool invited;
 

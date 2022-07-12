@@ -85,7 +85,10 @@ class Channel {
         bool removeInvite(const Client* client);
         void connect(Client* client, std::string psw);
         void disconnect(Client* client);
-        
+
+        //Clients operations
+        void addClient(Client *toAdd);
+
         //cmds
         bool kickCmd(Client *client, std::string _reason);
         bool inviteCmd(Client *client);

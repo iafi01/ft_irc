@@ -855,15 +855,22 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, Client 
 
 void Server::join_cmd(Client *client, std::string channel_name, std::string psw = "")
 {
-	Channel *channel;
 	//controlla che channel_name esiste nel map e accedi al second
 	if(this->getChannel(channel_name) == NULL)
 	{
-		channel = new Channel(channel_name, 100, 0, psw, "");
+		Channel *channel = new Channel(channel_name, 100, 0, psw, "");
+		addChannel(channel);
+		channel->op(client);
+		channel->connect(client, psw);
 	}
-	channel = this->getChannel(channel_name);
-	std::cout << "Prendo" << std::endl;
-	channel->connect(client, psw);
+	else
+	{
+		Channel *channel = getChannel(channel_name);
+		channel->connect(client, psw);
+		std::vector<Client *> clienti = channel->getClients();
+		for(std::vector<Client *>::iterator i = clienti.begin(); i != clienti.end(); i++)
+			std::cout << (*i)->getNick() << std::endl;
+	}
 }
 
 /*void Server::pass_cmd(Client *admin, std::string pass)
@@ -1024,4 +1031,9 @@ Channel* Server::getChannel(std::string nameCh)
 			return (it->second);
 	}
 	return (NULL);
+}
+
+void Server::addChannel(Channel *toAdd)
+{
+	this->channel_map.insert(std::make_pair(toAdd->getName(), toAdd));
 }
