@@ -911,11 +911,12 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, Client 
 void Server::join_cmd(Client *client, std::string channel_name, std::string psw = "")
 {
 	//controlla che channel_name esiste nel map e accedi al second
+	std::string err;
 	if(this->getChannel(channel_name) == NULL)
 	{
 		if (channel_name[0] != '#')
 		{
-			std::string err = "invalid channel name, please add '#'\n";
+			err = "invalid channel name, please add '#'\n";
 			send(client->getFd(), err.c_str(), err.length(), 0);
 			return ;
 		}
@@ -923,11 +924,27 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 		addChannel(channel);
 		channel->op(client);
 		channel->connect(client, psw);
+
+		for (std::vector<Client *>::iterator i = channel->getClients().begin(); i != channel->getClients().end(); i++)
+		{
+			std::cout << (*i)->getNick() << std::endl;
+		}
 	}
 	else
 	{
 		Channel *channel = getChannel(channel_name);
+		if (channel->isClient(client))
+		{
+			err = "you are already on this channel\n";
+			send(client->getFd(), err.c_str(), err.length(), 0);
+			return ;
+		}
 		channel->connect(client, psw);
+
+		for (std::vector<Client *>::iterator i = channel->getClients().begin(); i != channel->getClients().end(); i++)
+		{
+			std::cout << (*i)->getNick() << std::endl;
+		}
 	}
 }
 
@@ -963,6 +980,10 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 				}
 				else //segfault
 				{
+					for (std::vector<Client *>::iterator i = channel->getClients().begin(); i != channel->getClients().end(); i++)
+					{
+						std::cout << (*i)->getNick() << std::endl;
+					}
 					msg.append(":" + client->getNick() + "!~" + client->getUser() + " PART " + channel->getName() + "\n");
 					send_all(msg, *client);
 					send(client->getFd(), msg.c_str(), msg.length(), 0);
@@ -974,6 +995,7 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 						i = channel_map.find(channel->getName());
 						channel_map.erase(i);
 					}
+					//std::cout << "numero users: " << channel->getClients().size() << std::endl;
 				}
 			}
 		}
