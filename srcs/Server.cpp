@@ -9,7 +9,7 @@ void Server::printTime()
 	time (&rawtime);
     timeinfo = localtime (&rawtime);
 
-    strftime (buffer,12,"[%X ] ",timeinfo);
+    strftime (buffer,12,"[%X] ",timeinfo);
     std::cout << buffer;
 }
 
