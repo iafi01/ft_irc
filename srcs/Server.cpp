@@ -751,8 +751,14 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 			msg += "<@" + sender->getNick() + ">: ";
 		else if(channel->isHalfOp(sender))
 			msg += "<%" + sender->getNick() + ">: ";
-		else
+		else if (channel->isClient(sender))
 			msg += "<" + sender->getNick() + ">: ";
+		else
+		{
+			std::string err = "You are not on this channel\n";
+			send(sender->getFd(), err.c_str(), err.length(), 0);
+			return;
+		}
 		for(msgIt = mex.begin() + 2; msgIt != mex.end(); msgIt++)
 		{
 			msg += *msgIt;
