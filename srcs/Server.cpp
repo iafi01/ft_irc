@@ -456,7 +456,15 @@ void Server::start_server()
             {
 				bzero(buffer, sizeof(buffer));
 				if ((valread = read(fd, buffer, 1024)) == 0)
-					quit_cmd(getClient(fd), tmp_void);
+				{
+					exit(1);
+				}
+				else if (buffer[0] == 0 || buffer[0] == 3 || buffer[0] == '\n')
+				{
+					std::string err = "Errore value inserted\n";
+					send((*i)->getFd(), err.c_str(), err.length(), 0);
+					exit(1);
+				}
 				else
 				{
 					buffer[valread] = '\0';
