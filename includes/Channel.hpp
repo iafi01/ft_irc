@@ -49,6 +49,7 @@ class Channel {
         int is_only_invite;
 
     public:
+        
         Channel();
         ~Channel();
         Channel(std::string name, int userLimit, int is_only_invite, std::string psw, std::string topic);
@@ -88,6 +89,8 @@ class Channel {
 
         //Clients operations
         void addClient(Client *toAdd);
+        void incrementClient();
+        void decrementClient();
 
         //cmds
         bool kickCmd(Client *client, std::string _reason);
