@@ -37,27 +37,47 @@ void Channel::addClient(Client *toAdd)
     clients.push_back(toAdd);
 }
 
-bool Channel::removeClient(Client *client)
+void Channel::removeClient(Client *client)
 {
-    std::vector<Client*>::iterator i;
+    std::vector<Client *>::iterator i;
 
     i = clients.begin();
     while (i != clients.end())
     {
-        if ((*i) == client)
-        {   
-            try {
-                this->clients.erase(i);
-                return (true);
+        if ((*i)->getNick() == client->getNick())
+        {
+            std::cout << "Nick di *i " << (*i)->getNick() << std::endl;
+            std::cout << "Nick di C" << client->getNick() << std::endl;
+            if(this->isOp(client))
+            {
+                std::cout << "isOp" << std::endl;
+                //this->deop(client);
+                std::cout << "fine isOp" << std::endl;
             }
-            catch (std::exception& e) {
-                std::cerr << e.what();
-                return (false);
+            if(this->isHalfOp(client))
+            {
+                std::cout << "isHalf" << std::endl;
+                this->half_op_vec.erase(i);
+                std::cout << "fine isHalf" << std::endl;
             }
+            if(this->isInvited(client))
+            {
+                std::cout << "isInvited" << std::endl;
+                this->invited_vec.erase(i);
+                std::cout << "fine isInvited" << std::endl;
+            }
+            if(this->isVoiceOp(client))
+            {
+                std::cout << "isVoice" << std::endl;
+                this->voice_op_vec.erase(i);
+                std::cout << "fine isVoice" << std::endl;
+            }
+            this->clients.erase(i);
+            return ;//(true);
         }
         i++;
     }
-    return (false);
+    return ;//(false);
 }
 
 bool Channel::op(Client *client)
@@ -99,6 +119,7 @@ bool Channel::halfOp(Client *client)
 {
     try {
         this->half_op_vec.push_back(client);
+        std::cout << "Halfoppato" <<std::endl;
         return (true);
     }
     catch (std::exception& e) {
@@ -370,14 +391,10 @@ bool Channel::isInvited(const Client* client)
 
 bool Channel::isOp(const Client* client)
 {
-    std::vector<Client*>::iterator i;
-
-    i = op_vec.begin();
-    while (i != op_vec.end())
+    for(std::vector<Client *>::iterator i = this->op_vec.begin(); i != op_vec.end(); i++)
     {
         if ((*i) == client)
             return (true);
-        i++;
     }
     return (false);
 }
@@ -545,10 +562,10 @@ void Channel::disconnect(Client* client)
 
 void Channel::incrementClient()
 {
-    this->nClient++;
+    this->nClient += 1;
 }
 
 void Channel::decrementClient()
 {
-    this->nClient--;
+    this->nClient -= 1;
 }

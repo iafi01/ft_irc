@@ -147,8 +147,11 @@ void Server::half_cmd(Client *admin, std::string channel_name, std::vector<Clien
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
+	std::cout << "Entro in halfop" << clientToHalfOp.size() << std::endl;
 	for (uint i = 0; i < clientToHalfOp.size(); i++)
+	{
 		channel->halfOp(clientToHalfOp[i]);
+	}
 }
 
 void Server::dehalf_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeHalfOp)
@@ -265,14 +268,10 @@ bool Server::compNames(std::string receiver, std::string nickname)
 std::vector<Client *> Server::clientConvert(std::vector<std::string> splitted)
 {
 	std::vector<Client *> new_clients;
-	for (uint j = 0; j < clients.size() - 1; j++)
-	{
-		for (uint i = 1; i < splitted.size(); i++)
-		{
+	for (uint j = 0; j < clients.size(); j++)
+		for (uint i = 3; i < splitted.size(); i++)
 			if (splitted[i] == clients[j]->getNick())
 				new_clients.push_back(clients[j]);
-		}
-	}
 	return (new_clients);
 }
 
@@ -924,11 +923,7 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 		addChannel(channel);
 		channel->op(client);
 		channel->connect(client, psw);
-
-		for (std::vector<Client *>::iterator i = channel->getClients().begin(); i != channel->getClients().end(); i++)
-		{
-			std::cout << (*i)->getNick() << std::endl;
-		}
+		std::cout << client->getNick() << std::endl;
 	}
 	else
 	{
@@ -940,11 +935,6 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 			return ;
 		}
 		channel->connect(client, psw);
-
-		for (std::vector<Client *>::iterator i = channel->getClients().begin(); i != channel->getClients().end(); i++)
-		{
-			std::cout << (*i)->getNick() << std::endl;
-		}
 	}
 }
 

@@ -56,7 +56,7 @@ class Channel {
 
         //only admin functions
         bool setPass(std::string psw);
-        bool removeClient(Client *client);
+        void removeClient(Client *client);
         bool op(Client *client);
         bool deop(Client *client);
         bool halfOp(Client *client);
