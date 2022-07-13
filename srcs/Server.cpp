@@ -931,14 +931,14 @@ void Server::topic_cmd(std::string channel_name, std::vector<std::string> splitt
 		//controllo se sender é admin
 		if (channel->setTopic(topic))
 		{
-			if (channel->isOp(sender))
+			if (!channel->isOp(sender))
 			{
 				msg = "You are not Op\n";
 				send(sender->getFd(), msg.c_str(), msg.length(), 0);
 				return ;
 			}
 			msg = sender->getUser();
-			msg.append("changed the topic to :");
+			msg.append(" changed the topic to: ");
 			msg.append(topic);
 			msg.append("\n");
 			send(sender->getFd(), msg.c_str(), msg.length(), 0);
