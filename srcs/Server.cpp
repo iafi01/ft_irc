@@ -879,26 +879,54 @@ void Server::invite_cmd(std::vector<Client *> invited, std::string channel_name,
 void Server::topic_cmd(std::string channel_name, std::vector<std::string> splitted, Client *sender)
 {
 	Channel *channel;
+	//send al posto di cout
 
 	//estrapoliamo il messaggio
+	std::string msg;
 	std::string topic = "";
 	std::vector<std::string> tmp;
 	tmp.assign(splitted.begin() + 2, splitted.end());
 	topic  = topicConvert(tmp);
 
 	channel = this->getChannel(channel_name);
+	if (!channel)
+	{
+		std::string err = "No channel name found\n";
+		send(sender->getFd(), err.c_str(), err.length(), 0);
+		return ;
+	}
 	if (topic == "")
 	{
 		if (!channel->getTopic().empty())
-			std::cout << "Channel topic is: " << channel->getTopic() << std::endl;
+		{
+			msg = ("Channel topic is: ");
+			msg.append(channel->getTopic());
+			msg.append("\n");
+			send(sender->getFd(), msg.c_str(), msg.length(), 0);
+		}
 		else
-			std::cout << "No channel topic is set" << std::endl;
+		{
+			msg = "No channel topic is set\n";
+			send(sender->getFd(), msg.c_str(), msg.length(), 0);
+		}
 	}
 	else
 	{
 		//controllo se sender é admin
 		if (channel->setTopic(topic))
-			std::cout << sender->getUser() << "[" << sender->getHost() << "] changed the topic to :" << topic << std::endl;
+		{
+			if (channel->isOp(sender))
+			{
+				msg = "You are not Op\n";
+				send(sender->getFd(), msg.c_str(), msg.length(), 0);
+				return ;
+			}
+			msg = sender->getUser();
+			msg.append("changed the topic to :");
+			msg.append(topic);
+			msg.append("\n");
+			send(sender->getFd(), msg.c_str(), msg.length(), 0);
+		}
 	}
 }
 

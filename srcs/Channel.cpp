@@ -486,7 +486,6 @@ void Channel::connect(Client* client, std::string psw = "")
         send(client->getFd(), err.c_str(), err.length(), 0);
         return ;
     }
-    std::cout << "numero_clienti: " << nClient << std::endl;
     if (nClient + 1 >= userLimit)
     {
 
