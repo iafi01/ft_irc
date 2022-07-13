@@ -941,7 +941,10 @@ void Server::topic_cmd(std::string channel_name, std::vector<std::string> splitt
 			msg.append(" changed the topic to: ");
 			msg.append(topic);
 			msg.append("\n");
-			send(sender->getFd(), msg.c_str(), msg.length(), 0);
+			for(std::vector<Client *>::iterator iter = channel->getClients().begin(); iter != channel->getClients().end(); iter++)
+			{
+				send((*iter)->getFd(), msg.c_str(), msg.length(), 0);
+			}
 		}
 	}
 }
