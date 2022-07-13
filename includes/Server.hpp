@@ -95,6 +95,7 @@ class Server
         std::vector<std::string> parseBanMask(std::string banMask);//function parse mode cmds banmask
         std::vector<Channel *> channelConvert(std::vector<std::string> splitted);
         bool compNames(std::string receiver, std::string nickname);
+        void printTime();
 
         //void forceQuit(int fd);
         bool check_nick(Client *new_client, char *buffer, int valread);
