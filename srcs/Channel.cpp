@@ -15,6 +15,7 @@ Channel::Channel(std::string name, int userLimit, int is_only_invite, std::strin
     this->name = name;
     this->userLimit = userLimit;
     this->is_only_invite = is_only_invite;
+    this->nClient = 0;
     this->setPass(psw);
     this->setTopic(topic);
 }
@@ -465,7 +466,7 @@ bool Channel::removeInvite(const Client* client)
 void Channel::connect(Client* client, std::string psw = "")
 {
     std::vector<Banned*>::iterator i;
-
+    std::string err;
     if(!banned_vec.empty())
     {
         i = banned_vec.begin();
@@ -480,9 +481,20 @@ void Channel::connect(Client* client, std::string psw = "")
         }
     }
     if (pass != psw)
+    {
+        err = "pass of the channel incorrect\n";
+        send(client->getFd(), err.c_str(), err.length(), 0);
         return ;
+    }
+    std::cout << "ncl" << nClient << std::endl;
     if (nClient + 1 >= userLimit)
-        return ;
+    {
+
+			std::cout << "channel is full" << nClient << "/" << userLimit << "\n";
+            err = "channel is full!\n";
+			send(client->getFd(), err.c_str(), err.length(), 0);
+			return ;
+		}
     if (is_only_invite > 0)
     {
         std::vector<Client*>::iterator j;
@@ -500,10 +512,15 @@ void Channel::connect(Client* client, std::string psw = "")
             j++;
         }
         if (!invited)
-            return;
+        {
+			err = "channel is only invite\n";
+			send(client->getFd(), err.c_str(), err.length(), 0);
+			return ;
+		}
     }
     //connettiti
-    nClient++;
+    this->incrementClient();
+    std::cout << "ncl dp" << nClient << std::endl;
     clients.push_back(client);
 }
 
@@ -511,7 +528,7 @@ void Channel::disconnect(Client* client)
 {
     std::vector<Client*>::iterator i;
     *i = client;
-    nClient--;
+    this->decrementClient();
     //non sei piu client di questo channel
     clients.erase(i);
     //tolgo i permessi da admin se abbandoni
@@ -524,4 +541,14 @@ void Channel::disconnect(Client* client)
     //controllo se c'é almeno un admin sennó almeno un admin ci deve essere
     if (op_vec.empty())
         op_vec.push_back(clients.at(0));
+}
+
+void Channel::incrementClient()
+{
+    this->nClient++;
+}
+
+void Channel::decrementClient()
+{
+    this->nClient--;
 }

@@ -978,16 +978,13 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 					msg.append(" :442 " + client->getNick() + " " + channel->getName() + " :You're not on that channel\n");
 					send(client->getFd(), msg.c_str(), msg.length(), 0);
 				}
-				else //segfault
+				else
 				{
-					for (std::vector<Client *>::iterator i = channel->getClients().begin(); i != channel->getClients().end(); i++)
-					{
-						std::cout << (*i)->getNick() << std::endl;
-					}
 					msg.append(":" + client->getNick() + "!~" + client->getUser() + " PART " + channel->getName() + "\n");
 					send_all(msg, *client);
 					send(client->getFd(), msg.c_str(), msg.length(), 0);
 					channel->removeClient(client);
+					channel->decrementClient();
 					if (channel->getClients().empty()) //se esce l'ultimo utente il canale viene eliminato
 					{
 						std::map<std::string, Channel*>::iterator i;
