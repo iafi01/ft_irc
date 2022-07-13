@@ -1,0 +1,11 @@
+//I canali senza carattere iniziale # non devono funzionare
+
+Se entro in un canale Alpha poi in uno Beta, esco da alpha e poi beta mi dice che non sono su quel canale
+
+Se entro nel canale Alpha e poi scrivo con PRIVMSG ad un amico, non mi farà uscire dal canale con part
+
+Non posse joiner due volte sullo stesso canale
+
+Il numero di client nel channel attuali é rotto
+
+Il part multiplo non funziona
