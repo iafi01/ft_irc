@@ -464,24 +464,24 @@ void Server::start_server()
 					if (cli->getIsLogged() == false)
 					{
 						if (check_pass(*i, buffer, valread) == false)
-							/*forceQuit(fd)*/exit(1);
+							exit(1);
 					}
 					else if (cli->getNick().empty() && cli->getIsLogged() == true)
 					{
 						if (check_nick(*i, buffer, valread) == false)
-							/*forceQuit(fd)*/exit(1);
-						std::cout << cli->getNick() << std::endl;
+							exit(1);
+						//std::cout << cli->getNick() << std::endl;
 					}
 					else if (cli->getUser().empty() && !cli->getNick().empty())
 					{
 						if (check_user(*i, buffer, valread) == false)
-							/*forceQuit(fd)*/exit(1);
-						std::cout << cli->getUser() << std::endl;
+							exit(1);
+						//std::cout << cli->getUser() << std::endl;
 					}
 					else if (cli->getIsLogged() == true && !cli->getNick().empty() && !cli->getUser().empty())
 					{
 						buffer[valread - 1] = '\0';
-						std::cout << "BUF: " << buffer << std::endl;
+						//std::cout << "BUF: " << buffer << std::endl;
 						parse_commands(*i, buffer, valread);
 					}
 				}
@@ -1056,6 +1056,6 @@ Channel* Server::getChannel(std::string nameCh)
 
 void Server::addChannel(Channel *toAdd)
 {
-	std::cout << "crei nome_chan" << toAdd->getName() << "lenght " << toAdd->getName().length() << std::endl;
+	std::cout << "creo canale :" << toAdd->getName() << std::endl;
 	this->channel_map.insert(std::make_pair(toAdd->getName(), toAdd));
 }
