@@ -913,6 +913,12 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 	//controlla che channel_name esiste nel map e accedi al second
 	if(this->getChannel(channel_name) == NULL)
 	{
+		if (channel_name[0] != '#')
+		{
+			std::string err = "invalid channel name, please add '#'\n";
+			send(client->getFd(), err.c_str(), err.length(), 0);
+			return ;
+		}
 		Channel *channel = new Channel(channel_name, 100, 0, psw, "");
 		addChannel(channel);
 		channel->op(client);
@@ -955,7 +961,7 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 					msg.append(" :442 " + client->getNick() + " " + channel->getName() + " :You're not on that channel\n");
 					send(client->getFd(), msg.c_str(), msg.length(), 0);
 				}
-				else
+				else //segfault
 				{
 					msg.append(":" + client->getNick() + "!~" + client->getUser() + " PART " + channel->getName() + "\n");
 					send_all(msg, *client);
@@ -972,9 +978,6 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 			}
 		}
 	}
-	std::vector<Client *> cl = channel->getClients();
-	for (std::vector<Client *>::iterator i = cl.begin(); i != cl.end(); i++)
-		std::cout << (*i)->getNick() << std::endl;
 }
 
 void Server::who_cmd(std::string filter)
