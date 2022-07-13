@@ -3,7 +3,7 @@ Server server;
 
 void signalHandler(int ctrl)
 {
-	exit(ctrl);
+	std::cout << "client disconnected " << ctrl  << std::endl;
 }
 
 int is_digit(char *str)
@@ -34,5 +34,4 @@ int main(int ac, char **av)
 	Server server2(atoi(av[1]), av[2]);
 	server = server2;
 	signal(SIGINT, signalHandler);
-	// server.run();
 }

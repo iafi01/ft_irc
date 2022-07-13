@@ -486,7 +486,6 @@ void Channel::connect(Client* client, std::string psw = "")
         send(client->getFd(), err.c_str(), err.length(), 0);
         return ;
     }
-    std::cout << "ncl" << nClient << std::endl;
     if (nClient + 1 >= userLimit)
     {
 
@@ -520,7 +519,7 @@ void Channel::connect(Client* client, std::string psw = "")
     }
     //connettiti
     this->incrementClient();
-    std::cout << "ncl dp" << nClient << std::endl;
+    std::cout << "numero_clienti ora:" << nClient << std::endl;
     clients.push_back(client);
 }
 
@@ -529,6 +528,7 @@ void Channel::disconnect(Client* client)
     std::vector<Client*>::iterator i;
     *i = client;
     this->decrementClient();
+    std::cout << this->nClient << std::endl;
     //non sei piu client di questo channel
     clients.erase(i);
     //tolgo i permessi da admin se abbandoni
