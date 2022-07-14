@@ -661,7 +661,7 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 		if (!splitted[3].empty())
 			kick_cmd(splitted[1], splitted[2], client, splitted[3]);
 		else
-			kick_cmd(splitted[1], splitted[2], client, NULL);
+			kick_cmd(splitted[1], splitted[2], client, "");
 	}
 	else if(compStr(aStr, "JOIN") || compStr(aStr, "/JOIN"))
 		join_cmd(client, splitted[1], splitted[2]);
