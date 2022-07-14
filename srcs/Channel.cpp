@@ -295,7 +295,7 @@ bool Channel::setTopic(std::string topic)
 }
 
 //cmds
-bool Channel::kickCmd(Client *client, std::string _reason)
+bool Channel::kickCmd(Client *client, std::string _reason = "")
 {
     try {
         std::cout << _reason << std::endl;
@@ -542,8 +542,16 @@ void Channel::connect(Client* client, std::string psw = "")
 
 void Channel::disconnect(Client* client)
 {
+    //qua va in seg/bus error
     std::vector<Client*>::iterator i;
-    *i = client;
+    for (std::vector<Client*>::iterator j = clients.begin(); j != clients.end(); j++)
+    {
+        if (*j == client)
+        {
+            i = j;
+            break;
+        }
+    }
     this->decrementClient();
     std::cout << this->nClient << std::endl;
     //non sei piu client di questo channel

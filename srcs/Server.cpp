@@ -13,6 +13,18 @@ void Server::printTime()
     std::cout << buffer;
 }
 
+Client *Server::getClientFromUser(std::string username, std::vector<Client *> clie)
+{
+	for (std::vector<Client*>::iterator i = clie.end(); i != clie.end(); i++)
+	{
+		if ((*i)->getUser() == username)
+		{
+			return (*i);
+		}
+	}
+	return (NULL);
+}
+
 std::vector<Client*>::iterator Server::findIterClient(Client *client)
 {
 	std::vector<Client*>::iterator i;
@@ -951,20 +963,58 @@ void Server::topic_cmd(std::string channel_name, std::vector<std::string> splitt
 void Server::kick_cmd(std::string channel_name, std::string client_name, Client *sender, std::string reason = "")
 {
 	Channel *channel;
+	Client *kicked;
+	std::string msg; //controllo admin e msg al channel
 
 	channel = this->getChannel(channel_name);
-	for (uint i = 0; i < clients.size(); i++)
-		if (clients[i]->getNick() == client_name)
-			channel->kickCmd(clients[i], reason);
+	if (!channel->isOp(sender))
+	{
+		msg = "You are not an operator\n";
+		send(sender->getFd(), msg.c_str(), msg.length(), 0);
+		return ;
+	}
+	//ottenere il client dal user
+	kicked = getClientFromUser(client_name, channel->getClients());
+	if (kicked == NULL || !channel->isClient(kicked))
+	{
+		msg = "The client is not in the channel\n";
+		send(sender->getFd(), msg.c_str(), msg.length(), 0);
+		return ;
+	}
+	//sas
 	if (reason != "")
 	{
 		printTime();
-		std::cout << client_name << " was kicked from " << channel_name << " by " << sender->getUser() << " because " << reason << std::endl;
+		msg = client_name;
+		msg.append(" was kicked from ");
+		msg.append(channel_name);
+		msg.append(" by ");
+		msg.append(sender->getUser());
+		msg.append(" because ");
+		msg.append(reason);
+		msg.append("\n");
 	}
 	else
 	{
 		printTime();
-		std::cout << client_name << " was kicked from " << channel_name << " by " << sender->getUser() << " for no reason"<< std::endl;
+		msg = client_name;
+		msg.append(" was kicked from ");
+		msg.append(channel_name);
+		msg.append(" by ");
+		msg.append(sender->getUser());
+		msg.append(" for no reason");
+		msg.append("\n");
+	}
+	for (std::vector<Client *>::iterator i = channel->getClients().begin(); i != channel->getClients().end(); i++)
+		send((*i)->getFd(), msg.c_str(), msg.length(), 0);
+	for (uint i = 0; i < clients.size(); i++)
+	{
+		if (clients[i]->getNick() == client_name)
+		{
+			channel->kickCmd(clients[i], reason);
+			msg = "Please re-join the channel\n";
+			send(clients[i]->getFd(), msg.c_str(), msg.length(), 0);
+		}
 	}
 }
 

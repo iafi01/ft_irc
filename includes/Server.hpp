@@ -135,4 +135,5 @@ class Server
         std::vector<Client*>::iterator findIterClient(Client *client);
         Channel* getChannel(std::string nameCh);
         void addChannel(Channel *toAdd);
+        Client *getClientFromUser(std::string username, std::vector<Client *> clie);
 };
