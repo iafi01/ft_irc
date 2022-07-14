@@ -132,7 +132,7 @@ class Server
 
         //clients and channels management by server
         Client *getClient(int sockfd);
-        std::vector<Client*>::iterator findIterClient(Client *client);
+        int findIterClient(Client *client);
         Channel* getChannel(std::string nameCh);
         void addChannel(Channel *toAdd);
         Client *getClientFromUser(std::string username, std::vector<Client *> clie);
