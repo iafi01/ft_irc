@@ -784,20 +784,20 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 			send(sender->getFd(), msg.c_str(), msg.length(), 0);
 			return ;
 		}
-		else if (!channel->voiceOp().empty() && !channel->isVoiceOp(sender)) //se solo i voice op possono parlare, controllo che ci sia qualcuno se c'é controllo sia voice per lfarlro parlare
-		{
-			msg += sender->getUser() + ": you are not a voice op in the channel\n";
-			send(sender->getFd(), msg.c_str(), msg.length(), 0);
-			return ;
-		}
 		std::vector<Client *>::iterator iter;
 		
 		if(channel->isOp(sender))
 			msg += printTime() + "<@" + sender->getNick() + ">: ";
-		else if(channel->isHalfOp(sender))
+		else if(channel->isHalfOp(sender) && channel->isVoiceOp(sender))
 			msg += printTime() + "<%" + sender->getNick() + ">: ";
-		else if (channel->isClient(sender))
+		else if (channel->isClient(sender) && channel->isVoiceOp(sender))
 			msg += printTime() + "<" + sender->getNick() + ">: ";
+		else if(!channel->isVoiceOp(sender) && channel->isClient(sender))
+		{
+			std::string err = printTime() + "You can not write on this channel\n";
+			send(sender->getFd(), err.c_str(), err.length(), 0);
+			return;
+		}	
 		else
 		{
 			std::string err = printTime() + "You are not on this channel\n";
@@ -981,6 +981,7 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, Client 
 	{
 		std::string err = printTime() + "Error: channel does not exists\n";
 		send(sender->getFd(), err.c_str(), err.length(), 0);
+		return ;
 	}
 	channel = this->getChannel(channel_name);
 	if (!channel->isOp(sender))
@@ -1070,9 +1071,9 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 {
 	Channel *channel = NULL;
 	std::string	msg;
-	// std::vector<std::string> names;
+	std::vector<std::string> names;
 
-	// names.push_back(splitted[1]);
+	names.push_back(splitted[1]);
 	if (splitted.size() == 1)
 	{
 		msg.append(printTime() + ": 461 " + client->getNick() + " PART :Not enough parameters\n");
@@ -1081,45 +1082,45 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 	}
 	else if (splitted.size() == 2)
 	{
-		// for (uint i = 0; i < names.size(); i++)
-		// {
-		channel = getChannel(splitted[1]);
-		if (!channel)
+		for (uint i = 0; i < names.size(); i++)
 		{
-			msg.append(": 403 " + client->getNick() + " " + splitted[1] + " :No such channel\n");
-			send(client->getFd(), msg.c_str(), msg.length(), 0);
-		}
-		else
-		{
-			if (!channel->isClient(client))
+			channel = getChannel(splitted[1]);
+			if (!channel)
 			{
-				msg.append(printTime() + ": 403 " + client->getNick() + " " + names[i] + " :No such channel\n");
+				msg.append(": 403 " + client->getNick() + " " + splitted[1] + " :No such channel\n");
 				send(client->getFd(), msg.c_str(), msg.length(), 0);
 			}
 			else
 			{
 				if (!channel->isClient(client))
 				{
-					msg.append(printTime() + " :442 " + client->getNick() + " " + channel->getName() + " :You're not on that channel\n");
+					msg.append(printTime() + ": 403 " + client->getNick() + " " + names[i] + " :No such channel\n");
 					send(client->getFd(), msg.c_str(), msg.length(), 0);
 				}
 				else
 				{
-					msg.append(printTime() + ":" + client->getNick() + "!~" + client->getUser() + " PART " + channel->getName() + "\n");
-					send_all(printTime() + msg, *client);
-					send(client->getFd(), msg.c_str(), msg.length(), 0);
-					channel->removeClient(client);
-					channel->decrementClient();
-					if (channel->getClients().empty()) //se esce l'ultimo utente il canale viene eliminato
+					if (!channel->isClient(client))
 					{
-						std::map<std::string, Channel*>::iterator i;
-
-					i = channel_map.find(channel->getName());
-					channel_map.erase(i);
+						msg.append(printTime() + " :442 " + client->getNick() + " " + channel->getName() + " :You're not on that channel\n");
+						send(client->getFd(), msg.c_str(), msg.length(), 0);
+					}
+					else
+					{
+						msg.append(printTime() + ":" + client->getNick() + "!~" + client->getUser() + " PART " + channel->getName() + "\n");
+						send_all(printTime() + msg, *client);
+						send(client->getFd(), msg.c_str(), msg.length(), 0);
+						channel->removeClient(client);
+						channel->decrementClient();
+						if (channel->getClients().empty()) //se esce l'ultimo utente il canale viene eliminato
+						{
+							std::map<std::string, Channel*>::iterator i;
+							i = channel_map.find(channel->getName());
+							channel_map.erase(i);
+						}
+					}
 				}
 			}
 		}
-		//}
 	}
 }
 
