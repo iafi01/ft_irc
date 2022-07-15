@@ -696,60 +696,64 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	return (false);
 }
 
-void Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da rivedere  *****/
+void Server::notQuitCmd(int fd, int i)
 {
-	//quitta dal server e puoi mandare un messaggio (no fucking flags)
-	//int id = client->getFd();
-	int fd = client->getId();
-	std::string msg_quit;
-	std::string msg;
-
-	printTime();
-	std::cout << "The disconnected host was named " << client->getUser() << std::endl;
-	
-	for (uint j = 0; j < words.size(); j++) 
-	{
-		msg_quit += words[j];
-		if (j < words.size() - 1)
-			msg_quit += " ";
-		else
-			msg_quit += "\0";
-	}
-	std::cout << msg_quit << std::endl;
-
-	for (Channel *i = channel_map.begin()->second; i != channel_map.end()->second; i++)
-	{
-		//deve mandare questo messaggio a tutti gli utenti di tutti i canali di cui facevi parte e uscire kickarti dai canali
-		//iafi [~kvirc@Azzurra-3476AEA0.business.telecomitalia.it] has quit IRC: Quit: sono uscito
-
-		
-		//lista dei canali di cui fai parte
-		//ciclati e con un send all
-
-		//segfault qui dentro		
-		std::vector<Client *> channel_clients = i->getClients();
-		for (std::vector<Client *>::iterator l = channel_clients.begin(); l != channel_clients.end(); l++)
-		{
-			if (client->getNick() == (*l)->getNick())
-			{
-				//fa parte di questo canale
-				msg += client->getUser() + " has quit IRC: Quit: " + msg_quit;
-				send_all(msg, *client);
-				i->kickCmd(client, "quit");
-			}
-		}
-	}
-	return ; /*test*/
-	msg.clear();
-	msg += "Server ERROR: :Closing Link: host " + client->getHost() + " " + "(Quit: " + msg_quit + ")";
-	printTime();
-	//remove client from clients client_map
-	msg.clear();
-	//std::vector<Client *>::iterator c = std::find(clients.begin(), clients.end(), getClient(fd));
-	//clients.erase(c); // qua sta un segfault
+	getsockname(fd , (struct sockaddr*)&serveraddr , (socklen_t*)&addrlen);
+	std::cout << "The disconnected host was named " << clients[i]->getUser() << std::endl;
+	//findAndEraseClient(fd);
+	clients[i]->setIsLogged(false);
 	client_map.erase(fd);
 	close(fd);
-	exit(0);  //deve uscire solo il client non tutto il server
+	//bisogna usare l'erase e l'iterator
+	for (std::vector<Client *>::iterator j = clients.begin(); j != clients.end(); j++)
+	{
+		if ((*j) == clients[i])
+			clients.erase(j);
+	}
+}
+
+void Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da rivedere  *****/
+{
+	int fd = client->getFd();
+	int id = findIterClient(client);
+	if (words.empty())
+	{
+		notQuitCmd(fd, id);
+		return ;
+	}
+	getsockname(fd , (struct sockaddr*)&serveraddr , (socklen_t*)&addrlen);
+	std::cout << "The disconnected host was named " << client->getUser() << std::endl;
+	std::string msg;
+	int y = 0;
+	std::string quitmsg;
+	while (y < (int)words.size())
+	{
+		quitmsg.append(words[y]);
+		quitmsg.append(" ");
+		y++;
+	}
+	msg.append(":" + client->getNick() + "!" + client->getUser() + " QUIT :Quit: " + quitmsg + "\n");
+	for(std::map<std::string, Channel*>::iterator it = channel_map.begin(); it != channel_map.end(); it++)
+	{
+		if(client != NULL)
+		{
+			for (std::vector<Client *>::iterator c = clients.begin(); c != clients.end(); c++)
+				send((*c)->getFd(), msg.c_str(), msg.length(), 0);
+			(*it).second->disconnect(client);
+		}
+	}
+	msg.clear();
+	msg.append("ERROR :Closing Link: " + client->getNick() + " (Quit: " + client->getUser() + ")\n");
+	send(fd, msg.c_str(), msg.length(), 0);
+	client[id].setIsLogged(false);
+	client_map.erase(fd);
+	close(fd);
+	int k = 0;
+	for (std::vector<Client *>::iterator j = clients.begin(); j != clients.end(); j++)
+	{
+		if (k++ == id)
+			clients.erase(j);	
+	}
 }
 
 void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::string> mex)
