@@ -202,6 +202,22 @@ bool Channel::ban(Client *admin, std::string nick = "*", std::string user = "*",
         victim.admin = admin;
 
         this->banned_vec.push_back(&victim);
+        //stampa
+        std::string msg = admin->getUser();
+        msg.append(" has banned mask ");
+        msg.append(nick);
+        msg.append("!");
+        msg.append(user);
+        msg.append("@");
+        msg.append(host);
+        msg.append(" for: ");
+        if (_reason == "")
+            msg.append("no reason");
+        else
+            msg.append(_reason);
+        msg.append("\n");
+        for (std::vector<Client *>::iterator i = clients.begin(); i != clients.end(); i++)
+            send((*i)->getFd(), msg.c_str(), msg.length(), 0);
         return (true);
     }
     catch (std::exception& e) {
@@ -222,6 +238,22 @@ bool Channel::unBan(std::string nick = "*", std::string user = "*", std::string 
         {
             try {
                 this->banned_vec.erase(i);
+                //stampa
+                std::string msg = admin->getUser();
+                msg.append(" unban mask ");
+                msg.append(nick);
+                msg.append("!");
+                msg.append(user);
+                msg.append("@");
+                msg.append(host);
+                msg.append(" for: ");
+                if (_reason == "")
+                    msg.append("no reason");
+                else
+                    msg.append(_reason);
+                msg.append("\n");
+                for (std::vector<Client *>::iterator i = clients.begin(); i != clients.end(); i++)
+                    send((*i)->getFd(), msg.c_str(), msg.length(), 0);
                 return (true);
             }
             catch (std::exception& e) {
@@ -232,6 +264,7 @@ bool Channel::unBan(std::string nick = "*", std::string user = "*", std::string 
         i++;
         j++;
     }
+    
     return (false);
 }
 
