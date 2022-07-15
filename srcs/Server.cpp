@@ -174,7 +174,6 @@ void Server::half_cmd(Client *admin, std::string channel_name, std::vector<Clien
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
-	std::cout << "Entro in halfop" << clientToHalfOp.size() << std::endl;
 	for (uint i = 0; i < clientToHalfOp.size(); i++)
 	{
 		channel->halfOp(clientToHalfOp[i]);
@@ -219,10 +218,16 @@ void Server::unvoice_cmd(Client *admin, std::string channel_name, std::vector<Cl
 	Channel *channel = this->getChannel(channel_name);
 	std::string msg;
 
+	std::cout << "Entro in unvoice" << std::endl;
 	if (channel->isOp(admin) || !channel->isHalfOp(admin))
 	{
+		std::cout << "E' admin" << std::endl;
 		for (uint i = 0; i < clientToUnVoice.size(); i++)
+		{
+			std::cout << "Provo a fare il devoice" << std::endl;
 			channel->deVoiceOp(clientToUnVoice[i]);
+			std::cout << "Fatto il devoice" << std::endl;
+		}
 	}
 	else
 	{
@@ -230,6 +235,7 @@ void Server::unvoice_cmd(Client *admin, std::string channel_name, std::vector<Cl
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
+	return ;
 }
 
 
@@ -758,14 +764,7 @@ void Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da
 }
 
 void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::string> mex)
-{
-	//controllare sia sul server
-	// if(receiver != sender && FD_ISSET(receiver->getFd(), &write_fds))	//
-	// {																	//
-	// 	if((receiver->getFd(), mex.c_str(), mex.length(), 0) < 0)			//???
-	// 		fatal();														//
-	// }																	//
-
+{																//
 	std::string msg;
 	std::vector<std::string>::iterator msgIt;
 
@@ -780,22 +779,18 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 		Channel *channel = getChannel(receiver);
 		std::vector<Client *> clients = channel->getClients();
 		std::vector<Client *>::iterator iter;
-		// for(iter = clients.begin(); iter != clients.end(); iter++)
-		// {
-		// 	if(iter == clients.end())
-		// 	{
-		// 		msg += "You are not in this channel\n";
-		// 		send(sender->getFd(), msg.c_str(), msg.length(), 0);
-		// 	}
-		// 	else 
-		// 		break;
-		// }
 		if(channel->isOp(sender))
 			msg += "<@" + sender->getNick() + ">: ";
-		else if(channel->isHalfOp(sender))
+		else if(channel->isHalfOp(sender) && channel->isVoiceOp(sender))
 			msg += "<%" + sender->getNick() + ">: ";
-		else if (channel->isClient(sender))
+		else if (channel->isClient(sender) && channel->isVoiceOp(sender))
 			msg += "<" + sender->getNick() + ">: ";
+		else if (!channel->isVoiceOp(sender))
+		{
+			std::string err = "You can not write on this channel\n";
+			send(sender->getFd(), err.c_str(), err.length(), 0);
+			return;
+		}
 		else
 		{
 			std::string err = "You are not on this channel\n";
@@ -1067,9 +1062,9 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 {
 	Channel *channel = NULL;
 	std::string	msg;
-	std::vector<std::string> names;
+	// std::vector<std::string> names;
 
-	names = ft_split(splitted[1], ",");
+	// names.push_back(splitted[1]);
 	if (splitted.size() == 1)
 	{
 		msg.append(": 461 " + client->getNick() + " PART :Not enough parameters\n");
@@ -1078,39 +1073,38 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 	}
 	else if (splitted.size() == 2)
 	{
-		for (uint i = 0; i < names.size(); i++)
+		// for (uint i = 0; i < names.size(); i++)
+		// {
+		channel = getChannel(splitted[1]);
+		if (!channel)
 		{
-			channel = getChannel(names[i]);
-			if (!channel)
+			msg.append(": 403 " + client->getNick() + " " + splitted[1] + " :No such channel\n");
+			send(client->getFd(), msg.c_str(), msg.length(), 0);
+		}
+		else
+		{
+			if (!channel->isClient(client))
 			{
-				msg.append(": 403 " + client->getNick() + " " + names[i] + " :No such channel\n");
+				msg.append(" :442 " + client->getNick() + " " + channel->getName() + " :You're not on that channel\n");
 				send(client->getFd(), msg.c_str(), msg.length(), 0);
 			}
 			else
 			{
-				if (!channel->isClient(client))
+				msg.append(":" + client->getNick() + "!~" + client->getUser() + " PART " + channel->getName() + "\n");
+				send_all(msg, *client);
+				send(client->getFd(), msg.c_str(), msg.length(), 0);
+				channel->removeClient(client);
+				channel->decrementClient();
+				if (channel->getClients().empty()) //se esce l'ultimo utente il canale viene eliminato
 				{
-					msg.append(" :442 " + client->getNick() + " " + channel->getName() + " :You're not on that channel\n");
-					send(client->getFd(), msg.c_str(), msg.length(), 0);
-				}
-				else
-				{
-					msg.append(":" + client->getNick() + "!~" + client->getUser() + " PART " + channel->getName() + "\n");
-					send_all(msg, *client);
-					send(client->getFd(), msg.c_str(), msg.length(), 0);
-					channel->removeClient(client);
-					channel->decrementClient();
-					if (channel->getClients().empty()) //se esce l'ultimo utente il canale viene eliminato
-					{
-						std::map<std::string, Channel*>::iterator i;
+					std::map<std::string, Channel*>::iterator i;
 
-						i = channel_map.find(channel->getName());
-						channel_map.erase(i);
-					}
-					//std::cout << "numero users: " << channel->getClients().size() << std::endl;
+					i = channel_map.find(channel->getName());
+					channel_map.erase(i);
 				}
 			}
 		}
+		//}
 	}
 }
 

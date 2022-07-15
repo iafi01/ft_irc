@@ -58,7 +58,7 @@ class Channel {
         bool setPass(std::string psw);
         void removeClient(Client *client);
         bool op(Client *client);
-        bool deop(Client *client);
+        void deop(Client *client);
         bool halfOp(Client *client);
         bool deHalfOp(Client *client);
         bool voiceOp(Client *client);
