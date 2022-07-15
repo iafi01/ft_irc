@@ -543,28 +543,20 @@ void Channel::connect(Client* client, std::string psw = "")
 void Channel::disconnect(Client* client)
 {
     //qua va in seg/bus error
-    std::vector<Client*>::iterator i;
-    for (std::vector<Client*>::iterator j = clients.begin(); j != clients.end(); j++)
-    {
-        if (*j == client)
-        {
-            i = j;
-            break;
-        }
-    }
+    if (std::find(clients.begin(), clients.end(), client) != clients.end())
+        clients.erase(std::find(clients.begin(), clients.end(), client));
     this->decrementClient();
-    std::cout << this->nClient << std::endl;
+    //std::cout << this->nClient << std::endl;
     //non sei piu client di questo channel
-    clients.erase(i);
     //tolgo i permessi da admin se abbandoni
     if (std::find(op_vec.begin(), op_vec.end(), client) != op_vec.end())
-        op_vec.erase(i);
+        op_vec.erase(std::find(op_vec.begin(), op_vec.end(), client));
     if (std::find(half_op_vec.begin(), half_op_vec.end(), client) != half_op_vec.end())
-        half_op_vec.erase(i);
+        half_op_vec.erase(std::find(half_op_vec.begin(), half_op_vec.end(), client));
     if (std::find(voice_op_vec.begin(), voice_op_vec.end(), client) != voice_op_vec.end())
-        voice_op_vec.erase(i);
+        voice_op_vec.erase(std::find(voice_op_vec.begin(), voice_op_vec.end(), client));
     //controllo se c'é almeno un admin sennó almeno un admin ci deve essere
-    if (op_vec.empty())
+    if (op_vec.empty() && !clients.empty())
         op_vec.push_back(clients.at(0));
 }
 
