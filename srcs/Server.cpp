@@ -15,7 +15,7 @@ void Server::printTime()
 
 Client *Server::getClientFromUser(std::string username, std::vector<Client *> clie)
 {
-	for (std::vector<Client*>::iterator i = clie.end(); i != clie.end(); i++)
+	for (std::vector<Client*>::iterator i = clie.begin(); i != clie.end(); i++)
 	{
 		if ((*i)->getUser() == username)
 		{
@@ -737,7 +737,8 @@ void Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da
 	{
 		if(client != NULL)
 		{
-			for (std::vector<Client *>::iterator c = clients.begin(); c != clients.end(); c++)
+			
+			for (std::vector<Client *>::iterator c = (*it).second->getClients().begin(); c != (*it).second->getClients().end(); c++)
 				send((*c)->getFd(), msg.c_str(), msg.length(), 0);
 			(*it).second->disconnect(client);
 		}
@@ -974,6 +975,11 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, Client 
 	Client *kicked;
 	std::string msg; //controllo admin e msg al channel
 
+	if (this->getChannel(channel_name) == NULL)
+	{
+		std::string err = "Error: channel does not exists\n";
+		send(sender->getFd(), msg.c_str(), msg.length(), 0);
+	}
 	channel = this->getChannel(channel_name);
 	if (!channel->isOp(sender))
 	{
@@ -983,6 +989,7 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, Client 
 	}
 	//ottenere il client dal user
 	kicked = getClientFromUser(client_name, channel->getClients());
+	//sta cazz e funzion ritorna NULL
 	if (kicked == NULL || !channel->isClient(kicked))
 	{
 		msg = "The client is not in the channel\n";
