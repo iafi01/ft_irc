@@ -176,6 +176,22 @@ bool Channel::ban(Client *admin, std::string nick = "*", std::string user = "*",
         victim.admin = admin;
 
         this->banned_vec.push_back(&victim);
+        //stampa
+        std::string msg = admin->getUser();
+        msg.append(" has banned mask ");
+        msg.append(nick);
+        msg.append("!");
+        msg.append(user);
+        msg.append("@");
+        msg.append(host);
+        msg.append(" for: ");
+        if (_reason == "")
+            msg.append("no reason");
+        else
+            msg.append(_reason);
+        msg.append("\n");
+        for (std::vector<Client *>::iterator i = clients.begin(); i != clients.end(); i++)
+            send((*i)->getFd(), msg.c_str(), msg.length(), 0);
         return (true);
     }
     catch (std::exception& e) {
@@ -196,6 +212,16 @@ bool Channel::unBan(std::string nick = "*", std::string user = "*", std::string 
         {
             try {
                 this->banned_vec.erase(i);
+                std::string msg;
+                msg.append("unban mask ");
+                msg.append(nick);
+                msg.append("!");
+                msg.append(user);
+                msg.append("@");
+                msg.append(host);
+                msg.append("\n");
+                for (std::vector<Client *>::iterator i = clients.begin(); i != clients.end(); i++)
+                    send((*i)->getFd(), msg.c_str(), msg.length(), 0);
                 return (true);
             }
             catch (std::exception& e) {
@@ -206,6 +232,7 @@ bool Channel::unBan(std::string nick = "*", std::string user = "*", std::string 
         i++;
         j++;
     }
+    
     return (false);
 }
 
@@ -489,28 +516,20 @@ void Channel::connect(Client* client, std::string psw = "")
 void Channel::disconnect(Client* client)
 {
     //qua va in seg/bus error
-    std::vector<Client*>::iterator i;
-    for (std::vector<Client*>::iterator j = clients.begin(); j != clients.end(); j++)
-    {
-        if (*j == client)
-        {
-            i = j;
-            break;
-        }
-    }
+    if (std::find(clients.begin(), clients.end(), client) != clients.end())
+        clients.erase(std::find(clients.begin(), clients.end(), client));
     this->decrementClient();
-    std::cout << this->nClient << std::endl;
+    //std::cout << this->nClient << std::endl;
     //non sei piu client di questo channel
-    clients.erase(i);
     //tolgo i permessi da admin se abbandoni
     if (std::find(op_vec.begin(), op_vec.end(), client) != op_vec.end())
-        op_vec.erase(i);
+        op_vec.erase(std::find(op_vec.begin(), op_vec.end(), client));
     if (std::find(half_op_vec.begin(), half_op_vec.end(), client) != half_op_vec.end())
-        half_op_vec.erase(i);
+        half_op_vec.erase(std::find(half_op_vec.begin(), half_op_vec.end(), client));
     if (std::find(voice_op_vec.begin(), voice_op_vec.end(), client) != voice_op_vec.end())
-        voice_op_vec.erase(i);
+        voice_op_vec.erase(std::find(voice_op_vec.begin(), voice_op_vec.end(), client));
     //controllo se c'é almeno un admin sennó almeno un admin ci deve essere
-    if (op_vec.empty())
+    if (op_vec.empty() && !clients.empty())
         op_vec.push_back(clients.at(0));
 }
 
