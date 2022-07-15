@@ -306,35 +306,6 @@ bool Channel::topicCmd(std::string setTopic)
     }
 }
 
-// bool Channel::modeCmd(enum modOp type, Client *client, std::string _reason = "")
-// {
-//     try
-//     {
-//         if (type == _op)
-//             op(client);
-//         else if (type == _deop)
-//             deop(client);
-//         else if (type == _halfOp)
-//             halfOp(client);
-//         else if (type == _deHalfOp)
-//             deHalfOp(client);
-//         else if (type == _voiceOp)
-//             voiceOp(client);
-//         else if (type == _deVoiceOp)
-//             deVoiceOp(client);
-//         else if (type == _ban)
-//             ban(client->getNick(), client->getUser(), client->getHost(), , _reason);
-//         else if (type == _unBan)
-//             unBan(client->getNick(), client->getUser(), client->getHost());
-//     }
-//     catch(const std::exception& e)
-//     {
-//         std::cerr << e.what() << '\n';
-//         return false;
-//     }
-//     return true;
-// }
-
 bool Channel::isClient(const Client* client)
 {
     std::vector<Client*>::iterator i;
