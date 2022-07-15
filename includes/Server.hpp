@@ -25,13 +25,12 @@
 Per testare il programma scriviamo sul terminale, dopo aver avviato il server,:
 >nc 0.0.0.0 8080
 
-Scrivere la stampa dei messaggi a video dei vari comandi
-Gestire i codici di errori dei commands
-Scrivere messaggio di benvenuto contenete le informazioni riguardo i comandi disponibili
-Scrivere funzioni di parsing per lo username e il nickname
-quitCmd o notQuitCmd? Questo e' il dilemma
-Controllare se chi inserisce il topic e' un admin
-Controllare se chi fa il JOIN non sia gia' presente nel suddetto channel
+***Scrivere messaggio di benvenuto contenete le informazioni riguardo i comandi disponibili***
+&&& quitCmd o notQuitCmd? Questo e' il dilemma &&&
+*** I messaggi privati sembrano provenire da un channel, cambiamolo ***
+Inserimento della password appena entri nel SERVER deve essere inline
+Sistemare il kick, lo user kickato riceve/manda i messaggi ma non dovrebbe
+Correggere le stampe degli errori (who, ecc), deve mandarlo all'utente che ha eseguito il comando, non il server
 
 //facoltativo spostare buona parte dei commands di channel in server per unificarli
 //facoltativo aggiungeree piú files cpp per ogni classe: example (comandi, getters, setters ecc)

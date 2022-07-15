@@ -509,7 +509,6 @@ void Channel::connect(Client* client, std::string psw = "")
     //connettiti
     this->incrementClient();
     this->voice_op_vec.push_back(client);
-    std::cout << "numero_clienti ora:" << nClient << std::endl;
     clients.push_back(client);
 }
 
