@@ -130,6 +130,7 @@ class Server
         void part_cmd(Client *client, std::vector<std::string > splitted); //Leaves a channel/s
         //void pass_cmd(Client *admin, std::string pass);
 
+        void notQuitCmd(int sd, int i); //sotto_cmd riferito al quit
         //clients and channels management by server
         Client *getClient(int sockfd);
         int findIterClient(Client *client);
