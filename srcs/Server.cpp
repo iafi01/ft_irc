@@ -1,6 +1,6 @@
 #include "../includes/Server.hpp"
 
-void Server::printTime()
+std::string Server::printTime()
 {
 	time_t rawtime;
     struct tm * timeinfo;
@@ -10,7 +10,7 @@ void Server::printTime()
     timeinfo = localtime (&rawtime);
 
     strftime (buffer,12,"[%X] ",timeinfo);
-    std::cout << buffer;
+    return (buffer);
 }
 
 Client *Server::getClientFromUser(std::string username, std::vector<Client *> clie)
@@ -140,7 +140,7 @@ void Server::op_cmd(Client *admin, std::string channel_name, std::vector<Client 
 
 	if (!channel->isOp(admin))
 	{
-		msg += channel_name + ": You are not channel operator\n";
+		msg += printTime() + channel_name + ": You are not channel operator";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -155,7 +155,7 @@ void Server::deop_cmd(Client *admin, std::string channel_name, std::vector<Clien
 
 	if (!channel->isOp(admin))
 	{
-		msg += channel_name + ": You are not channel operator\n";
+		msg += printTime() + channel_name + ": You are not channel operator";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -170,7 +170,7 @@ void Server::half_cmd(Client *admin, std::string channel_name, std::vector<Clien
 
 	if (!channel->isOp(admin))
 	{
-		msg += channel_name + ": You are not channel operator\n";
+		msg += printTime() + channel_name + ": You are not channel operator";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -188,7 +188,7 @@ void Server::dehalf_cmd(Client *admin, std::string channel_name, std::vector<Cli
 
 	if (!channel->isOp(admin))
 	{
-		msg += channel_name + ": You are not channel operator\n";
+		msg += printTime() + channel_name + ": You are not channel operator";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -208,7 +208,7 @@ void Server::voice_cmd(Client *admin, std::string channel_name, std::vector<Clie
 	}
 	else
 	{
-		msg += channel_name + ": You are not channel operator\n";
+		msg += printTime() + channel_name + ": You are not channel operator";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -226,7 +226,7 @@ void Server::unvoice_cmd(Client *admin, std::string channel_name, std::vector<Cl
 	}
 	else
 	{
-		msg += channel_name + ": You are not channel operator\n";
+		msg += printTime() + channel_name + ": You are not channel operator";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -240,7 +240,7 @@ void Server::ban_cmd(Client *admin, std::string channel_name, std::vector<Client
 
 	if (!channel->isOp(admin))
 	{
-		msg += channel_name + ": You are not channel operator\n";
+		msg += printTime() + channel_name + ": You are not channel operator";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -255,7 +255,7 @@ void Server::unban_cmd(Client *admin, std::string channel_name, std::vector<Clie
 
 	if (!channel->isOp(admin))
 	{
-		msg += channel_name + ": You are not channel operator\n";
+		msg += printTime() + channel_name + ": You are not channel operator";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -343,7 +343,7 @@ bool Server::check_nick(Client *new_client, char *buffer, int valread)
 				iter->second->setNick(iter->second->getNick() + "|2");
 		}
 	}
-	msg.append("Now insert your username: ");
+	msg.append(printTime() + "Now insert your username: ");
 	send(new_client->getFd(), msg.c_str(), msg.length(), 0);
 	return (true);
 }
@@ -388,13 +388,13 @@ bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 	splitted.resize(1);
 	if (this->pass != splitted[0])
 	{
-		msg.append("Error : Password incorrect\n");
+		msg.append(printTime() + "Error : Password incorrect\n");
 		send(new_client->getFd(), msg.c_str(), msg.length(), 0);
 		return (-1);
 	}
 	new_client->setIsLogged(true);
 	msg.clear();
-	msg.append("Now insert your nickname: ");
+	msg.append(printTime() + "Now insert your nickname: ");
 	send(new_client->getFd(), msg.c_str(), msg.length(), 0);
 	return (1);
 }
@@ -466,7 +466,7 @@ void Server::start_server()
 			 	fatal("err: socket options");
 			}
 			std::string w;
-			w.append ("Welcome! Please insert the password:\n");
+			w.append (printTime() + "Welcome! Please insert the password:\n");
 			if ((send(new_fd, w.c_str(), w.length(), 0)) < 0)
 				perror("err: send welcome message");
 			Client *new_client = new Client;
@@ -487,7 +487,7 @@ void Server::start_server()
 				}
 				else if (buffer[0] == 0 || buffer[0] == 3 || buffer[0] == '\n')
 				{
-					std::string err = "Errore value inserted\n";
+					std::string err = printTime () + "Errore value inserted\n";
 					send((*i)->getFd(), err.c_str(), err.length(), 0);
 					exit(1);
 				}
@@ -690,7 +690,7 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	else
 	{
 		aStr.clear();
-		aStr += splitted[0] + " is an unkown server command\n";
+		aStr += printTime() + splitted[0] + " is an unkown server command\n";
 		send(client->getFd(), aStr.c_str(), aStr.length(), 0);
 	}
 	return (false);
@@ -732,7 +732,7 @@ void Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da
 		quitmsg.append(" ");
 		y++;
 	}
-	msg.append(":" + client->getNick() + "!" + client->getUser() + " QUIT :Quit: " + quitmsg + "\n");
+	msg.append(printTime() + ":" + client->getNick() + "!" + client->getUser() + " QUIT :Quit: " + quitmsg + "\n");
 	for(std::map<std::string, Channel*>::iterator it = channel_map.begin(); it != channel_map.end(); it++)
 	{
 		if(client != NULL)
@@ -744,7 +744,7 @@ void Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da
 		}
 	}
 	msg.clear();
-	msg.append("ERROR :Closing Link: " + client->getNick() + " (Quit: " + client->getUser() + ")\n");
+	msg.append(printTime() + "ERROR :Closing Link: " + client->getNick() + " (Quit: " + client->getUser() + ")\n");
 	send(fd, msg.c_str(), msg.length(), 0);
 	client[id].setIsLogged(false);
 	client_map.erase(fd);
@@ -766,7 +766,7 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 	{
 		if(getChannel(receiver) == NULL)
 		{
-			msg += receiver + ": no such nick/channel\n";
+			msg += printTime() + receiver + ": no such nick/channel\n";
 			send(sender->getFd(), msg.c_str(), msg.length(), 0);
 			return ;
 		}
@@ -787,14 +787,14 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 		std::vector<Client *>::iterator iter;
 		
 		if(channel->isOp(sender))
-			msg += "<@" + sender->getNick() + ">: ";
+			msg += printTime() + "<@" + sender->getNick() + ">: ";
 		else if(channel->isHalfOp(sender))
-			msg += "<%" + sender->getNick() + ">: ";
+			msg += printTime() + "<%" + sender->getNick() + ">: ";
 		else if (channel->isClient(sender))
-			msg += "<" + sender->getNick() + ">: ";
+			msg += printTime() + "<" + sender->getNick() + ">: ";
 		else
 		{
-			std::string err = "You are not on this channel\n";
+			std::string err = printTime() + "You are not on this channel\n";
 			send(sender->getFd(), err.c_str(), err.length(), 0);
 			return;
 		}
@@ -818,14 +818,13 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 			if(receiver == (*i)->getNick())
 			{
 				fd = (*i)->getFd();
-				printTime();
-				std::cout << receiver << " :: " << (*i)->getNick() << std::endl;
+				std::cout << printTime() << receiver << " :: " << (*i)->getNick() << std::endl;
 				break;
 			}
 		}
 		if(fd == -1)
 		{
-			msg += "[PRIVMSG > > > " + receiver + "]: ";
+			msg += printTime() + "[PRIVMSG > > > " + receiver + "]: ";
 			for(msgIt = mex.begin() + 2; msgIt != mex.end(); msgIt++)
 			{
 				msg += *msgIt;
@@ -835,13 +834,13 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 			msg += "\n";
 			send(sender->getFd(), msg.c_str(), msg.length(), 0);
 			msg.clear();
-			msg += receiver + ": no such nick/channel\n";
+			msg += printTime() + receiver + ": no such nick/channel\n";
 			send(sender->getFd(), msg.c_str(), msg.length(), 0);
 			return ;
 		}
 		else
 		{
-			msg += "[PRIVMSG > > > " + receiver + "]: ";
+			msg += printTime() + "[PRIVMSG > > > " + receiver + "]: ";
 			for(msgIt = mex.begin() + 2; msgIt != mex.end(); msgIt++)
 			{
 				msg += *msgIt;
@@ -852,7 +851,7 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 			send(sender->getFd(), msg.c_str(), msg.length(), 0);
 			msg.clear();
 			Client *msgReceiver = getClient(fd);
-			msg += "<" + sender->getNick() + "> ";
+			msg += printTime() + "<" + sender->getNick() + "> ";
 			for(msgIt = mex.begin() + 2; msgIt != mex.end(); msgIt++)
 			{
 				msg += *msgIt;
@@ -882,7 +881,7 @@ void Server::invite_cmd(std::vector<Client *> invited, std::string channel_name,
 			break;
 		if(iter == channel_map.end())
 		{
-			msg += "401 " + sender->getNick() + " " + invited[0]->getNick() + ": No such name/channel";
+			msg += printTime() + "401 " + sender->getNick() + " " + invited[0]->getNick() + ": No such name/channel";
 			send(sender->getFd(), msg.c_str(), msg.size(), 0);
 			return ;
 		}
@@ -899,7 +898,7 @@ void Server::invite_cmd(std::vector<Client *> invited, std::string channel_name,
 			it++;
 			if (it == client_map.end())
 			{
-				msg += "401 " + sender->getNick() + " " + invited[0]->getNick() + ": No such name/channel";
+				msg += printTime() + "401 " + sender->getNick() + " " + invited[0]->getNick() + ": No such name/channel";
 				send(sender->getFd(), msg.c_str(), msg.size(), 0);
 				return ;
 			}
@@ -923,7 +922,7 @@ void Server::topic_cmd(std::string channel_name, std::vector<std::string> splitt
 	channel = this->getChannel(channel_name);
 	if (!channel)
 	{
-		std::string err = "No channel name found\n";
+		std::string err = printTime() + "No channel name found\n";
 		send(sender->getFd(), err.c_str(), err.length(), 0);
 		return ;
 	}
@@ -931,14 +930,14 @@ void Server::topic_cmd(std::string channel_name, std::vector<std::string> splitt
 	{
 		if (!channel->getTopic().empty())
 		{
-			msg = ("Channel topic is: ");
+			msg = printTime() + "Channel topic is: ";
 			msg.append(channel->getTopic());
 			msg.append("\n");
 			send(sender->getFd(), msg.c_str(), msg.length(), 0);
 		}
 		else
 		{
-			msg = "No channel topic is set\n";
+			msg = printTime() + "No channel topic is set\n";
 			send(sender->getFd(), msg.c_str(), msg.length(), 0);
 		}
 	}
@@ -947,9 +946,10 @@ void Server::topic_cmd(std::string channel_name, std::vector<std::string> splitt
 		//controllo se sender é admin
 		if (channel->setTopic(topic))
 		{
+			msg = printTime();
 			if (!channel->isOp(sender))
 			{
-				msg = "You are not Op\n";
+				msg += "You are not Op\n";
 				send(sender->getFd(), msg.c_str(), msg.length(), 0);
 				return ;
 			}
@@ -973,13 +973,13 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, Client 
 
 	if (this->getChannel(channel_name) == NULL)
 	{
-		std::string err = "Error: channel does not exists\n";
-		send(sender->getFd(), msg.c_str(), msg.length(), 0);
+		std::string err = printTime() + "Error: channel does not exists\n";
+		send(sender->getFd(), err.c_str(), err.length(), 0);
 	}
 	channel = this->getChannel(channel_name);
 	if (!channel->isOp(sender))
 	{
-		msg = "You are not an operator\n";
+		msg = printTime() + "You are not an operator\n";
 		send(sender->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -988,15 +988,15 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, Client 
 	//sta cazz e funzion ritorna NULL
 	if (kicked == NULL || !channel->isClient(kicked))
 	{
-		msg = "The client is not in the channel\n";
+		msg = printTime() + "The client is not in the channel\n";
 		send(sender->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
 	//sas
 	if (reason != "")
 	{
-		printTime();
-		msg = client_name;
+		std::cout << printTime();
+		msg = printTime() + client_name;
 		msg.append(" was kicked from ");
 		msg.append(channel_name);
 		msg.append(" by ");
@@ -1007,8 +1007,8 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, Client 
 	}
 	else
 	{
-		printTime();
-		msg = client_name;
+		std::cout << printTime();
+		msg = printTime() + client_name;
 		msg.append(" was kicked from ");
 		msg.append(channel_name);
 		msg.append(" by ");
@@ -1020,10 +1020,11 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, Client 
 		send((*i)->getFd(), msg.c_str(), msg.length(), 0);
 	for (uint i = 0; i < clients.size(); i++)
 	{
+		msg.clear();
 		if (clients[i]->getNick() == client_name)
 		{
 			channel->kickCmd(clients[i], reason);
-			msg = "Please re-join the channel\n";
+			msg = printTime() + "Please re-join the channel\n";
 			send(clients[i]->getFd(), msg.c_str(), msg.length(), 0);
 		}
 	}
@@ -1037,7 +1038,7 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 	{
 		if (channel_name[0] != '#')
 		{
-			err = "invalid channel name, please add '#'\n";
+			err = printTime() + "invalid channel name, please add '#'\n";
 			send(client->getFd(), err.c_str(), err.length(), 0);
 			return ;
 		}
@@ -1051,7 +1052,7 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 		Channel *channel = getChannel(channel_name);
 		if (channel->isClient(client))
 		{
-			err = "you are already on this channel\n";
+			err = printTime() + "you are already on this channel\n";
 			send(client->getFd(), err.c_str(), err.length(), 0);
 			return ;
 		}
@@ -1068,7 +1069,7 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 	names = ft_split(splitted[1], ",");
 	if (splitted.size() == 1)
 	{
-		msg.append(": 461 " + client->getNick() + " PART :Not enough parameters\n");
+		msg.append(printTime() + ": 461 " + client->getNick() + " PART :Not enough parameters\n");
 		send(client->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -1079,20 +1080,20 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 			channel = getChannel(names[i]);
 			if (!channel)
 			{
-				msg.append(": 403 " + client->getNick() + " " + names[i] + " :No such channel\n");
+				msg.append(printTime() + ": 403 " + client->getNick() + " " + names[i] + " :No such channel\n");
 				send(client->getFd(), msg.c_str(), msg.length(), 0);
 			}
 			else
 			{
 				if (!channel->isClient(client))
 				{
-					msg.append(" :442 " + client->getNick() + " " + channel->getName() + " :You're not on that channel\n");
+					msg.append(printTime() + " :442 " + client->getNick() + " " + channel->getName() + " :You're not on that channel\n");
 					send(client->getFd(), msg.c_str(), msg.length(), 0);
 				}
 				else
 				{
-					msg.append(":" + client->getNick() + "!~" + client->getUser() + " PART " + channel->getName() + "\n");
-					send_all(msg, *client);
+					msg.append(printTime() + ":" + client->getNick() + "!~" + client->getUser() + " PART " + channel->getName() + "\n");
+					send_all(printTime() + msg, *client);
 					send(client->getFd(), msg.c_str(), msg.length(), 0);
 					channel->removeClient(client);
 					channel->decrementClient();
@@ -1120,17 +1121,14 @@ void Server::who_cmd(std::string filter)
 		channel = getChannel(filter);
 		if (channel == NULL) //se il channel non esiste
 		{
-			printTime();
-			std::cout << "Error Channel does not exist" << std::endl;
+			std::cout << printTime() << "Error Channel does not exist" << std::endl;
 			return ;
 		}
 		channel_clients = channel->getClients();
 		for (std::vector<Client *>::iterator i = channel_clients.begin(); i != channel_clients.end(); i++)
 		{
-			printTime();
-			std::cout << "WHO entry for " << (*i)->getUser() << " [" << (*i)->getHost() << "]: Channel: " << channel->getName() << ", Server: " << this->server_name << std::endl;
-			printTime();
-			std::cout << "End of WHO list for " << channel->getName() << std::endl;
+			std::cout << printTime() << "WHO entry for " << (*i)->getUser() << " [" << (*i)->getHost() << "]: Channel: " << channel->getName() << ", Server: " << this->server_name << std::endl;
+			std::cout << printTime() << "End of WHO list for " << channel->getName() << std::endl;
 		}
 	}
 	else if (filter[0] != '#')
@@ -1140,8 +1138,7 @@ void Server::who_cmd(std::string filter)
 		{
 			if(filter == it->second->getUser())
 			{
-				printTime();
-				std::cout << "WHO entry for " << it->second->getUser() << " [" << it->second->getHost() << "]: Server: " << this->server_name << std::endl;
+				std::cout << printTime() << "WHO entry for " << it->second->getUser() << " [" << it->second->getHost() << "]: Server: " << this->server_name << std::endl;
 				break;
 			}
 		}
@@ -1171,7 +1168,6 @@ Channel* Server::getChannel(std::string nameCh)
 
 void Server::addChannel(Channel *toAdd)
 {
-	printTime();
-	std::cout << "creo canale :" << toAdd->getName() << std::endl;
+	std::cout << printTime() << "creo canale :" << toAdd->getName() << std::endl;
 	this->channel_map.insert(std::make_pair(toAdd->getName(), toAdd));
 }
