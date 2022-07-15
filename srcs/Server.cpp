@@ -759,13 +759,6 @@ void Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da
 
 void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::string> mex)
 {
-	//controllare sia sul server
-	// if(receiver != sender && FD_ISSET(receiver->getFd(), &write_fds))	//
-	// {																	//
-	// 	if((receiver->getFd(), mex.c_str(), mex.length(), 0) < 0)			//???
-	// 		fatal();														//
-	// }																	//
-
 	std::string msg;
 	std::vector<std::string>::iterator msgIt;
 
@@ -779,17 +772,20 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 		}
 		Channel *channel = getChannel(receiver);
 		std::vector<Client *> clients = channel->getClients();
+		if (channel->isBanned(sender)) //is Banned é da modificare va controllata la ban mask (senno puo passare che sia solo user ban)
+		{
+			msg += sender->getUser() + ": you are banned from the channel\n";
+			send(sender->getFd(), msg.c_str(), msg.length(), 0);
+			return ;
+		}
+		else if (!channel->voiceOp().empty() && !channel->isVoiceOp(sender)) //se solo i voice op possono parlare, controllo che ci sia qualcuno se c'é controllo sia voice per lfarlro parlare
+		{
+			msg += sender->getUser() + ": you are not a voice op in the channel\n";
+			send(sender->getFd(), msg.c_str(), msg.length(), 0);
+			return ;
+		}
 		std::vector<Client *>::iterator iter;
-		// for(iter = clients.begin(); iter != clients.end(); iter++)
-		// {
-		// 	if(iter == clients.end())
-		// 	{
-		// 		msg += "You are not in this channel\n";
-		// 		send(sender->getFd(), msg.c_str(), msg.length(), 0);
-		// 	}
-		// 	else 
-		// 		break;
-		// }
+		
 		if(channel->isOp(sender))
 			msg += printTime() + "<@" + sender->getNick() + ">: ";
 		else if(channel->isHalfOp(sender))
