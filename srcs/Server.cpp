@@ -174,7 +174,6 @@ void Server::half_cmd(Client *admin, std::string channel_name, std::vector<Clien
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
-	std::cout << "Entro in halfop" << clientToHalfOp.size() << std::endl;
 	for (uint i = 0; i < clientToHalfOp.size(); i++)
 	{
 		channel->halfOp(clientToHalfOp[i]);
@@ -219,10 +218,16 @@ void Server::unvoice_cmd(Client *admin, std::string channel_name, std::vector<Cl
 	Channel *channel = this->getChannel(channel_name);
 	std::string msg;
 
+	std::cout << "Entro in unvoice" << std::endl;
 	if (channel->isOp(admin) || !channel->isHalfOp(admin))
 	{
+		std::cout << "E' admin" << std::endl;
 		for (uint i = 0; i < clientToUnVoice.size(); i++)
+		{
+			std::cout << "Provo a fare il devoice" << std::endl;
 			channel->deVoiceOp(clientToUnVoice[i]);
+			std::cout << "Fatto il devoice" << std::endl;
+		}
 	}
 	else
 	{
@@ -230,6 +235,7 @@ void Server::unvoice_cmd(Client *admin, std::string channel_name, std::vector<Cl
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
+	return ;
 }
 
 
@@ -1064,9 +1070,9 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 {
 	Channel *channel = NULL;
 	std::string	msg;
-	std::vector<std::string> names;
+	// std::vector<std::string> names;
 
-	names = ft_split(splitted[1], ",");
+	// names.push_back(splitted[1]);
 	if (splitted.size() == 1)
 	{
 		msg.append(printTime() + ": 461 " + client->getNick() + " PART :Not enough parameters\n");
@@ -1075,10 +1081,17 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 	}
 	else if (splitted.size() == 2)
 	{
-		for (uint i = 0; i < names.size(); i++)
+		// for (uint i = 0; i < names.size(); i++)
+		// {
+		channel = getChannel(splitted[1]);
+		if (!channel)
 		{
-			channel = getChannel(names[i]);
-			if (!channel)
+			msg.append(": 403 " + client->getNick() + " " + splitted[1] + " :No such channel\n");
+			send(client->getFd(), msg.c_str(), msg.length(), 0);
+		}
+		else
+		{
+			if (!channel->isClient(client))
 			{
 				msg.append(printTime() + ": 403 " + client->getNick() + " " + names[i] + " :No such channel\n");
 				send(client->getFd(), msg.c_str(), msg.length(), 0);
@@ -1101,13 +1114,12 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 					{
 						std::map<std::string, Channel*>::iterator i;
 
-						i = channel_map.find(channel->getName());
-						channel_map.erase(i);
-					}
-					//std::cout << "numero users: " << channel->getClients().size() << std::endl;
+					i = channel_map.find(channel->getName());
+					channel_map.erase(i);
 				}
 			}
 		}
+		//}
 	}
 }
 

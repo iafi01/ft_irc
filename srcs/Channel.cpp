@@ -39,45 +39,23 @@ void Channel::addClient(Client *toAdd)
 
 void Channel::removeClient(Client *client)
 {
-    std::vector<Client *>::iterator i;
-
-    i = clients.begin();
-    while (i != clients.end())
+    for(std::vector<Client *>::iterator i = clients.begin(); i != clients.end(); i++)
     {
         if ((*i)->getNick() == client->getNick())
         {
-            std::cout << "Nick di *i " << (*i)->getNick() << std::endl;
-            std::cout << "Nick di C" << client->getNick() << std::endl;
-            if(this->isOp(client))
-            {
-                std::cout << "isOp" << std::endl;
-                //this->deop(client);
-                std::cout << "fine isOp" << std::endl;
-            }
-            if(this->isHalfOp(client))
-            {
-                std::cout << "isHalf" << std::endl;
-                this->half_op_vec.erase(i);
-                std::cout << "fine isHalf" << std::endl;
-            }
-            if(this->isInvited(client))
-            {
-                std::cout << "isInvited" << std::endl;
-                this->invited_vec.erase(i);
-                std::cout << "fine isInvited" << std::endl;
-            }
-            if(this->isVoiceOp(client))
-            {
-                std::cout << "isVoice" << std::endl;
-                this->voice_op_vec.erase(i);
-                std::cout << "fine isVoice" << std::endl;
-            }
             this->clients.erase(i);
-            return ;//(true);
+            if(this->isOp(client))
+                this->deop(client);
+            if(this->isHalfOp(client))
+                this->deHalfOp(client);
+            if(this->isInvited(client))
+                this->removeInvite(client);
+            if(this->isVoiceOp(client))
+                this->deVoiceOp(client);
+            return ;
         }
-        i++;
     }
-    return ;//(false);
+    return ;
 }
 
 bool Channel::op(Client *client)
@@ -92,34 +70,32 @@ bool Channel::op(Client *client)
     }
 }
 
-bool Channel::deop(Client *client)
+void Channel::deop(Client *client)
 {
+    std::vector<Client *>::iterator ite = op_vec.end();
     std::vector<Client*>::iterator i;
 
-    i = clients.begin();
-    while (i != clients.end())
+    i = op_vec.begin();
+    for(i = op_vec.begin(); i != op_vec.end(); i++)
     {
-        if ((*i) == client)
-        {   
-            try {
-                this->op_vec.erase(i);
-                return (true);
-            }
-            catch (std::exception& e) {
-                std::cerr << e.what();
-                return (false);
-            }
+        if ((*(*i)).getNick() == client->getNick())
+        {
+            ite = i;
+            break;
         }
-        i++;
     }
-    return (false);
+    if(ite != op_vec.end())
+    {
+        op_vec.erase(ite);
+        return ;
+    }
+    return ;
 }
 
 bool Channel::halfOp(Client *client)
 {
     try {
         this->half_op_vec.push_back(client);
-        std::cout << "Halfoppato" <<std::endl;
         return (true);
     }
     catch (std::exception& e) {
@@ -130,23 +106,22 @@ bool Channel::halfOp(Client *client)
 
 bool Channel::deHalfOp(Client *client)
 {
+    std::vector<Client *>::iterator ite = half_op_vec.end();
     std::vector<Client*>::iterator i;
 
-    i = clients.begin();
-    while (i != clients.end())
+    i = half_op_vec.begin();
+    for(i = half_op_vec.begin(); i != half_op_vec.end(); i++)
     {
-        if ((*i) == client)
-        {   
-            try {
-                this->half_op_vec.erase(i);
-                return (true);
-            }
-            catch (std::exception& e) {
-                std::cerr << e.what();
-                return (false);
-            }
+        if ((*(*i)).getNick() == client->getNick())
+        {
+            ite = i;
+            break;
         }
-        i++;
+    }
+    if(ite != half_op_vec.end())
+    {
+        half_op_vec.erase(ite);
+        return true;
     }
     return (false);
 }
@@ -165,23 +140,22 @@ bool Channel::voiceOp(Client *client)
 
 bool Channel::deVoiceOp(Client *client)
 {
+    std::vector<Client *>::iterator ite = voice_op_vec.end();
     std::vector<Client*>::iterator i;
 
-    i = clients.begin();
-    while (i != clients.end())
+    i = voice_op_vec.begin();
+    for(i = voice_op_vec.begin(); i != voice_op_vec.end(); i++)
     {
-        if ((*i) == client)
-        {   
-            try {
-                this->voice_op_vec.erase(i);
-                return (true);
-            }
-            catch (std::exception& e) {
-                std::cerr << e.what();
-                return (false);
-            }
+        if ((*(*i)).getNick() == client->getNick())
+        {
+            ite = i;
+            break;
         }
-        i++;
+    }
+    if(ite != voice_op_vec.end())
+    {
+        voice_op_vec.erase(ite);
+        return true;
     }
     return (false);
 }
@@ -238,19 +212,13 @@ bool Channel::unBan(std::string nick = "*", std::string user = "*", std::string 
         {
             try {
                 this->banned_vec.erase(i);
-                //stampa
-                std::string msg = admin->getUser();
-                msg.append(" unban mask ");
+                std::string msg;
+                msg.append("unban mask ");
                 msg.append(nick);
                 msg.append("!");
                 msg.append(user);
                 msg.append("@");
                 msg.append(host);
-                msg.append(" for: ");
-                if (_reason == "")
-                    msg.append("no reason");
-                else
-                    msg.append(_reason);
                 msg.append("\n");
                 for (std::vector<Client *>::iterator i = clients.begin(); i != clients.end(); i++)
                     send((*i)->getFd(), msg.c_str(), msg.length(), 0);
@@ -364,35 +332,6 @@ bool Channel::topicCmd(std::string setTopic)
         return (false);
     }
 }
-
-// bool Channel::modeCmd(enum modOp type, Client *client, std::string _reason = "")
-// {
-//     try
-//     {
-//         if (type == _op)
-//             op(client);
-//         else if (type == _deop)
-//             deop(client);
-//         else if (type == _halfOp)
-//             halfOp(client);
-//         else if (type == _deHalfOp)
-//             deHalfOp(client);
-//         else if (type == _voiceOp)
-//             voiceOp(client);
-//         else if (type == _deVoiceOp)
-//             deVoiceOp(client);
-//         else if (type == _ban)
-//             ban(client->getNick(), client->getUser(), client->getHost(), , _reason);
-//         else if (type == _unBan)
-//             unBan(client->getNick(), client->getUser(), client->getHost());
-//     }
-//     catch(const std::exception& e)
-//     {
-//         std::cerr << e.what() << '\n';
-//         return false;
-//     }
-//     return true;
-// }
 
 bool Channel::isClient(const Client* client)
 {
@@ -569,6 +508,7 @@ void Channel::connect(Client* client, std::string psw = "")
     }
     //connettiti
     this->incrementClient();
+    this->voice_op_vec.push_back(client);
     std::cout << "numero_clienti ora:" << nClient << std::endl;
     clients.push_back(client);
 }
