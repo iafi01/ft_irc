@@ -25,8 +25,9 @@ Client *Server::getClientFromUser(std::string username, std::vector<Client *> cl
 	return (NULL);
 }
 
-std::vector<Client*>::iterator Server::findIterClient(Client *client)
+int Server::findIterClient(Client *client)
 {
+	int j = 0;
 	std::vector<Client*>::iterator i;
 
     i = clients.begin();
@@ -34,11 +35,12 @@ std::vector<Client*>::iterator Server::findIterClient(Client *client)
     {
         if ((*i) == client)
         {   
-            return (i);
+            return (j);
         }
         i++;
+		j++;
     }
-    return std::vector<Client*>::iterator();
+    return (j);
 }
 
 std::vector<std::string> ft_split(std::string toSplit, std::string toFind)
@@ -705,8 +707,17 @@ void Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da
 	printTime();
 	std::cout << "The disconnected host was named " << client->getUser() << std::endl;
 	
-	Channel* i = channel_map.begin()->second;
-	while (i < channel_map.end()->second)
+	for (uint j = 0; j < words.size(); j++) 
+	{
+		msg_quit += words[j];
+		if (j < words.size() - 1)
+			msg_quit += " ";
+		else
+			msg_quit += "\0";
+	}
+	std::cout << msg_quit << std::endl;
+
+	for (Channel *i = channel_map.begin()->second; i != channel_map.end()->second; i++)
 	{
 		//deve mandare questo messaggio a tutti gli utenti di tutti i canali di cui facevi parte e uscire kickarti dai canali
 		//iafi [~kvirc@Azzurra-3476AEA0.business.telecomitalia.it] has quit IRC: Quit: sono uscito
@@ -714,38 +725,31 @@ void Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da
 		
 		//lista dei canali di cui fai parte
 		//ciclati e con un send all
-		for (uint j = 0; j < words.size(); j++) 
-		{
-			msg_quit += words[j];
-			if (j < words.size() - 1)
-				msg_quit += " ";
-			else
-				msg_quit += '\0';
-		}
+
+		//segfault qui dentro		
 		std::vector<Client *> channel_clients = i->getClients();
-		int it = 0;
 		for (std::vector<Client *>::iterator l = channel_clients.begin(); l != channel_clients.end(); l++)
 		{
-			if (client->getNick() == channel_clients[it++]->getNick())
+			if (client->getNick() == (*l)->getNick())
 			{
 				//fa parte di questo canale
-				msg += client->getUser() + " " + client->getHost() + " has quit IRC: Quit: " + msg_quit;
+				msg += client->getUser() + " has quit IRC: Quit: " + msg_quit;
 				send_all(msg, *client);
 				i->kickCmd(client, "quit");
 			}
 		}
-		i++;
 	}
+	return ; /*test*/
 	msg.clear();
 	msg += "Server ERROR: :Closing Link: host " + client->getHost() + " " + "(Quit: " + msg_quit + ")";
 	printTime();
-	std::cout << msg << std::endl;
 	//remove client from clients client_map
 	msg.clear();
+	//std::vector<Client *>::iterator c = std::find(clients.begin(), clients.end(), getClient(fd));
+	//clients.erase(c); // qua sta un segfault
 	client_map.erase(fd);
-	clients.erase(findIterClient(getClient(fd)));
 	close(fd);
-	exit(0);
+	exit(0);  //deve uscire solo il client non tutto il server
 }
 
 void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::string> mex)
