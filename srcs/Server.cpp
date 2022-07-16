@@ -686,7 +686,7 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	else if(compStr(aStr, "JOIN") || compStr(aStr, "/JOIN"))
 		join_cmd(client, splitted[1], splitted[2]);
 	else if(compStr(aStr, "WHO") || compStr(aStr, "/WHO"))
-		who_cmd(splitted[1]);
+		who_cmd(splitted[1], client);
 	else if(compStr(aStr, "PRIVMSG") || compStr(aStr, "/PRIVMSG"))
 		privmsg_cmd(client, splitted[1], splitted);
 	else if(compStr(aStr, "MODE") || compStr(aStr, "/MODE"))
@@ -1124,24 +1124,34 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 	}
 }
 
-void Server::who_cmd(std::string filter)
+void Server::who_cmd(std::string filter, Client *client)
 {
 	Channel *channel = NULL;
 	std::vector <Client *>channel_clients;
+	std::string msg;
+	std::string msg2;
 
 	if (filter[0] == '#')
 	{
 		channel = getChannel(filter);
 		if (channel == NULL) //se il channel non esiste
 		{
-			std::cout << printTime() << "Error Channel does not exist" << std::endl;
+			msg += printTime() + "Error Channel does not exist\n";
+			send(client->getFd(), msg.c_str(), msg.length(), 0);
 			return ;
 		}
 		channel_clients = channel->getClients();
 		for (std::vector<Client *>::iterator i = channel_clients.begin(); i != channel_clients.end(); i++)
 		{
-			std::cout << printTime() << "WHO entry for " << (*i)->getUser() << " [" << (*i)->getHost() << "]: Channel: " << channel->getName() << ", Server: " << this->server_name << std::endl;
-			std::cout << printTime() << "End of WHO list for " << channel->getName() << std::endl;
+			msg = printTime();
+			msg += "WHO entry for " + (*i)->getUser() + " [" << (*i)->getHost() + "]: Channel: " + channel->getName() + ", Server: " + this->server_name + "\n";
+			msg2 = printTime()
+			msg2 += "End of WHO list for " + channel->getName() + "\n";
+			for (std::vector<Client *>::iterator j = channel_clients.begin(); j != channel_clients.end(); j++)
+			{
+				send((*j)->getFd(), msg.c_str(), msg.length(), 0);
+				send((*j)->getFd(), msg2.c_str(), msg2.length(), 0);
+			}
 		}
 	}
 	else if (filter[0] != '#')
@@ -1151,7 +1161,8 @@ void Server::who_cmd(std::string filter)
 		{
 			if(filter == it->second->getUser())
 			{
-				std::cout << printTime() << "WHO entry for " << it->second->getUser() << " [" << it->second->getHost() << "]: Server: " << this->server_name << std::endl;
+				msg += printTime() + "WHO entry for " + it->second->getUser() + " [" << it->second->getHost() + "]: Server: " + this->server_name + "\n";
+				send(client->getFd(), msg.c_str(), msg.length(), 0);
 				break;
 			}
 		}
