@@ -178,7 +178,7 @@ bool Channel::ban(Client *admin, std::string nick = "*", std::string user = "*",
         this->banned_vec.push_back(&victim);
         //stampa
         std::string msg = admin->getUser();
-        msg += " has banned mask " + nick + "!" + user + "@" + host + " for: ";
+        msg += " has banned mask " + victim.nick + "!" + victim.user + "@" + victim.host + " for: ";
         if (_reason == "")
             msg += "no reason";
         else
@@ -389,20 +389,13 @@ bool Channel::isVoiceOp(const Client* client)
 
 bool Channel::isBanned(const Client* client)
 {
-    std::vector<Banned*>::iterator i;
-
-    int j = 0;
-    i = banned_vec.begin();
-    while (i != banned_vec.end())
-    {
-        if (banned_vec.at(j)->user == client->getUser())
-        {
-            return (true);
-        }
-        i++;
-        j++;
-    }
-    return (false);
+    for (int i = 0; i < (int)banned_vec.size(); i++)
+	{
+        //std::cout << banned_vec[0]->user <<  banned_vec[i]->user << " == " << client->getUser() << std::endl;
+		if (!banned_vec[i]->user.compare(client->getUser()))
+			return (true);
+	}
+	return (false);
 }
 
 bool Channel::invite( Client* client)
@@ -457,13 +450,13 @@ void Channel::connect(Client* client, std::string psw = "")
             i++;
         }
     }
-    if (pass != psw)
+    if (pass != psw && pass != " ")
     {
         err = "pass of the channel incorrect\n";
         send(client->getFd(), err.c_str(), err.length(), 0);
         return ;
     }
-    if (nClient + 1 >= userLimit)
+    if (nClient + 1 > userLimit)
     {
 
 			std::cout << "channel is full" << nClient << "/" << userLimit << "\n";

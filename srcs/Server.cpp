@@ -779,7 +779,7 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 		}
 		Channel *channel = getChannel(receiver);
 		std::vector<Client *> clients = channel->getClients();
-		if (channel->isBanned(sender)) //is Banned é da modificare va controllata la ban mask (senno puo passare che sia solo user ban)
+		if (channel->isBanned(sender))
 		{
 			msg += sender->getUser() + ": you are banned from the channel\n";
 			send(sender->getFd(), msg.c_str(), msg.length(), 0);
@@ -973,8 +973,8 @@ void Server::topic_cmd(std::string channel_name, std::vector<std::string> splitt
 
 void Server::kick_cmd(std::string channel_name, std::string client_name, Client *sender, std::string reason = "")
 {
-	Channel *channel;
-	Client *kicked;
+	Channel *channel = NULL;
+	Client *kicked = NULL;
 	std::string msg; //controllo admin e msg al channel
 
 	if (this->getChannel(channel_name) == NULL)
