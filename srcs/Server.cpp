@@ -491,13 +491,13 @@ void Server::start_server()
 				bzero(buffer, sizeof(buffer));
 				if ((valread = read(fd, buffer, 1024)) == 0)
 				{
-					exit(1);
+					continue ;
 				}
 				else if (buffer[0] == 0 || buffer[0] == 3 || buffer[0] == '\n')
 				{
 					std::string err = printTime () + "Errore value inserted\n";
 					send((*i)->getFd(), err.c_str(), err.length(), 0);
-					exit(1);
+					continue ;
 				}
 				else
 				{
