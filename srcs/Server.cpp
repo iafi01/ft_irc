@@ -396,7 +396,7 @@ bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 	splitted.resize(1);
 	if (this->pass != splitted[0])
 	{
-		msg.append(printTime() + "Error : Password incorrect\n");
+		msg.append(printTime() + "Error : Password incorrect\nPlease insert the password:");
 		send(new_client->getFd(), msg.c_str(), msg.length(), 0);
 		return (-1);
 	}
@@ -788,11 +788,11 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 		std::vector<Client *>::iterator iter;
 		
 		if(channel->isOp(sender))
-			msg += printTime() + "<@" + sender->getNick() + ">: ";
+			msg += printTime() + channel->getName() + " <@" + sender->getNick() + ">: ";
 		else if(channel->isHalfOp(sender) && channel->isVoiceOp(sender))
-			msg += printTime() + "<%" + sender->getNick() + ">: ";
+			msg += printTime() + channel->getName() +  " <%" + sender->getNick() + ">: ";
 		else if (channel->isClient(sender) && channel->isVoiceOp(sender))
-			msg += printTime() + "<" + sender->getNick() + ">: ";
+			msg += printTime() + channel->getName() +  " <" + sender->getNick() + ">: ";
 		else if(!channel->isVoiceOp(sender) && channel->isClient(sender))
 		{
 			std::string err = printTime() + "You can not write on this channel\n";
@@ -825,7 +825,6 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 			if(receiver == (*i)->getNick())
 			{
 				fd = (*i)->getFd();
-				std::cout << printTime() << receiver << " :: " << (*i)->getNick() << std::endl;
 				break;
 			}
 		}
