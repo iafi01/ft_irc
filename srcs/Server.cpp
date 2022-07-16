@@ -779,6 +779,7 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 		}
 		Channel *channel = getChannel(receiver);
 		std::vector<Client *> clients = channel->getClients();
+		//std::cout << channel->getName() << std::endl;
 		if (channel->isBanned(sender))
 		{
 			msg += sender->getUser() + ": you are banned from the channel\n";

@@ -171,11 +171,16 @@ bool Channel::ban(Client *admin, std::string nick = "*", std::string user = "*",
         victim.user = user;
         victim.host = host;
 
-        victim.reason = _reason;
         victim.ban_time = ctime(&now);
         victim.admin = admin;
 
+        if (_reason == "")
+            victim.reason = "no reason";
+        else
+            victim.reason = _reason;
+
         this->banned_vec.push_back(&victim);
+        std::cout << "MAAA!" << this->banned_vec[0]->user << std::endl;
         //stampa
         std::string msg = admin->getUser();
         msg += " has banned mask " + victim.nick + "!" + victim.user + "@" + victim.host + " for: ";
@@ -391,8 +396,9 @@ bool Channel::isBanned(const Client* client)
 {
     for (int i = 0; i < (int)banned_vec.size(); i++)
 	{
-        //std::cout << banned_vec[0]->user <<  banned_vec[i]->user << " == " << client->getUser() << std::endl;
-		if (!banned_vec[i]->user.compare(client->getUser()))
+        //queste stringhe contengono toxic characters
+        std::cout << this->banned_vec[i]->nick << this->banned_vec[i]->user << this->banned_vec[i]->reason << " == " << client->getUser() << std::endl;
+		if (this->banned_vec[i]->user == client->getUser())
 			return (true);
 	}
 	return (false);
