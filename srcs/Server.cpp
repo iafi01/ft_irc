@@ -779,7 +779,7 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 		}
 		Channel *channel = getChannel(receiver);
 		std::vector<Client *> clients = channel->getClients();
-		if (channel->isBanned(sender)) //is Banned é da modificare va controllata la ban mask (senno puo passare che sia solo user ban)
+		if (channel->isBanned(sender))
 		{
 			msg += sender->getUser() + ": you are banned from the channel\n";
 			send(sender->getFd(), msg.c_str(), msg.length(), 0);

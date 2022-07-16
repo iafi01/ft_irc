@@ -27,6 +27,7 @@ Per testare il programma scriviamo sul terminale, dopo aver avviato il server,:
 
 ***NAHHH - Scrivere messaggio di benvenuto contenete le informazioni riguardo i comandi disponibili***
 aggiustare il quit
+privmsg fa scrivere ai bannati
 Sistemare il kick, lo user kickato riceve/manda i messaggi ma non dovrebbe, va anche in bad_alloc se provo a kickare un admin e un admin kicka me
 
 //facoltativo spostare buona parte dei commands di channel in server per unificarli
