@@ -973,8 +973,8 @@ void Server::topic_cmd(std::string channel_name, std::vector<std::string> splitt
 
 void Server::kick_cmd(std::string channel_name, std::string client_name, Client *sender, std::string reason = "")
 {
-	Channel *channel;
-	Client *kicked;
+	Channel *channel = NULL;
+	Client *kicked = NULL;
 	std::string msg; //controllo admin e msg al channel
 
 	if (this->getChannel(channel_name) == NULL)
