@@ -381,6 +381,8 @@ bool Server::check_user(Client *new_client, char *buffer, int valread)
 				iter->second->setUser(iter->second->getUser() + "|2");
 		}
 	}
+	msg.append(printTime() + "Command line: ");
+	send(new_client->getFd(), msg.c_str(), msg.length(), 0);
 	return (true);
 }
 
@@ -472,7 +474,7 @@ void Server::start_server()
 			 	fatal("err: socket options");
 			}
 			std::string w;
-			w.append (printTime() + "Welcome! Please insert the password:\n");
+			w.append (printTime() + "Welcome! Please insert the password:");
 			if ((send(new_fd, w.c_str(), w.length(), 0)) < 0)
 				perror("err: send welcome message");
 			Client *new_client = new Client;
@@ -510,19 +512,18 @@ void Server::start_server()
 					{
 						if (check_nick(*i, buffer, valread) == false)
 							exit(1);
-						//std::cout << cli->getNick() << std::endl;
 					}
 					else if (cli->getUser().empty() && !cli->getNick().empty())
 					{
 						if (check_user(*i, buffer, valread) == false)
 							exit(1);
-						//std::cout << cli->getUser() << std::endl;
 					}
 					else if (cli->getIsLogged() == true && !cli->getNick().empty() && !cli->getUser().empty())
 					{
 						buffer[valread - 1] = '\0';
-						//std::cout << "BUF: " << buffer << std::endl;
 						parse_commands(*i, buffer, valread);
+						std::string msg = printTime() + "Command line: ";
+						send(cli->getFd(), msg.c_str(), msg.length(), 0);
 					}
 				}
             }
