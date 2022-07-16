@@ -381,6 +381,8 @@ bool Server::check_user(Client *new_client, char *buffer, int valread)
 				iter->second->setUser(iter->second->getUser() + "|2");
 		}
 	}
+	msg.append(printTime() + "Command line: ");
+	send(new_client->getFd(), msg.c_str(), msg.length(), 0);
 	return (true);
 }
 
@@ -394,7 +396,7 @@ bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 	splitted.resize(1);
 	if (this->pass != splitted[0])
 	{
-		msg.append(printTime() + "Error : Password incorrect\n");
+		msg.append(printTime() + "Error : Password incorrect\nPlease insert the password:");
 		send(new_client->getFd(), msg.c_str(), msg.length(), 0);
 		return (-1);
 	}
@@ -472,7 +474,7 @@ void Server::start_server()
 			 	fatal("err: socket options");
 			}
 			std::string w;
-			w.append (printTime() + "Welcome! Please insert the password:\n");
+			w.append (printTime() + "Welcome! Please insert the password:");
 			if ((send(new_fd, w.c_str(), w.length(), 0)) < 0)
 				perror("err: send welcome message");
 			Client *new_client = new Client;
@@ -489,13 +491,13 @@ void Server::start_server()
 				bzero(buffer, sizeof(buffer));
 				if ((valread = read(fd, buffer, 1024)) == 0)
 				{
-					exit(1);
+					continue ;
 				}
 				else if (buffer[0] == 0 || buffer[0] == 3 || buffer[0] == '\n')
 				{
 					std::string err = printTime () + "Errore value inserted\n";
 					send((*i)->getFd(), err.c_str(), err.length(), 0);
-					exit(1);
+					continue ;
 				}
 				else
 				{
@@ -510,19 +512,18 @@ void Server::start_server()
 					{
 						if (check_nick(*i, buffer, valread) == false)
 							exit(1);
-						//std::cout << cli->getNick() << std::endl;
 					}
 					else if (cli->getUser().empty() && !cli->getNick().empty())
 					{
 						if (check_user(*i, buffer, valread) == false)
 							exit(1);
-						//std::cout << cli->getUser() << std::endl;
 					}
 					else if (cli->getIsLogged() == true && !cli->getNick().empty() && !cli->getUser().empty())
 					{
 						buffer[valread - 1] = '\0';
-						//std::cout << "BUF: " << buffer << std::endl;
 						parse_commands(*i, buffer, valread);
+						std::string msg = printTime() + "Command line: ";
+						send(cli->getFd(), msg.c_str(), msg.length(), 0);
 					}
 				}
             }
@@ -686,7 +687,7 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	else if(compStr(aStr, "JOIN") || compStr(aStr, "/JOIN"))
 		join_cmd(client, splitted[1], splitted[2]);
 	else if(compStr(aStr, "WHO") || compStr(aStr, "/WHO"))
-		who_cmd(splitted[1]);
+		who_cmd(splitted[1], client);
 	else if(compStr(aStr, "PRIVMSG") || compStr(aStr, "/PRIVMSG"))
 		privmsg_cmd(client, splitted[1], splitted);
 	else if(compStr(aStr, "MODE") || compStr(aStr, "/MODE"))
@@ -787,11 +788,11 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 		std::vector<Client *>::iterator iter;
 		
 		if(channel->isOp(sender))
-			msg += printTime() + "<@" + sender->getNick() + ">: ";
+			msg += printTime() + channel->getName() + " <@" + sender->getNick() + ">: ";
 		else if(channel->isHalfOp(sender) && channel->isVoiceOp(sender))
-			msg += printTime() + "<%" + sender->getNick() + ">: ";
+			msg += printTime() + channel->getName() +  " <%" + sender->getNick() + ">: ";
 		else if (channel->isClient(sender) && channel->isVoiceOp(sender))
-			msg += printTime() + "<" + sender->getNick() + ">: ";
+			msg += printTime() + channel->getName() +  " <" + sender->getNick() + ">: ";
 		else if(!channel->isVoiceOp(sender) && channel->isClient(sender))
 		{
 			std::string err = printTime() + "You can not write on this channel\n";
@@ -824,7 +825,6 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 			if(receiver == (*i)->getNick())
 			{
 				fd = (*i)->getFd();
-				std::cout << printTime() << receiver << " :: " << (*i)->getNick() << std::endl;
 				break;
 			}
 		}
@@ -1124,24 +1124,31 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 	}
 }
 
-void Server::who_cmd(std::string filter)
+void Server::who_cmd(std::string filter, Client *client)
 {
 	Channel *channel = NULL;
 	std::vector <Client *>channel_clients;
+	std::string msg;
+	std::string msg2;
 
 	if (filter[0] == '#')
 	{
 		channel = getChannel(filter);
 		if (channel == NULL) //se il channel non esiste
 		{
-			std::cout << printTime() << "Error Channel does not exist" << std::endl;
+			msg += printTime() + "Error Channel does not exist\n";
+			send(client->getFd(), msg.c_str(), msg.length(), 0);
 			return ;
 		}
 		channel_clients = channel->getClients();
 		for (std::vector<Client *>::iterator i = channel_clients.begin(); i != channel_clients.end(); i++)
 		{
-			std::cout << printTime() << "WHO entry for " << (*i)->getUser() << " [" << (*i)->getHost() << "]: Channel: " << channel->getName() << ", Server: " << this->server_name << std::endl;
-			std::cout << printTime() << "End of WHO list for " << channel->getName() << std::endl;
+			msg = printTime();
+			msg += "WHO entry for " + (*i)->getUser() + " [" + (*i)->getHost() + "]: Channel: " + channel->getName() + ", Server: " + this->server_name + "\n";
+			msg2 = printTime();
+			msg2 += "End of WHO list for " + channel->getName() + "\n";
+			send(client->getFd(), msg.c_str(), msg.length(), 0);
+			send(client->getFd(), msg2.c_str(), msg2.length(), 0);
 		}
 	}
 	else if (filter[0] != '#')
@@ -1151,7 +1158,8 @@ void Server::who_cmd(std::string filter)
 		{
 			if(filter == it->second->getUser())
 			{
-				std::cout << printTime() << "WHO entry for " << it->second->getUser() << " [" << it->second->getHost() << "]: Server: " << this->server_name << std::endl;
+				msg += printTime() + "WHO entry for " + it->second->getUser() + " [" + it->second->getHost() + "]: Server: " + this->server_name + "\n";
+				send(client->getFd(), msg.c_str(), msg.length(), 0);
 				break;
 			}
 		}

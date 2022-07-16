@@ -28,9 +28,8 @@ Per testare il programma scriviamo sul terminale, dopo aver avviato il server,:
 ***Scrivere messaggio di benvenuto contenete le informazioni riguardo i comandi disponibili***
 &&& quitCmd o notQuitCmd? Questo e' il dilemma &&&
 *** I messaggi privati sembrano provenire da un channel, cambiamolo ***
-Inserimento della password appena entri nel SERVER deve essere inline
 Sistemare il kick, lo user kickato riceve/manda i messaggi ma non dovrebbe
-Correggere le stampe degli errori (who, ecc), deve mandarlo all'utente che ha eseguito il comando, non il server
+il join da pass incorrect e devi mettere uno spazio
 
 //facoltativo spostare buona parte dei commands di channel in server per unificarli
 //facoltativo aggiungeree piú files cpp per ogni classe: example (comandi, getters, setters ecc)
@@ -123,7 +122,7 @@ class Server
         void unban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnBan);
         void voice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToVoice);
         void unvoice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnVoice);
-        void who_cmd(std::string filter);   //The filter is the name of the channel that contains the list of users that you want to visualize [channel or a client] (# or ' ')
+        void who_cmd(std::string filter, Client *client);   //The filter is the name of the channel that contains the list of users that you want to visualize [channel or a client] (# or ' ')
         //void whois_cmd(std::vector<std::string> splitted, Client *sender);
         void privmsg_cmd(Client *admin, std::string target, std::vector<std::string> text); //The target could be a channel or a client (# or ' ')
         void part_cmd(Client *client, std::vector<std::string > splitted); //Leaves a channel/s
