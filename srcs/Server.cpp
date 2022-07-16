@@ -1144,14 +1144,11 @@ void Server::who_cmd(std::string filter, Client *client)
 		for (std::vector<Client *>::iterator i = channel_clients.begin(); i != channel_clients.end(); i++)
 		{
 			msg = printTime();
-			msg += "WHO entry for " + (*i)->getUser() + " [" << (*i)->getHost() + "]: Channel: " + channel->getName() + ", Server: " + this->server_name + "\n";
-			msg2 = printTime()
+			msg += "WHO entry for " + (*i)->getUser() + " [" + (*i)->getHost() + "]: Channel: " + channel->getName() + ", Server: " + this->server_name + "\n";
+			msg2 = printTime();
 			msg2 += "End of WHO list for " + channel->getName() + "\n";
-			for (std::vector<Client *>::iterator j = channel_clients.begin(); j != channel_clients.end(); j++)
-			{
-				send((*j)->getFd(), msg.c_str(), msg.length(), 0);
-				send((*j)->getFd(), msg2.c_str(), msg2.length(), 0);
-			}
+			send(client->getFd(), msg.c_str(), msg.length(), 0);
+			send(client->getFd(), msg2.c_str(), msg2.length(), 0);
 		}
 	}
 	else if (filter[0] != '#')
@@ -1161,7 +1158,7 @@ void Server::who_cmd(std::string filter, Client *client)
 		{
 			if(filter == it->second->getUser())
 			{
-				msg += printTime() + "WHO entry for " + it->second->getUser() + " [" << it->second->getHost() + "]: Server: " + this->server_name + "\n";
+				msg += printTime() + "WHO entry for " + it->second->getUser() + " [" + it->second->getHost() + "]: Server: " + this->server_name + "\n";
 				send(client->getFd(), msg.c_str(), msg.length(), 0);
 				break;
 			}
