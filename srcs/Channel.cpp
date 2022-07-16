@@ -457,13 +457,13 @@ void Channel::connect(Client* client, std::string psw = "")
             i++;
         }
     }
-    if (pass != psw)
+    if (pass != psw && pass != " ")
     {
         err = "pass of the channel incorrect\n";
         send(client->getFd(), err.c_str(), err.length(), 0);
         return ;
     }
-    if (nClient + 1 >= userLimit)
+    if (nClient + 1 > userLimit)
     {
 
 			std::cout << "channel is full" << nClient << "/" << userLimit << "\n";

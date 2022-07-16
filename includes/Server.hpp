@@ -25,11 +25,9 @@
 Per testare il programma scriviamo sul terminale, dopo aver avviato il server,:
 >nc 0.0.0.0 8080
 
-***Scrivere messaggio di benvenuto contenete le informazioni riguardo i comandi disponibili***
-&&& quitCmd o notQuitCmd? Questo e' il dilemma &&&
-*** I messaggi privati sembrano provenire da un channel, cambiamolo ***
+***NAHHH - Scrivere messaggio di benvenuto contenete le informazioni riguardo i comandi disponibili***
+aggiustare il quit
 Sistemare il kick, lo user kickato riceve/manda i messaggi ma non dovrebbe
-il join da pass incorrect e devi mettere uno spazio
 
 //facoltativo spostare buona parte dei commands di channel in server per unificarli
 //facoltativo aggiungeree piú files cpp per ogni classe: example (comandi, getters, setters ecc)
