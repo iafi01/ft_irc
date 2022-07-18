@@ -28,7 +28,6 @@ Per testare il programma scriviamo sul terminale, dopo aver avviato il server,:
 ***NAHHH - Scrivere messaggio di benvenuto contenete le informazioni riguardo i comandi disponibili***
 aggiustare il quit
 privmsg fa scrivere ai bannati
-Sistemare il kick, lo user kickato riceve/manda i messaggi ma non dovrebbe, va anche in bad_alloc se provo a kickare un admin e un admin kicka me
 
 //facoltativo spostare buona parte dei commands di channel in server per unificarli
 //facoltativo aggiungeree piú files cpp per ogni classe: example (comandi, getters, setters ecc)
@@ -47,6 +46,7 @@ class Server
         int sockfd;
         int max_id;
         int max_fd;
+        int opt;
         fd_set curr_fds, read_fds, write_fds;
         char server_buffer[64];
         std::map<int, Client*> client_map;

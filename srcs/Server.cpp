@@ -431,8 +431,14 @@ void Server::setup_server(int port, std::string password)
 	pass += "\0";
 
 	this->sockfd = -1;
+	opt = 1;
 	if((this->sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		fatal("err: creation socket");
+	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0 )
+	{
+		perror("setsockopt failed");
+		exit(EXIT_FAILURE);
+	}
 	if(bind(this->sockfd, (const struct sockaddr *) &serveraddr, sizeof(serveraddr)) < 0)
 		fatal("err: bind socket");
 	if(listen(this->sockfd, 0) < 0)
@@ -471,7 +477,8 @@ void Server::start_server()
 			printf("New connection , socket fd is %d , ip is : %s , port : %d \n" , new_fd , inet_ntoa(serveraddr.sin_addr) , ntohs(serveraddr.sin_port));
 			if (setsockopt(new_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 			{
-			 	fatal("err: socket options");
+			 	perror("setsockopt failed");
+				exit(1);
 			}
 			std::string w;
 			w.append (printTime() + "Welcome! Please insert the password:");
