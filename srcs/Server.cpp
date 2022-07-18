@@ -381,7 +381,7 @@ bool Server::check_user(Client *new_client, char *buffer, int valread)
 				iter->second->setUser(iter->second->getUser() + "|2");
 		}
 	}
-	msg.append(printTime() + "Command line: ");
+	msg.append(printTime());
 	send(new_client->getFd(), msg.c_str(), msg.length(), 0);
 	return (true);
 }
@@ -396,7 +396,7 @@ bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 	splitted.resize(1);
 	if (this->pass != splitted[0])
 	{
-		msg.append(printTime() + "Error : Password incorrect\nPlease insert the password:");
+		msg.append(printTime() + "Error: Password incorrect\n" + printTime() + "Please insert the password: ");
 		send(new_client->getFd(), msg.c_str(), msg.length(), 0);
 		return (-1);
 	}
@@ -433,16 +433,16 @@ void Server::setup_server(int port, std::string password)
 	this->sockfd = -1;
 	opt = 1;
 	if((this->sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-		fatal("err: creation socket");
+		fatal("Error: creation socket");
 	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0 )
 	{
-		perror("setsockopt failed");
+		perror("Error :setsockopt failed");
 		exit(EXIT_FAILURE);
 	}
 	if(bind(this->sockfd, (const struct sockaddr *) &serveraddr, sizeof(serveraddr)) < 0)
-		fatal("err: bind socket");
+		fatal("Error: bind socket");
 	if(listen(this->sockfd, 0) < 0)
-		fatal("err: listen socket");
+		fatal("Error: listen socket");
 }
 
 void Server::start_server()
@@ -469,21 +469,21 @@ void Server::start_server()
 			cli++;
 		}
 		if (select(max_fd + 1, &read_fds, NULL, NULL, NULL) < 0)
-			perror("err: select socket");
+			perror("Error: select socket");
 		if (FD_ISSET(sockfd, &read_fds))
 		{
 			if ((new_fd = accept(sockfd, (struct sockaddr *)&serveraddr, (socklen_t *)&addrlen)) < 0)
-				fatal("err: accept client");
+				fatal("Error: accept client");
 			printf("New connection , socket fd is %d , ip is : %s , port : %d \n" , new_fd , inet_ntoa(serveraddr.sin_addr) , ntohs(serveraddr.sin_port));
 			if (setsockopt(new_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 			{
-			 	perror("setsockopt failed");
+			 	perror("Error: setsockopt failed");
 				exit(1);
 			}
 			std::string w;
-			w.append (printTime() + "Welcome! Please insert the password:");
+			w.append (printTime() + "Welcome! Please insert the password: ");
 			if ((send(new_fd, w.c_str(), w.length(), 0)) < 0)
-				perror("err: send welcome message");
+				perror("Error: send welcome message");
 			Client *new_client = new Client;
 			new_client->setFd(new_fd);
 			clients.push_back(new_client);
@@ -502,7 +502,7 @@ void Server::start_server()
 				}
 				else if (buffer[0] == 0 || buffer[0] == 3 || buffer[0] == '\n')
 				{
-					std::string err = printTime () + "Errore value inserted\n";
+					std::string err = printTime () + "Error: value inserted\n";
 					send((*i)->getFd(), err.c_str(), err.length(), 0);
 					continue ;
 				}
@@ -618,7 +618,7 @@ void Server::send_all(std::string mex, Client sender)		/**** Da rivedere ****/
 		if(clients[i] != &sender && FD_ISSET(clients[i]->getFd(), &write_fds))
 		{
 			if(send(clients[i]->getFd(), mex.c_str(), mex.length(), 0) < 0)
-				fatal("err: send error on send_all funtion");
+				fatal("Error: send error on send_all funtion");
 		}
 		i++;
 	}
@@ -770,7 +770,7 @@ bool Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da
 		}
 	}
 	msg.clear();
-	msg.append(printTime() + "Closing Link: " + client->getNick() + " (Quit: " + client->getUser() + ")\n");
+	msg.append(printTime() + "ERROR: :Closing Link: " + client->getNick() + " (Quit: " + client->getUser() + ")\n");
 	send(fd, msg.c_str(), msg.length(), 0);
 	client[id].setIsLogged(false);
 	client_map.erase(fd);
@@ -1160,7 +1160,7 @@ void Server::who_cmd(std::string filter, Client *client)
 		channel = getChannel(filter);
 		if (channel == NULL) //se il channel non esiste
 		{
-			msg += printTime() + "Error Channel does not exist\n";
+			msg += printTime() + "Error: Channel does not exist\n";
 			send(client->getFd(), msg.c_str(), msg.length(), 0);
 			return ;
 		}
