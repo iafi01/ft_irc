@@ -456,11 +456,14 @@ void Channel::connect(Client* client, std::string psw = "")
             i++;
         }
     }
-    if (pass != psw && pass != " ")
+    if (pass != psw)
     {
-        err = "pass of the channel incorrect\n";
-        send(client->getFd(), err.c_str(), err.length(), 0);
-        return ;
+        if (pass != psw + "")
+        {
+            err = "pass of the channel incorrect\n";
+            send(client->getFd(), err.c_str(), err.length(), 0);
+            return ;
+        }
     }
     if (nClient + 1 > userLimit)
     {
