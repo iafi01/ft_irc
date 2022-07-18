@@ -43,7 +43,7 @@ class Channel {
         std::vector<Client*> half_op_vec;
         std::vector<Client*> voice_op_vec;
         std::vector<Client*> invited_vec;
-        std::vector<Banned*> banned_vec;
+        std::vector<Banned> banned_vec;
         int userLimit;
         int nClient;
         int is_only_invite;
@@ -75,7 +75,7 @@ class Channel {
         std::vector<Client*> getOp() const;
         std::vector<Client*> halfOp() const;
         std::vector<Client*> voiceOp() const;
-        std::vector<Banned*> getBanned() const;
+        std::vector<Banned> getBanned() const;
         bool isClient(const Client* client);
         bool isInvited(const Client* client);
         bool isOp(const Client* client);
