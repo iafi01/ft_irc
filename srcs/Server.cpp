@@ -140,7 +140,7 @@ void Server::op_cmd(Client *admin, std::string channel_name, std::vector<Client 
 
 	if (!channel->isOp(admin))
 	{
-		msg += printTime() + channel_name + ": You are not channel operator";
+		msg += printTime() + channel_name + ": You are not channel operator\n";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -155,7 +155,7 @@ void Server::deop_cmd(Client *admin, std::string channel_name, std::vector<Clien
 
 	if (!channel->isOp(admin))
 	{
-		msg += printTime() + channel_name + ": You are not channel operator";
+		msg += printTime() + channel_name + ": You are not channel operator\n";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -170,7 +170,7 @@ void Server::half_cmd(Client *admin, std::string channel_name, std::vector<Clien
 
 	if (!channel->isOp(admin))
 	{
-		msg += printTime() + channel_name + ": You are not channel operator";
+		msg += printTime() + channel_name + ": You are not channel operator\n";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -187,7 +187,7 @@ void Server::dehalf_cmd(Client *admin, std::string channel_name, std::vector<Cli
 
 	if (!channel->isOp(admin))
 	{
-		msg += printTime() + channel_name + ": You are not channel operator";
+		msg += printTime() + channel_name + ": You are not channel operator\n";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -207,7 +207,7 @@ void Server::voice_cmd(Client *admin, std::string channel_name, std::vector<Clie
 	}
 	else
 	{
-		msg += printTime() + channel_name + ": You are not channel operator";
+		msg += printTime() + channel_name + ": You are not channel operator\n";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -231,7 +231,7 @@ void Server::unvoice_cmd(Client *admin, std::string channel_name, std::vector<Cl
 	}
 	else
 	{
-		msg += printTime() + channel_name + ": You are not channel operator";
+		msg += printTime() + channel_name + ": You are not channel operator\n";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -246,7 +246,7 @@ void Server::ban_cmd(Client *admin, std::string channel_name, std::vector<Client
 
 	if (!channel->isOp(admin))
 	{
-		msg += printTime() + channel_name + ": You are not channel operator";
+		msg += printTime() + channel_name + ": You are not channel operator\n";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -261,7 +261,7 @@ void Server::unban_cmd(Client *admin, std::string channel_name, std::vector<Clie
 
 	if (!channel->isOp(admin))
 	{
-		msg += printTime() + channel_name + ": You are not channel operator";
+		msg += printTime() + channel_name + ": You are not channel operator\n";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -530,6 +530,8 @@ void Server::start_server()
 						buffer[valread - 1] = '\0';
 						if (parse_commands(*i, buffer, valread))
 						{
+							if (clients.empty())
+								break;
 							i = clients.begin();
 							continue ;
 						}
