@@ -179,8 +179,8 @@ bool Channel::ban(Client *admin, std::string nick = "*", std::string user = "*",
         else
             victim.reason = _reason;
 
-        this->banned_vec.push_back(&victim);
-        std::cout << "MAAA!" << this->banned_vec[0]->user << std::endl;
+        this->banned_vec.push_back(victim);
+        std::cout << "MAAA!" << this->banned_vec[0].user << std::endl;
         //stampa
         std::string msg = admin->getUser();
         msg += " has banned mask " + victim.nick + "!" + victim.user + "@" + victim.host + " for: ";
@@ -201,13 +201,13 @@ bool Channel::ban(Client *admin, std::string nick = "*", std::string user = "*",
 
 bool Channel::unBan(std::string nick = "*", std::string user = "*", std::string host = "*")
 {
-    std::vector<Banned*>::iterator i;
+    std::vector<Banned>::iterator i;
 
     int j = 0;
     i = banned_vec.begin();
     while (i != banned_vec.end())
     {
-        if (banned_vec.at(j)->nick == nick && banned_vec.at(j)->user == user && banned_vec.at(j)->host == host)
+        if (banned_vec.at(j).nick == nick && banned_vec.at(j).user == user && banned_vec.at(j).host == host)
         {
             try {
                 this->banned_vec.erase(i);
@@ -271,7 +271,7 @@ std::vector<Client*> Channel::voiceOp() const
 {
     return (voice_op_vec);
 }
-std::vector<Channel::Banned*> Channel::getBanned() const
+std::vector<Channel::Banned> Channel::getBanned() const
 {
     return (banned_vec);
 }
@@ -397,8 +397,8 @@ bool Channel::isBanned(const Client* client)
     for (int i = 0; i < (int)banned_vec.size(); i++)
 	{
         //queste stringhe contengono toxic characters
-        std::cout << this->banned_vec[i]->nick << this->banned_vec[i]->user << this->banned_vec[i]->reason << " == " << client->getUser() << std::endl;
-		if (this->banned_vec[i]->user == client->getUser())
+        //std::cout << this->banned_vec[i].nick << this->banned_vec[i].user << this->banned_vec[i].reason << " == " << client->getUser() << std::endl;
+		if (this->banned_vec[i].user == client->getUser())
 			return (true);
 	}
 	return (false);
@@ -441,7 +441,7 @@ bool Channel::removeInvite(const Client* client)
 
 void Channel::connect(Client* client, std::string psw = "")
 {
-    std::vector<Banned*>::iterator i;
+    std::vector<Banned>::iterator i;
     std::string err;
     if(!banned_vec.empty())
     {
@@ -449,18 +449,21 @@ void Channel::connect(Client* client, std::string psw = "")
         //se sei bannato esce dalla funzione
         while (i != banned_vec.end())
         {
-            if ((client->getNick() == (*i)->nick || client->getNick() == "*") &&
-                (client->getUser() == (*i)->user || client->getUser() == "*") &&
-                (client->getHost() == (*i)->host || client->getHost() == "*"))
+            if ((client->getNick() == (*i).nick || client->getNick() == "*") &&
+                (client->getUser() == (*i).user || client->getUser() == "*") &&
+                (client->getHost() == (*i).host || client->getHost() == "*"))
                 return ;
             i++;
         }
     }
-    if (pass != psw && pass != " ")
+    if (pass != psw)
     {
-        err = "pass of the channel incorrect\n";
-        send(client->getFd(), err.c_str(), err.length(), 0);
-        return ;
+        if (pass != psw + "")
+        {
+            err = "pass of the channel incorrect\n";
+            send(client->getFd(), err.c_str(), err.length(), 0);
+            return ;
+        }
     }
     if (nClient + 1 > userLimit)
     {
