@@ -718,13 +718,26 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 
 void Server::notQuitCmd(int fd, int i)
 {
+	Client *clientToErase = getClient(fd);
+	std::string msg;
+	
 	getsockname(fd , (struct sockaddr*)&serveraddr , (socklen_t*)&addrlen);
 	std::cout << "The disconnected host was named " << clients[i]->getUser() << std::endl;
-	//findAndEraseClient(fd);
+	msg.append(printTime() + ":" + clientToErase->getNick() + "!" + clientToErase->getUser() + ": QUIT " + "\n");
+	if (!channel_map.empty())
+	{
+		for(std::map<std::string, Channel*>::iterator it = channel_map.begin(); it != channel_map.end(); it++)
+		{
+			if(clientToErase != NULL)
+			{
+				
+				for (std::vector<Client *>::iterator c = (*it).second->getClients().begin(); c != (*it).second->getClients().end(); c++)
+					send((*c)->getFd(), msg.c_str(), msg.length(), 0);
+				(*it).second->disconnect(clientToErase);
+			}
+		}
+	}
 	clients[i]->setIsLogged(false);
-	client_map.erase(fd);
-	close(fd);
-	//bisogna usare l'erase e l'iterator
 	for (std::vector<Client *>::iterator j = clients.begin(); j != clients.end(); j++)
 	{
 		if ((*j) == clients[i])
@@ -733,13 +746,15 @@ void Server::notQuitCmd(int fd, int i)
 			break;
 		}
 	}
+	client_map.erase(fd);
+	close(fd);
 }
 
 bool Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da rivedere  *****/
 {
 	int fd = client->getFd();
 	int id = findIterClient(client);
-	if (words.empty())
+	if (words.size() == 1)
 	{
 		notQuitCmd(fd, id);
 		return (true);
@@ -755,7 +770,7 @@ bool Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da
 		quitmsg.append(" ");
 		y++;
 	}
-	msg.append(printTime() + ":" + client->getNick() + "!" + client->getUser() + " QUIT :Quit: " + quitmsg + "\n");
+	msg.append(printTime() + ":" + client->getNick() + "!" + client->getUser() + " QUIT: " + quitmsg + "\n");
 	if (!channel_map.empty())
 	{
 		for(std::map<std::string, Channel*>::iterator it = channel_map.begin(); it != channel_map.end(); it++)
