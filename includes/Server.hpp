@@ -109,7 +109,7 @@ class Server
         void invite_cmd(std::vector<Client *> invited, std::string channel_name, Client *sender);
         void topic_cmd(std::string channel_name, std::vector<std::string> splitted, Client *sender);
         void kick_cmd(std::string channel_name, std::string client_name, Client *sender, std::string reason);
-        void quit_cmd(Client *client, std::vector<std::string> words);
+        bool quit_cmd(Client *client, std::vector<std::string> words);
 
         //other cmd
         void join_cmd(Client *client, std::string channel_name, std::string psw);

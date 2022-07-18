@@ -528,7 +528,11 @@ void Server::start_server()
 					else if (cli->getIsLogged() == true && !cli->getNick().empty() && !cli->getUser().empty())
 					{
 						buffer[valread - 1] = '\0';
-						parse_commands(*i, buffer, valread);
+						if (parse_commands(*i, buffer, valread))
+						{
+							i = clients.begin();
+							continue ;
+						}
 						std::string msg = printTime() + "Command line: ";
 						send(cli->getFd(), msg.c_str(), msg.length(), 0);
 					}
@@ -679,7 +683,7 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	splitted = ft_split(clientCommand, " ");
 	aStr = toUpper(splitted[0]);
 	if(compStr(aStr, "QUIT") || compStr(aStr, "/QUIT"))
-		quit_cmd(client, splitted);	//Estrapoliamo la reason direttamente in questa funzione
+		return (quit_cmd(client, splitted));	//Estrapoliamo la reason direttamente in questa funzione
 	else if(compStr(aStr, "INVITE") || compStr(aStr, "/INVITE"))
 		invite_cmd(clientConvert(splitted), splitted[splitted.size() - 1], client);
 	else if(compStr(aStr, "TOPIC") || compStr(aStr, "/TOPIC"))
@@ -722,23 +726,26 @@ void Server::notQuitCmd(int fd, int i)
 	for (std::vector<Client *>::iterator j = clients.begin(); j != clients.end(); j++)
 	{
 		if ((*j) == clients[i])
+		{
 			clients.erase(j);
+			break;
+		}
 	}
 }
 
-void Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da rivedere  *****/
+bool Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da rivedere  *****/
 {
 	int fd = client->getFd();
 	int id = findIterClient(client);
 	if (words.empty())
 	{
 		notQuitCmd(fd, id);
-		return ;
+		return (true);
 	}
 	getsockname(fd , (struct sockaddr*)&serveraddr , (socklen_t*)&addrlen);
 	std::cout << "The disconnected host was named " << client->getUser() << std::endl;
 	std::string msg;
-	int y = 0;
+	int y = 1;
 	std::string quitmsg;
 	while (y < (int)words.size())
 	{
@@ -747,18 +754,21 @@ void Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da
 		y++;
 	}
 	msg.append(printTime() + ":" + client->getNick() + "!" + client->getUser() + " QUIT :Quit: " + quitmsg + "\n");
-	for(std::map<std::string, Channel*>::iterator it = channel_map.begin(); it != channel_map.end(); it++)
+	if (!channel_map.empty())
 	{
-		if(client != NULL)
+		for(std::map<std::string, Channel*>::iterator it = channel_map.begin(); it != channel_map.end(); it++)
 		{
-			
-			for (std::vector<Client *>::iterator c = (*it).second->getClients().begin(); c != (*it).second->getClients().end(); c++)
-				send((*c)->getFd(), msg.c_str(), msg.length(), 0);
-			(*it).second->disconnect(client);
+			if(client != NULL)
+			{
+				
+				for (std::vector<Client *>::iterator c = (*it).second->getClients().begin(); c != (*it).second->getClients().end(); c++)
+					send((*c)->getFd(), msg.c_str(), msg.length(), 0);
+				(*it).second->disconnect(client);
+			}
 		}
 	}
 	msg.clear();
-	msg.append(printTime() + "ERROR :Closing Link: " + client->getNick() + " (Quit: " + client->getUser() + ")\n");
+	msg.append(printTime() + "Closing Link: " + client->getNick() + " (Quit: " + client->getUser() + ")\n");
 	send(fd, msg.c_str(), msg.length(), 0);
 	client[id].setIsLogged(false);
 	client_map.erase(fd);
@@ -767,8 +777,12 @@ void Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da
 	for (std::vector<Client *>::iterator j = clients.begin(); j != clients.end(); j++)
 	{
 		if (k++ == id)
-			clients.erase(j);	
+		{
+			clients.erase(j);
+			return (true);
+		}
 	}
+	return (false);
 }
 
 void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::string> mex)
