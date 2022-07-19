@@ -683,39 +683,39 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	std::string clientCommand;
 	std::string::iterator it;
 	std::vector<std::string> splitted;
-	std::string aStr;
+	std::string Cmd;
 	clientCommand.assign(buf, (size_t)valrecv);
 
 	splitted = ft_split(clientCommand, " ");
-	aStr = toUpper(splitted[0]);
-	if(compStr(aStr, "QUIT") || compStr(aStr, "/QUIT"))
+	Cmd = toUpper(splitted[0]);
+	if(compStr(Cmd, "QUIT") || compStr(Cmd, "/QUIT"))
 		return (quit_cmd(client, splitted));	//Estrapoliamo la reason direttamente in questa funzione
-	else if(compStr(aStr, "INVITE") || compStr(aStr, "/INVITE"))
+	else if(compStr(Cmd, "INVITE") || compStr(Cmd, "/INVITE"))
 		invite_cmd(clientConvert(splitted), splitted[splitted.size() - 1], client);
-	else if(compStr(aStr, "TOPIC") || compStr(aStr, "/TOPIC"))
+	else if(compStr(Cmd, "TOPIC") || compStr(Cmd, "/TOPIC"))
 		topic_cmd(splitted[1], splitted, client);  //topicConvert non va bene, mandiamogli la splitted direttamente, poi in topic_cmd estrapoliamo il messaggio
-	else if(compStr(aStr, "KICK") || compStr(aStr, "/KICK"))
+	else if(compStr(Cmd, "KICK") || compStr(Cmd, "/KICK"))
 	{
 		if (!splitted[3].empty())
 			kick_cmd(splitted[1], splitted[2], client, splitted[3]);
 		else
 			kick_cmd(splitted[1], splitted[2], client, "");
 	}
-	else if(compStr(aStr, "JOIN") || compStr(aStr, "/JOIN"))
+	else if(compStr(Cmd, "JOIN") || compStr(Cmd, "/JOIN"))
 		join_cmd(client, splitted[1], splitted[2]);
-	else if(compStr(aStr, "WHO") || compStr(aStr, "/WHO"))
+	else if(compStr(Cmd, "WHO") || compStr(Cmd, "/WHO"))
 		who_cmd(splitted[1], client);
-	else if(compStr(aStr, "PRIVMSG") || compStr(aStr, "/PRIVMSG"))
+	else if(compStr(Cmd, "PRIVMSG") || compStr(Cmd, "/PRIVMSG"))
 		privmsg_cmd(client, splitted[1], splitted);
-	else if(compStr(aStr, "MODE") || compStr(aStr, "/MODE"))
+	else if(compStr(Cmd, "MODE") || compStr(Cmd, "/MODE"))
 		mode_cmd(client, splitted);
-	else if(compStr(aStr, "PART") || compStr(aStr, "/PART"))
+	else if(compStr(Cmd, "PART") || compStr(Cmd, "/PART"))
 		part_cmd(client, splitted);
 	else
 	{
-		aStr.clear();
-		aStr += printTime() + splitted[0] + " is an unkown server command\n";
-		send(client->getFd(), aStr.c_str(), aStr.length(), 0);
+		Cmd.clear();
+		Cmd += printTime() + splitted[0] + " is an unkown server command\n";
+		send(client->getFd(), Cmd.c_str(), Cmd.length(), 0);
 	}
 	return (false);
 }
