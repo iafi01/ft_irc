@@ -706,12 +706,12 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 		if (int userLimit = atoi(splitted[4].c_str()) && atoi(splitted[3].c_str()) > -1)
 		{
 			int onlyInvite1 = atoi(splitted[3].c_str());
-			join_cmd(client, splitted[1], splitted[2], onlyInvite1, userLimit);
+			join_cmd(client, splitted[1], splitted[2], userLimit, onlyInvite1);
 		}
 		else if (int onlyInvite = atoi(splitted[3].c_str()))
-			join_cmd(client, splitted[1], splitted[2], onlyInvite, 100);
+			join_cmd(client, splitted[1], splitted[2], 100, onlyInvite);
 		else
-			join_cmd(client, splitted[1], splitted[2], 0, 100);
+			join_cmd(client, splitted[1], splitted[2], 100, 0);
 	}
 	else if(compStr(Cmd, "WHO") || compStr(Cmd, "/WHO"))
 		who_cmd(splitted[1], client);
