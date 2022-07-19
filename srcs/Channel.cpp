@@ -10,7 +10,7 @@ Channel::~Channel()
 
 }
 
-Channel::Channel(std::string name, int userLimit, int is_only_invite, std::string psw = "", std::string topic = "")
+Channel::Channel(std::string name, std::string psw = "", int userLimit = 100, int is_only_invite = 0, std::string topic = "")
 {
     this->name = name;
     this->userLimit = userLimit;
@@ -458,12 +458,9 @@ void Channel::connect(Client* client, std::string psw = "")
     }
     if (pass != psw)
     {
-        if (pass != psw + "")
-        {
-            err = "pass of the channel incorrect\n";
-            send(client->getFd(), err.c_str(), err.length(), 0);
-            return ;
-        }
+        err = "pass of the channel incorrect\n";
+        send(client->getFd(), err.c_str(), err.length(), 0);
+        return ;
     }
     if (nClient + 1 > userLimit)
     {
@@ -489,7 +486,7 @@ void Channel::connect(Client* client, std::string psw = "")
             }
             j++;
         }
-        if (!invited)
+        if (!invited && nClient > 0)
         {
 			err = "channel is only invite\n";
 			send(client->getFd(), err.c_str(), err.length(), 0);
