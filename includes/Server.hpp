@@ -112,7 +112,7 @@ class Server
         bool quit_cmd(Client *client, std::vector<std::string> words);
 
         //other cmd
-        void join_cmd(Client *client, std::string channel_name, std::string psw);
+        void join_cmd(Client *client, std::string channel_name, std::string psw, int userLimit, int inviteOnly);
         void op_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToOp);
         void deop_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeOp);
         void half_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToHalfOp);

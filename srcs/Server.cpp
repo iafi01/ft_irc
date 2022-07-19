@@ -103,8 +103,8 @@ void Server::mode_cmd(Client *client, std::vector<std::string> splitted)
 		unvoice_cmd(client, channel_name, users);
 	else if(compStr(flag, "+i"))
 		invite_cmd(users, channel_name, client);
-	else if(compStr(flag, "-i"))
-		invite_cmd(users, channel_name, client);
+	// else if(compStr(flag, "-i"))
+	// 	invite_cmd(users, channel_name, client);
 }
 
 std::vector<std::string> Server::parseBanMask(std::string banMask)
@@ -702,7 +702,17 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 			kick_cmd(splitted[1], splitted[2], client, "");
 	}
 	else if(compStr(Cmd, "JOIN") || compStr(Cmd, "/JOIN"))
-		join_cmd(client, splitted[1], splitted[2]);
+	{
+		if (int userLimit = atoi(splitted[4].c_str()) && atoi(splitted[3].c_str()) > -1)
+		{
+			int onlyInvite1 = atoi(splitted[3].c_str());
+			join_cmd(client, splitted[1], splitted[2], onlyInvite1, userLimit);
+		}
+		else if (int onlyInvite = atoi(splitted[3].c_str()))
+			join_cmd(client, splitted[1], splitted[2], onlyInvite, 100);
+		else
+			join_cmd(client, splitted[1], splitted[2], 0, 100);
+	}
 	else if(compStr(Cmd, "WHO") || compStr(Cmd, "/WHO"))
 		who_cmd(splitted[1], client);
 	else if(compStr(Cmd, "PRIVMSG") || compStr(Cmd, "/PRIVMSG"))
@@ -1087,7 +1097,7 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, Client 
 	}
 }
 
-void Server::join_cmd(Client *client, std::string channel_name, std::string psw = "")
+void Server::join_cmd(Client *client, std::string channel_name, std::string psw = "", int userLimit = 100, int inviteOnly = 0)
 {
 	//controlla che channel_name esiste nel map e accedi al second
 	std::string err;
@@ -1099,7 +1109,7 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 			send(client->getFd(), err.c_str(), err.length(), 0);
 			return ;
 		}
-		Channel *channel = new Channel(channel_name, 100, 0, psw, "");
+		Channel *channel = new Channel(channel_name, psw, userLimit, inviteOnly , "");
 		addChannel(channel);
 		channel->op(client);
 		channel->connect(client, psw);

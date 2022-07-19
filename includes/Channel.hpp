@@ -52,7 +52,7 @@ class Channel {
         
         Channel();
         ~Channel();
-        Channel(std::string name, int userLimit, int is_only_invite, std::string psw, std::string topic);
+        Channel(std::string name, std::string psw, int userLimit, int is_only_invite, std::string topic);
 
         //only admin functions
         bool setPass(std::string psw);
