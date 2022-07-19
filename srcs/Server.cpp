@@ -101,6 +101,10 @@ void Server::mode_cmd(Client *client, std::vector<std::string> splitted)
 		voice_cmd(client, channel_name, users);
 	else if(compStr(flag, "-v"))
 		unvoice_cmd(client, channel_name, users);
+	else if(compStr(flag, "+i"))
+		invite_cmd(users, channel_name, client);
+	else if(compStr(flag, "-i"))
+		invite_cmd(users, channel_name, client);
 }
 
 std::vector<std::string> Server::parseBanMask(std::string banMask)
@@ -934,6 +938,13 @@ void Server::invite_cmd(std::vector<Client *> invited, std::string channel_name,
 	}
 	channel = this->getChannel(channel_name);
 
+	if (!channel->isOp(sender))
+	{
+		msg = printTime();
+		msg += "You are not Op\n";
+		send(sender->getFd(), msg.c_str(), msg.length(), 0);
+		return ;
+	}
 	for (uint i = 0; i < invited.size(); i++)
 	{
 		while(it != client_map.end())
