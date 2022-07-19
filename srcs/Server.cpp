@@ -710,10 +710,10 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 			std::cout << userLimit	<< " *" << onlyInvite1 << std::endl;
 			join_cmd(client, splitted[1], splitted[2], userLimit, onlyInvite1);
 		}
-		else if (int onlyInvite = atoi(splitted[3].c_str()))
+		else if (atoi(splitted[3].c_str()))
 		{
-			std::cout	<< " **" << onlyInvite << std::endl;
-			join_cmd(client, splitted[1], splitted[2], 100, onlyInvite);
+			int userLimit2 = atoi(splitted[3].c_str());
+			join_cmd(client, splitted[1], splitted[2], userLimit2, 0);
 		}
 		else
 		{
