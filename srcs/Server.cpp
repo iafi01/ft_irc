@@ -703,15 +703,22 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	}
 	else if(compStr(Cmd, "JOIN") || compStr(Cmd, "/JOIN"))
 	{
-		if (int userLimit = atoi(splitted[4].c_str()) && atoi(splitted[3].c_str()) > -1)
+		if (atoi(splitted[3].c_str()) && atoi(splitted[4].c_str()) > -1)
 		{
-			int onlyInvite1 = atoi(splitted[3].c_str());
+			int userLimit = atoi(splitted[3].c_str());
+			int onlyInvite1 = atoi(splitted[4].c_str());
+			std::cout << userLimit	<< " *" << onlyInvite1 << std::endl;
 			join_cmd(client, splitted[1], splitted[2], userLimit, onlyInvite1);
 		}
 		else if (int onlyInvite = atoi(splitted[3].c_str()))
+		{
+			std::cout	<< " **" << onlyInvite << std::endl;
 			join_cmd(client, splitted[1], splitted[2], 100, onlyInvite);
+		}
 		else
-			join_cmd(client, splitted[1], splitted[2], 100, 0);
+		{
+			join_cmd(client, splitted[1], splitted[2], 100 , 0);
+		}
 	}
 	else if(compStr(Cmd, "WHO") || compStr(Cmd, "/WHO"))
 		who_cmd(splitted[1], client);
@@ -1109,6 +1116,7 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 			send(client->getFd(), err.c_str(), err.length(), 0);
 			return ;
 		}
+		//std::cout << channel_name << " " << psw << " " << userLimit	<< " " << inviteOnly << std::endl;
 		Channel *channel = new Channel(channel_name, psw, userLimit, inviteOnly , "");
 		addChannel(channel);
 		channel->op(client);
