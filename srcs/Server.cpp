@@ -1,5 +1,7 @@
 #include "../includes/Server.hpp"
 
+int parameters = 0;
+
 std::string Server::printTime()
 {
 	time_t rawtime;
@@ -334,6 +336,11 @@ bool Server::check_nick(Client *new_client, char *buffer, int valread)
 
 	splitted = ft_split(strings, "\n"); //CRLF fine cmd
 	splitted.resize(1);
+	if (splitted[0].length() == 0)
+	{
+		std::cout << "troppo corto" << std::endl;
+		exit(1);
+	}
 	new_client->setNick(splitted[0]);
 	std::map<int, Client *>::iterator iter = client_map.begin();
 	std::map<int, Client *>::iterator clientPos = client_map.begin();
@@ -366,6 +373,12 @@ bool Server::check_user(Client *new_client, char *buffer, int valread)
 
 	splitted = ft_split(strings, "\n"); //CRLF fine cmd
 	splitted.resize(1);
+	if (splitted[0].length() == 0)
+	{
+		std::cout << "troppo corto2" << std::endl;
+		exit(1);
+	}
+	std::cout << splitted[0].length() << std::endl;
 	new_client->setUser(splitted[0]);
 	std::map<int, Client *>::iterator iter = client_map.begin();
 	std::map<int, Client *>::iterator clientPos = client_map.begin();
@@ -404,6 +417,8 @@ bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 		send(new_client->getFd(), msg.c_str(), msg.length(), 0);
 		return (-1);
 	}
+	else
+		parameters++;
 	new_client->setIsLogged(true);
 	msg.clear();
 	msg.append(printTime() + "Now insert your nickname: ");
@@ -456,8 +471,11 @@ void Server::start_server()
 	int fd = -1;
 	int new_fd = -1;
 	int opt = 1;
+	int j = 0;
 	while (1)
 	{
+		j++;
+		std::cout << j << std::endl;
 		FD_ZERO(&read_fds);
 		FD_SET(sockfd, &read_fds);
 		max_fd = sockfd;
@@ -496,22 +514,38 @@ void Server::start_server()
 		std::vector<std::string> tmp_void;
 		for (std::vector<Client *>::iterator i = clients.begin(); i != clients.end(); i++)
         {
+			std::cout << "altro giro" << std::endl;
             fd = (*i)->getFd();
             if (FD_ISSET(fd, &read_fds))
             {
+				std::cout << "aspetto" << std::endl;
 				bzero(buffer, sizeof(buffer));
 				if ((valread = read(fd, buffer, 1024)) == 0)
 				{
+					std::cout << "qui" << std::endl;
+					if (i > clients.end())
+					{
+						std::cout << j << std::endl;
+						break;
+					}
 					continue ;
 				}
 				else if (buffer[0] == 0 || buffer[0] == 3 || buffer[0] == '\n')
 				{
-					std::string err = printTime () + "Error: value inserted\n";
+					std::cout << "eccomi" << std::endl;
+					std::string err = printTime () + "Error: inserted\n";
+					if (parameters == 0)
+						err += printTime() + "Please insert a valid password: ";
+					else if (parameters > 0)
+						err += printTime() + "Please insert a valid nickname: ";
+					else
+						err += printTime() + "Please insert a valid username: ";
 					send((*i)->getFd(), err.c_str(), err.length(), 0);
 					continue ;
 				}
 				else
 				{
+					std::cout << "sto qua" << std::endl;
 					buffer[valread] = '\0';
 					Client *cli = client_map.find(fd)->second;
 					if (cli->getIsLogged() == false)
@@ -521,6 +555,7 @@ void Server::start_server()
 					}
 					else if (cli->getNick().empty() && cli->getIsLogged() == true)
 					{
+						parameters = -1;
 						if (check_nick(*i, buffer, valread) == false)
 							exit(1);
 					}
@@ -539,7 +574,7 @@ void Server::start_server()
 							i = clients.begin();
 							continue ;
 						}
-						std::string msg = printTime() + "Command line: ";
+						std::string msg = printTime();
 						send(cli->getFd(), msg.c_str(), msg.length(), 0);
 					}
 				}
