@@ -105,8 +105,8 @@ void Server::mode_cmd(Client *client, std::vector<std::string> splitted)
 		unvoice_cmd(client, channel_name, users);
 	else if(compStr(flag, "+i"))
 		invite_cmd(users, channel_name, client);
-	else if(compStr(flag, "-i"))
-		uninvite_cmd(users, channel_name, client);
+	// else if(compStr(flag, "-i"))
+	// 	invite_cmd(users, channel_name, client);
 }
 
 std::vector<std::string> Server::parseBanMask(std::string banMask)
@@ -1012,52 +1012,6 @@ void Server::invite_cmd(std::vector<Client *> invited, std::string channel_name,
 			}
 		}
 		channel->invite(invited[i]);
-	}
-}
-
-void Server::uninvite_cmd(std::vector<Client *> invited, std::string channel_name, Client *sender)
-{
-	Channel *channel;
-	std::string msg;
-	std::map<int, Client*>::iterator it = client_map.begin();
-	std::map<std::string, Channel*>::iterator iter = channel_map.begin();
-
-	while(iter != channel_map.end())
-	{
-		if(channel_name == iter->first)
-			break;
-		if(iter == channel_map.end())
-		{
-			msg += printTime() + "401 " + sender->getNick() + " " + invited[0]->getNick() + ": No such name/channel";
-			send(sender->getFd(), msg.c_str(), msg.size(), 0);
-			return ;
-		}
-		iter++;
-	}
-	channel = this->getChannel(channel_name);
-
-	if (!channel->isOp(sender))
-	{
-		msg = printTime();
-		msg += "You are not Op\n";
-		send(sender->getFd(), msg.c_str(), msg.length(), 0);
-		return ;
-	}
-	for (uint i = 0; i < invited.size(); i++)
-	{
-		while(it != client_map.end())
-		{
-			if (invited[i]->getNick() == it->second->getNick())
-				break;
-			it++;
-			if (it == client_map.end())
-			{
-				msg += printTime() + "401 " + sender->getNick() + " " + invited[0]->getNick() + ": No such name/channel";
-				send(sender->getFd(), msg.c_str(), msg.size(), 0);
-				return ;
-			}
-		}
-		channel->unInviteOp(invited[i]);
 	}
 }
 

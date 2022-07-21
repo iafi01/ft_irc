@@ -52,8 +52,6 @@ void Channel::removeClient(Client *client)
                 this->removeInvite(client);
             if(this->isVoiceOp(client))
                 this->deVoiceOp(client);
-            if(this->isInvited(client))
-                this->unInviteOp(client);
             return ;
         }
     }
@@ -228,28 +226,6 @@ bool Channel::unBan(std::string nick = "*", std::string user = "*", std::string 
         j++;
     }
     
-    return (false);
-}
-
-bool Channel::unInviteOp(Client *client)
-{
-    std::vector<Client *>::iterator ite = invited_vec.end();
-    std::vector<Client*>::iterator i;
-
-    i = invited_vec.begin();
-   for(i = invited_vec.begin(); i != invited_vec.end(); i++)
-    {
-        if ((*(*i)).getNick() == client->getNick())
-        {
-            ite = i;
-            break;
-        }
-    }
-    if(ite != invited_vec.end())
-    {
-        invited_vec.erase(ite);
-        return true;
-    }
     return (false);
 }
 
