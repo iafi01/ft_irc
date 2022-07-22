@@ -54,6 +54,7 @@ class Server
         time_t now; //settare = time(0)
         std::string time_string; //ctime(&now) (localdate not UTC)
         std::vector<Client*> clients;
+        int irc_client;
 
         //funzioni usate dal costruttore
         void setup_server(int port, std::string pass);

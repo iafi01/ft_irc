@@ -218,10 +218,16 @@ void Server::unvoice_cmd(Client *admin, std::string channel_name, std::vector<Cl
 	Channel *channel = this->getChannel(channel_name);
 	std::string msg;
 
-	if (channel->isOp(admin) || channel->isHalfOp(admin))
+	std::cout << "Entro in unvoice" << std::endl;
+	if (channel->isOp(admin) || !channel->isHalfOp(admin))
 	{
+		std::cout << "E' admin" << std::endl;
 		for (uint i = 0; i < clientToUnVoice.size(); i++)
+		{
+			std::cout << "Provo a fare il devoice" << std::endl;
 			channel->deVoiceOp(clientToUnVoice[i]);
+			std::cout << "Fatto il devoice" << std::endl;
+		}
 	}
 	else
 	{
@@ -384,21 +390,38 @@ bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 {
 	std::vector<std::string> splitted;
 	std::string	strings(buffer, (size_t)valread);
+	std::vector<std::string> user;
 	std::string msg;
 
-	splitted = ft_split(strings, "\r"); //CRLF fine cmd
-	splitted[0]= splitted[0].substr(6, splitted[0].length() - 1);
+	splitted = ft_split(strings, "\r\n"); //CRLF fine cmd
 	splitted.resize(1);
+	if (!splitted[0].compare(0, 6,"PASS :")) //irc_client
+	{
+		//set pass
+		splitted[0] = splitted[0].substr(6, splitted[0].length() - 1);
+		//set nick
+		splitted[1] = splitted[1].substr(5, splitted[1].length() - 1);
+		//set user
+		user = ft_split(splitted[2], " ");
+
+		new_client->setNick(splitted[1]);
+		new_client->setUser(user[1]);
+		this->irc_client = 1;
+		//setted nick, user and control irc_client == 0 in check_user,check_nick
+	}
 	if (this->pass != splitted[0])
 	{
 		msg.append(printTime() + "Error: Password incorrect\n" + printTime() + "Please insert the password: ");
 		send(new_client->getFd(), msg.c_str(), msg.length(), 0);
-		return (-1);
+		return (0);
 	}
 	new_client->setIsLogged(true);
 	msg.clear();
-	msg.append(printTime() + "Now insert your nickname: ");
-	send(new_client->getFd(), msg.c_str(), msg.length(), 0);
+	if (irc_client == 0)
+	{
+		msg.append(printTime() + "Now insert your nickname: ");
+		send(new_client->getFd(), msg.c_str(), msg.length(), 0);
+	}
 	return (1);
 }
 
@@ -423,6 +446,7 @@ void Server::setup_server(int port, std::string password)
 	serveraddr.sin_addr.s_addr = htonl(2130706433);
 	serveraddr.sin_port = htons(port);
 	pass = password;
+	irc_client = 0;
 	pass += "\0";
 
 	this->sockfd = -1;
@@ -476,7 +500,7 @@ void Server::start_server()
 				exit(1);
 			}
 			std::string w;
-			//w.append (printTime() + "Welcome! Please insert the password: ");
+			w.append (printTime() + "Welcome! Please insert the password: ");
 			if ((send(new_fd, w.c_str(), w.length(), 0)) < 0)
 				perror("Error: send welcome message");
 			Client *new_client = new Client;
@@ -492,12 +516,14 @@ void Server::start_server()
             {
 				bzero(buffer, sizeof(buffer));
 				if ((valread = read(fd, buffer, 1024)) == 0)
-					notQuitCmd(new_client->getFd(), findIterClient(new_client));
+				{
+					continue ;
+				}
 				else if (buffer[0] == 0 || buffer[0] == 3 || buffer[0] == '\n')
 				{
 					std::string err = printTime () + "Error: value inserted\n";
 					send((*i)->getFd(), err.c_str(), err.length(), 0);
-					notQuitCmd(new_client->getFd(), findIterClient(new_client));
+					continue ;
 				}
 				else
 				{
@@ -507,13 +533,14 @@ void Server::start_server()
 					{
 						if (check_pass(*i, buffer, valread) == false)
 							exit(1);
+						std::cout << cli->getIsLogged() << " " << cli->getNick() << " " << cli->getUser() << " " << std::endl;
 					}
-					else if (cli->getNick().empty() && cli->getIsLogged() == true)
+					else if (cli->getNick().empty() && cli->getIsLogged() == true && irc_client == 0)
 					{
 						if (check_nick(*i, buffer, valread) == false)
 							exit(1);
 					}
-					else if (cli->getUser().empty() && !cli->getNick().empty())
+					else if (cli->getUser().empty() && !cli->getNick().empty() && irc_client == 0)
 					{
 						if (check_user(*i, buffer, valread) == false)
 							exit(1);
@@ -673,7 +700,6 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	std::string::iterator it;
 	std::vector<std::string> splitted;
 	std::string aStr;
-	std::string msg;
 	clientCommand.assign(buf, (size_t)valrecv);
 
 	splitted = ft_split(clientCommand, " ");
@@ -681,27 +707,9 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	if(compStr(aStr, "QUIT") || compStr(aStr, "/QUIT"))
 		return (quit_cmd(client, splitted));	//Estrapoliamo la reason direttamente in questa funzione
 	else if(compStr(aStr, "INVITE") || compStr(aStr, "/INVITE"))
-	{
-		if(splitted.size() < 3)
-		{
-			msg = "Not enough parameters\n";
-			send(client->getFd(), msg.c_str(), msg.length(), 0);
-			msg.clear();
-			return false;
-		}
 		invite_cmd(clientConvert(splitted), splitted[splitted.size() - 1], client);
-	}
 	else if(compStr(aStr, "TOPIC") || compStr(aStr, "/TOPIC"))
-	{
-		if(splitted.size() < 2)
-		{
-			msg = "Not enough parameters\n";
-			send(client->getFd(), msg.c_str(), msg.length(), 0);
-			msg.clear();
-			return false;
-		}
 		topic_cmd(splitted[1], splitted, client);  //topicConvert non va bene, mandiamogli la splitted direttamente, poi in topic_cmd estrapoliamo il messaggio
-	}
 	else if(compStr(aStr, "KICK") || compStr(aStr, "/KICK"))
 	{
 		if (!splitted[3].empty())
@@ -712,49 +720,13 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	else if(compStr(aStr, "JOIN") || compStr(aStr, "/JOIN"))
 		join_cmd(client, splitted[1], splitted[2]);
 	else if(compStr(aStr, "WHO") || compStr(aStr, "/WHO"))
-	{
-		if(splitted.size() < 2)
-		{
-			msg = "Not enough parameters\n";
-			send(client->getFd(), msg.c_str(), msg.length(), 0);
-			msg.clear();
-			return false;
-		}
 		who_cmd(splitted[1], client);
-	}
 	else if(compStr(aStr, "PRIVMSG") || compStr(aStr, "/PRIVMSG"))
-	{
-		if(splitted.size() < 3)
-		{
-			msg = "Not enough parameters\n";
-			send(client->getFd(), msg.c_str(), msg.length(), 0);
-			msg.clear();
-			return false;
-		}
 		privmsg_cmd(client, splitted[1], splitted);
-	}
 	else if(compStr(aStr, "MODE") || compStr(aStr, "/MODE"))
-	{
-		if(splitted.size() != 4)
-		{
-			msg = "Wrong number of parameters\n";
-			send(client->getFd(), msg.c_str(), msg.length(), 0);
-			msg.clear();
-			return false;
-		}
 		mode_cmd(client, splitted);
-	}
 	else if(compStr(aStr, "PART") || compStr(aStr, "/PART"))
-	{
-		if(splitted.size() != 2)
-		{
-			msg = "Not enough parameters\n";
-			send(client->getFd(), msg.c_str(), msg.length(), 0);
-			msg.clear();
-			return false;
-		}
 		part_cmd(client, splitted);
-	}
 	else
 	{
 		aStr.clear();
@@ -1115,7 +1087,7 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, Client 
 	for (uint i = 0; i < clients.size(); i++)
 	{
 		msg.clear();
-		if (clients[i]->getUser() == client_name)
+		if (clients[i]->getNick() == client_name)
 		{
 			channel->kickCmd(clients[i], reason);
 			msg = printTime() + "Please re-join the channel\n";
@@ -1276,6 +1248,6 @@ Channel* Server::getChannel(std::string nameCh)
 
 void Server::addChannel(Channel *toAdd)
 {
-	std::cout << printTime() << "channel has been created :" << toAdd->getName() << std::endl;
+	std::cout << printTime() << "creo canale :" << toAdd->getName() << std::endl;
 	this->channel_map.insert(std::make_pair(toAdd->getName(), toAdd));
 }

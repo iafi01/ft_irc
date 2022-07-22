@@ -24,6 +24,7 @@ Client &Client::operator=(const Client &obj)
     this->username = obj.username;
     this->fd = obj.fd;
     this->is_msg = obj.is_msg;
+    this->is_irc = obj.is_irc;
     return(*this);
 }
 

@@ -180,6 +180,7 @@ bool Channel::ban(Client *admin, std::string nick = "*", std::string user = "*",
             victim.reason = _reason;
 
         this->banned_vec.push_back(victim);
+        std::cout << "MAAA!" << this->banned_vec[0].user << std::endl;
         //stampa
         std::string msg = admin->getUser();
         msg += " has banned mask " + victim.nick + "!" + victim.user + "@" + victim.host + " for: ";
@@ -292,7 +293,7 @@ bool Channel::kickCmd(Client *client, std::string _reason = "")
 {
     try {
         std::cout << _reason << std::endl;
-        removeClient(client);
+        disconnect(client);
         return (true);
     }
     catch (std::exception& e) {
