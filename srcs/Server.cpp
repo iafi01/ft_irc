@@ -101,10 +101,6 @@ void Server::mode_cmd(Client *client, std::vector<std::string> splitted)
 		voice_cmd(client, channel_name, users);
 	else if(compStr(flag, "-v"))
 		unvoice_cmd(client, channel_name, users);
-	else if(compStr(flag, "+i"))
-		invite_cmd(users, channel_name, client);
-	// else if(compStr(flag, "-i"))
-	// 	invite_cmd(users, channel_name, client);
 }
 
 std::vector<std::string> Server::parseBanMask(std::string banMask)
@@ -222,16 +218,10 @@ void Server::unvoice_cmd(Client *admin, std::string channel_name, std::vector<Cl
 	Channel *channel = this->getChannel(channel_name);
 	std::string msg;
 
-	std::cout << "Entro in unvoice" << std::endl;
-	if (channel->isOp(admin) || !channel->isHalfOp(admin))
+	if (channel->isOp(admin) || channel->isHalfOp(admin))
 	{
-		std::cout << "E' admin" << std::endl;
 		for (uint i = 0; i < clientToUnVoice.size(); i++)
-		{
-			std::cout << "Provo a fare il devoice" << std::endl;
 			channel->deVoiceOp(clientToUnVoice[i]);
-			std::cout << "Fatto il devoice" << std::endl;
-		}
 	}
 	else
 	{
@@ -396,7 +386,8 @@ bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 	std::string	strings(buffer, (size_t)valread);
 	std::string msg;
 
-	splitted = ft_split(strings, "\n"); //CRLF fine cmd
+	splitted = ft_split(strings, "\r"); //CRLF fine cmd
+	splitted[0]= splitted[0].substr(6, splitted[0].length() - 1);
 	splitted.resize(1);
 	if (this->pass != splitted[0])
 	{
@@ -485,7 +476,7 @@ void Server::start_server()
 				exit(1);
 			}
 			std::string w;
-			w.append (printTime() + "Welcome! Please insert the password: ");
+			//w.append (printTime() + "Welcome! Please insert the password: ");
 			if ((send(new_fd, w.c_str(), w.length(), 0)) < 0)
 				perror("Error: send welcome message");
 			Client *new_client = new Client;
@@ -501,14 +492,12 @@ void Server::start_server()
             {
 				bzero(buffer, sizeof(buffer));
 				if ((valread = read(fd, buffer, 1024)) == 0)
-				{
-					continue ;
-				}
+					notQuitCmd(new_client->getFd(), findIterClient(new_client));
 				else if (buffer[0] == 0 || buffer[0] == 3 || buffer[0] == '\n')
 				{
 					std::string err = printTime () + "Error: value inserted\n";
 					send((*i)->getFd(), err.c_str(), err.length(), 0);
-					continue ;
+					notQuitCmd(new_client->getFd(), findIterClient(new_client));
 				}
 				else
 				{
@@ -683,56 +672,94 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	std::string clientCommand;
 	std::string::iterator it;
 	std::vector<std::string> splitted;
-	std::string Cmd;
+	std::string aStr;
+	std::string msg;
 	clientCommand.assign(buf, (size_t)valrecv);
 
 	splitted = ft_split(clientCommand, " ");
-	Cmd = toUpper(splitted[0]);
-	if(compStr(Cmd, "QUIT") || compStr(Cmd, "/QUIT"))
+	aStr = toUpper(splitted[0]);
+	if(compStr(aStr, "QUIT") || compStr(aStr, "/QUIT"))
 		return (quit_cmd(client, splitted));	//Estrapoliamo la reason direttamente in questa funzione
-	else if(compStr(Cmd, "INVITE") || compStr(Cmd, "/INVITE"))
+	else if(compStr(aStr, "INVITE") || compStr(aStr, "/INVITE"))
+	{
+		if(splitted.size() < 3)
+		{
+			msg = "Not enough parameters\n";
+			send(client->getFd(), msg.c_str(), msg.length(), 0);
+			msg.clear();
+			return false;
+		}
 		invite_cmd(clientConvert(splitted), splitted[splitted.size() - 1], client);
-	else if(compStr(Cmd, "TOPIC") || compStr(Cmd, "/TOPIC"))
+	}
+	else if(compStr(aStr, "TOPIC") || compStr(aStr, "/TOPIC"))
+	{
+		if(splitted.size() < 2)
+		{
+			msg = "Not enough parameters\n";
+			send(client->getFd(), msg.c_str(), msg.length(), 0);
+			msg.clear();
+			return false;
+		}
 		topic_cmd(splitted[1], splitted, client);  //topicConvert non va bene, mandiamogli la splitted direttamente, poi in topic_cmd estrapoliamo il messaggio
-	else if(compStr(Cmd, "KICK") || compStr(Cmd, "/KICK"))
+	}
+	else if(compStr(aStr, "KICK") || compStr(aStr, "/KICK"))
 	{
 		if (!splitted[3].empty())
 			kick_cmd(splitted[1], splitted[2], client, splitted[3]);
 		else
 			kick_cmd(splitted[1], splitted[2], client, "");
 	}
-	else if(compStr(Cmd, "JOIN") || compStr(Cmd, "/JOIN"))
+	else if(compStr(aStr, "JOIN") || compStr(aStr, "/JOIN"))
+		join_cmd(client, splitted[1], splitted[2]);
+	else if(compStr(aStr, "WHO") || compStr(aStr, "/WHO"))
 	{
-		if (atoi(splitted[3].c_str()) && atoi(splitted[4].c_str()) > -1)
+		if(splitted.size() < 2)
 		{
-			int userLimit = atoi(splitted[3].c_str());
-			int onlyInvite1 = atoi(splitted[4].c_str());
-			std::cout << userLimit	<< " *" << onlyInvite1 << std::endl;
-			join_cmd(client, splitted[1], splitted[2], userLimit, onlyInvite1);
+			msg = "Not enough parameters\n";
+			send(client->getFd(), msg.c_str(), msg.length(), 0);
+			msg.clear();
+			return false;
 		}
-		else if (atoi(splitted[3].c_str()))
-		{
-			int userLimit2 = atoi(splitted[3].c_str());
-			join_cmd(client, splitted[1], splitted[2], userLimit2, 0);
-		}
-		else
-		{
-			join_cmd(client, splitted[1], splitted[2], 100 , 0);
-		}
-	}
-	else if(compStr(Cmd, "WHO") || compStr(Cmd, "/WHO"))
 		who_cmd(splitted[1], client);
-	else if(compStr(Cmd, "PRIVMSG") || compStr(Cmd, "/PRIVMSG"))
+	}
+	else if(compStr(aStr, "PRIVMSG") || compStr(aStr, "/PRIVMSG"))
+	{
+		if(splitted.size() < 3)
+		{
+			msg = "Not enough parameters\n";
+			send(client->getFd(), msg.c_str(), msg.length(), 0);
+			msg.clear();
+			return false;
+		}
 		privmsg_cmd(client, splitted[1], splitted);
-	else if(compStr(Cmd, "MODE") || compStr(Cmd, "/MODE"))
+	}
+	else if(compStr(aStr, "MODE") || compStr(aStr, "/MODE"))
+	{
+		if(splitted.size() != 4)
+		{
+			msg = "Wrong number of parameters\n";
+			send(client->getFd(), msg.c_str(), msg.length(), 0);
+			msg.clear();
+			return false;
+		}
 		mode_cmd(client, splitted);
-	else if(compStr(Cmd, "PART") || compStr(Cmd, "/PART"))
+	}
+	else if(compStr(aStr, "PART") || compStr(aStr, "/PART"))
+	{
+		if(splitted.size() != 2)
+		{
+			msg = "Not enough parameters\n";
+			send(client->getFd(), msg.c_str(), msg.length(), 0);
+			msg.clear();
+			return false;
+		}
 		part_cmd(client, splitted);
+	}
 	else
 	{
-		Cmd.clear();
-		Cmd += printTime() + splitted[0] + " is an unkown server command\n";
-		send(client->getFd(), Cmd.c_str(), Cmd.length(), 0);
+		aStr.clear();
+		aStr += printTime() + splitted[0] + " is an unkown server command\n";
+		send(client->getFd(), aStr.c_str(), aStr.length(), 0);
 	}
 	return (false);
 }
@@ -955,13 +982,6 @@ void Server::invite_cmd(std::vector<Client *> invited, std::string channel_name,
 	}
 	channel = this->getChannel(channel_name);
 
-	if (!channel->isOp(sender))
-	{
-		msg = printTime();
-		msg += "You are not Op\n";
-		send(sender->getFd(), msg.c_str(), msg.length(), 0);
-		return ;
-	}
 	for (uint i = 0; i < invited.size(); i++)
 	{
 		while(it != client_map.end())
@@ -1095,7 +1115,7 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, Client 
 	for (uint i = 0; i < clients.size(); i++)
 	{
 		msg.clear();
-		if (clients[i]->getNick() == client_name)
+		if (clients[i]->getUser() == client_name)
 		{
 			channel->kickCmd(clients[i], reason);
 			msg = printTime() + "Please re-join the channel\n";
@@ -1104,7 +1124,7 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, Client 
 	}
 }
 
-void Server::join_cmd(Client *client, std::string channel_name, std::string psw = "", int userLimit = 100, int inviteOnly = 0)
+void Server::join_cmd(Client *client, std::string channel_name, std::string psw = "")
 {
 	//controlla che channel_name esiste nel map e accedi al second
 	std::string err;
@@ -1116,8 +1136,7 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 			send(client->getFd(), err.c_str(), err.length(), 0);
 			return ;
 		}
-		//std::cout << channel_name << " " << psw << " " << userLimit	<< " " << inviteOnly << std::endl;
-		Channel *channel = new Channel(channel_name, psw, userLimit, inviteOnly , "");
+		Channel *channel = new Channel(channel_name, 100, 0, psw, "");
 		addChannel(channel);
 		channel->op(client);
 		channel->connect(client, psw);
@@ -1257,6 +1276,6 @@ Channel* Server::getChannel(std::string nameCh)
 
 void Server::addChannel(Channel *toAdd)
 {
-	std::cout << printTime() << "creo canale :" << toAdd->getName() << std::endl;
+	std::cout << printTime() << "channel has been created :" << toAdd->getName() << std::endl;
 	this->channel_map.insert(std::make_pair(toAdd->getName(), toAdd));
 }

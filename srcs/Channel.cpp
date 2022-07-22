@@ -10,7 +10,7 @@ Channel::~Channel()
 
 }
 
-Channel::Channel(std::string name, std::string psw = "", int userLimit = 100, int is_only_invite = 0, std::string topic = "")
+Channel::Channel(std::string name, int userLimit, int is_only_invite, std::string psw = "", std::string topic = "")
 {
     this->name = name;
     this->userLimit = userLimit;
@@ -180,7 +180,6 @@ bool Channel::ban(Client *admin, std::string nick = "*", std::string user = "*",
             victim.reason = _reason;
 
         this->banned_vec.push_back(victim);
-        std::cout << "MAAA!" << this->banned_vec[0].user << std::endl;
         //stampa
         std::string msg = admin->getUser();
         msg += " has banned mask " + victim.nick + "!" + victim.user + "@" + victim.host + " for: ";
@@ -293,7 +292,7 @@ bool Channel::kickCmd(Client *client, std::string _reason = "")
 {
     try {
         std::cout << _reason << std::endl;
-        disconnect(client);
+        removeClient(client);
         return (true);
     }
     catch (std::exception& e) {
@@ -458,9 +457,12 @@ void Channel::connect(Client* client, std::string psw = "")
     }
     if (pass != psw)
     {
-        err = "pass of the channel incorrect\n";
-        send(client->getFd(), err.c_str(), err.length(), 0);
-        return ;
+        if (pass != psw + "")
+        {
+            err = "pass of the channel incorrect\n";
+            send(client->getFd(), err.c_str(), err.length(), 0);
+            return ;
+        }
     }
     if (nClient + 1 > userLimit)
     {
@@ -486,7 +488,7 @@ void Channel::connect(Client* client, std::string psw = "")
             }
             j++;
         }
-        if (!invited && nClient > 0)
+        if (!invited)
         {
 			err = "channel is only invite\n";
 			send(client->getFd(), err.c_str(), err.length(), 0);
