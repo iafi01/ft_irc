@@ -94,6 +94,7 @@ class Server
         std::vector<Channel *> channelConvert(std::vector<std::string> splitted);
         bool compNames(std::string receiver, std::string nickname);
         std::string printTime();
+        void sendWelcome(Client *client);
 
         //void forceQuit(int fd);
         bool check_nick(Client *new_client, char *buffer, int valread);

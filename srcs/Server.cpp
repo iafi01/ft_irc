@@ -1,4 +1,7 @@
 #include "../includes/Server.hpp"
+#include <cstdlib>
+
+int parameters = 0;
 
 std::string Server::printTime()
 {
@@ -140,7 +143,7 @@ void Server::op_cmd(Client *admin, std::string channel_name, std::vector<Client 
 
 	if (!channel->isOp(admin))
 	{
-		msg += printTime() + channel_name + ": You are not channel operator\n";
+		msg += printTime() + channel_name + ": 482 You are not channel operator\n";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -155,7 +158,7 @@ void Server::deop_cmd(Client *admin, std::string channel_name, std::vector<Clien
 
 	if (!channel->isOp(admin))
 	{
-		msg += printTime() + channel_name + ": You are not channel operator\n";
+		msg += printTime() + channel_name + ": 482 You are not channel operator\n";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -170,7 +173,7 @@ void Server::half_cmd(Client *admin, std::string channel_name, std::vector<Clien
 
 	if (!channel->isOp(admin))
 	{
-		msg += printTime() + channel_name + ": You are not channel operator\n";
+		msg += printTime() + channel_name + ": 482 You are not channel operator\n";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -187,7 +190,7 @@ void Server::dehalf_cmd(Client *admin, std::string channel_name, std::vector<Cli
 
 	if (!channel->isOp(admin))
 	{
-		msg += printTime() + channel_name + ": You are not channel operator\n";
+		msg += printTime() + channel_name + ": 482 You are not channel operator\n";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -207,7 +210,7 @@ void Server::voice_cmd(Client *admin, std::string channel_name, std::vector<Clie
 	}
 	else
 	{
-		msg += printTime() + channel_name + ": You are not channel operator\n";
+		msg += printTime() + channel_name + ": 482 You are not channel operator\n";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -231,7 +234,7 @@ void Server::unvoice_cmd(Client *admin, std::string channel_name, std::vector<Cl
 	}
 	else
 	{
-		msg += printTime() + channel_name + ": You are not channel operator\n";
+		msg += printTime() + channel_name + ": 482 You are not channel operator\n";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -261,7 +264,7 @@ void Server::unban_cmd(Client *admin, std::string channel_name, std::vector<Clie
 
 	if (!channel->isOp(admin))
 	{
-		msg += printTime() + channel_name + ": You are not channel operator\n";
+		msg += printTime() + channel_name + ": 482 You are not channel operator\n";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -320,6 +323,28 @@ std::string Server::topicConvert(std::vector<std::string> toConv)
 			result +=  " ";
 	}	
 	return (result);
+}
+
+void Server::sendWelcome(Client *client)
+{
+	std::string msgWelcome;
+	msgWelcome.append("001 " + client->getNick() + " :Welcome to the IRC Network, " + client->getUser() + "\n");
+    msgWelcome.append("002 " + client->getNick() + " :Your host is IRC, running version 2.1" + "\n");
+	msgWelcome.append("003 " + client->getNick() + " :This server was created " + printTime() + "\n");
+	msgWelcome.append(": 372 :COMMANDS YOU CAN USE:\n\
+: 372 :JOIN 	-> join or create channels\n\
+: 372 :LIST	 	-> list of channels\n\
+: 372 :PART 	-> leave a channel\n\
+: 372 :PRIVMSG 	-> send a message to someone or to a channel\n\
+: 372 :TOPIC	-> change topic of a channel\n\
+: 372 :WHO		-> list of people in a channel\n\
+: 372 :KICK		-> kick a user from a channel (OP/HALFOP ONLY)\n\
+: 372 :MODE	COMMAND FLAGS:\n\
+: 372 :+o/-o	-> op/deop a user in a channel\n\
+: 372 :+h/-h	-> halfop/dehalfop a user in a channel\n\
+: 372 :+v/-v	-> voice/devoice a user in a channel\n\
+: 372 :+b/-b	-> ban/unban a nickname in a channel OR print a banlist if no user is given\n");
+    send(client->getFd(), msgWelcome.c_str(), msgWelcome.length(), 0);
 }
 
 bool Server::check_nick(Client *new_client, char *buffer, int valread)
@@ -383,6 +408,7 @@ bool Server::check_user(Client *new_client, char *buffer, int valread)
 	}
 	msg.append(printTime());
 	send(new_client->getFd(), msg.c_str(), msg.length(), 0);
+	sendWelcome(new_client);
 	return (true);
 }
 
@@ -407,22 +433,25 @@ bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 		new_client->setNick(splitted[1]);
 		new_client->setUser(user[1]);
 		this->irc_client = 1;
-		//sendWelcome(new_client);
+		new_client->setIsLogged(true);
 		//setted nick, user and control irc_client == 0 in check_user,check_nick
 	}
 	if (irc_client == 0)
 	{
 		splitted = ft_split(strings, "\n");
+		splitted.resize(1);
 		msg.append(printTime() + "Now insert your nickname: ");
 		send(new_client->getFd(), msg.c_str(), msg.length(), 0);
+		new_client->setIsLogged(true);
+		return 1;
 	}
 	if (this->pass != splitted[0])
 	{
-		msg.append(printTime() + "Error: Password incorrect\n" + printTime() + "Please insert the password: ");
+		msg.append(printTime() + ": 464 Error: Password incorrect\n" + printTime() + "Please insert the password: ");
 		send(new_client->getFd(), msg.c_str(), msg.length(), 0);
 		return (-1);
 	}
-	new_client->setIsLogged(true);
+	sendWelcome(new_client);
 	msg.clear();
 	return (1);
 }
@@ -516,52 +545,60 @@ void Server::start_server()
             fd = (*i)->getFd();
             if (FD_ISSET(fd, &read_fds))
             {
-				bzero(buffer, sizeof(buffer));
-				if ((valread = read(fd, buffer, 1024)) == 0)
-				{
-					continue ;
-				}
-				else if (buffer[0] == 0 || buffer[0] == 3 || buffer[0] == '\n')
-				{
-					std::string err = printTime () + "Error: value inserted\n";
-					send((*i)->getFd(), err.c_str(), err.length(), 0);
-					continue ;
-				}
-				else
-				{
-					Client *cli = client_map.find(fd)->second;
-					if (cli->getIsLogged() == false)
-					{
-						if (check_pass(*i, buffer, valread) == false)
-							exit(1);
-					}
-					else if (cli->getNick().empty() && cli->getIsLogged() == true && irc_client == 0)
-					{
-						if (check_nick(*i, buffer, valread) == false)
-							exit(1);
-					}
-					else if (cli->getUser().empty() && !cli->getNick().empty() && irc_client == 0)
-					{
-						if (check_user(*i, buffer, valread) == false)
-							exit(1);
-					}
-					else if (cli->getIsLogged() == true && !cli->getNick().empty() && !cli->getUser().empty())
-					{
-						buffer[valread - 1] = '\0';
-						if (parse_commands(*i, buffer, valread))
-						{
-							if (clients.empty())
-								break;
-							i = clients.begin();
-							continue ;
-						}
-						std::string msg = printTime() + "Command line: ";
-						send(cli->getFd(), msg.c_str(), msg.length(), 0);
-					}
-				}
+                bzero(buffer, sizeof(buffer));
+                if ((valread = read(fd, buffer, 1024)) == 0)
+                {
+                    continue ;
+                }
+                else if (buffer[0] == 0 || buffer[0] == 3 || buffer[0] == '\n')
+                {
+                    std::string err = printTime () + "Error: inserted\n";
+                    if (parameters == 0)
+                        err += printTime() + "Please insert a valid password: ";
+                    else if (parameters > 0)
+                        err += printTime() + "Please insert a valid nickname: ";
+                    else
+                        err += printTime() + "Please insert a valid username: ";
+                    send((*i)->getFd(), err.c_str(), err.length(), 0);
+                    continue ;
+                }
+                else
+                {
+                    buffer[valread] = '\0';
+                    Client *cli = client_map.find(fd)->second;
+                    if (cli->getIsLogged() == false)
+                    {
+                        if (check_pass(*i, buffer, valread) == false)
+                            exit(1);
+                    }
+                    else if (cli->getNick().empty() && cli->getIsLogged() == true)
+                    {
+                        parameters = -1;
+                        if (check_nick(*i, buffer, valread) == false)
+                            exit(1);
+                    }
+                    else if (cli->getUser().empty() && !cli->getNick().empty())
+                    {
+                        if (check_user(*i, buffer, valread) == false)
+                            exit(1);
+                    }
+                    else if (cli->getIsLogged() == true && !cli->getNick().empty() && !cli->getUser().empty())
+                    {
+                        buffer[valread - 1] = '\0';
+                        if (parse_commands(*i, buffer, valread))
+                        {
+                            if (clients.empty())
+                                break;
+                            i = clients.begin();
+                            continue ;
+                        }
+                        std::string msg = printTime();
+                        send(cli->getFd(), msg.c_str(), msg.length(), 0);
+                    }
+                }
             }
         }
-	}
+    }
 }
 
 
@@ -1100,29 +1137,80 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 {
 	//controlla che channel_name esiste nel map e accedi al second
 	std::string err;
+	std::string msg;
 	if(this->getChannel(channel_name) == NULL)
 	{
 		if (channel_name[0] != '#')
 		{
-			err = printTime() + "invalid channel name, please add '#'\n";
+			err = "403 "  + client->getNick() + " " + channel_name + " :No such channel" + "\n";
 			send(client->getFd(), err.c_str(), err.length(), 0);
 			return ;
 		}
-		Channel *channel = new Channel(channel_name, 100, 0, psw, "");
-		addChannel(channel);
-		channel->op(client);
-		channel->connect(client, psw);
+		else
+		{
+			Channel *channel = new Channel(channel_name, 100, 0, psw, "");
+			msg += ":" + client->getNick() + "!" + client->getUser() + "@127.0.0.1 JOIN " + channel_name + "\n";
+			send(client->getFd(), msg.c_str(), msg.length(), 0);
+			msg.clear();
+			addChannel(channel);
+			channel->op(client);
+			channel->connect(client, psw);
+			if(!channel->getTopic().empty())
+			{
+				msg += ": 332 " + client->getNick() + " " + channel_name + " :" + channel->getTopic() + "\n";
+				send(client->getFd(), msg.c_str(), msg.length(), 0);
+				msg.clear();
+			}
+			else
+			{
+				msg += ": 331 " + client->getNick() + channel_name + " :No topic is set" + "\n";
+				send(client->getFd(), msg.c_str(), msg.length(), 0);
+				msg.clear();
+			}
+			std::vector<Client *>vec = channel->getClients();
+			msg += ":" + client->getNick() + "!" + client->getUser() + " JOIN :" + channel_name + "\n";
+			for(std::vector<Client *>::iterator k = vec.begin(); k != vec.end(); k++)
+			{
+				if((*k)->getFd() != client->getFd())	
+					send((*k)->getFd(), msg.c_str(), msg.length(), 0);
+			}
+			msg.clear();
+			for(std::vector<Client *>::iterator k = vec.begin(); k != vec.end(); k++)
+			{
+				if(channel->isOp(*k))
+				{
+					msg += ":127.0.0.1 353 " + (*k)->getNick() + " = " + channel_name + " :@" + (*k)->getNick() + "\n";
+					send(client->getFd(), msg.c_str(), msg.length(), 0);
+					msg.clear();
+				}
+			}
+			for(std::vector<Client *>::iterator k = vec.begin(); k != vec.end(); k++)
+			{
+				if(!channel->isOp(*k))
+				{
+					msg += ":127.0.0.1 353 " + (*k)->getNick() + " = " + channel_name + " :@" + (*k)->getNick() + "\n";
+					send(client->getFd(), msg.c_str(), msg.length(), 0);
+					msg.clear();
+				}
+			}
+			msg += ": 366 " + client->getNick() + channel_name + " :End of NAMES list\n"; 
+		}
 	}
 	else
 	{
 		Channel *channel = getChannel(channel_name);
 		if (channel->isClient(client))
-		{
-			err = printTime() + "you are already on this channel\n";
-			send(client->getFd(), err.c_str(), err.length(), 0);
 			return ;
-		}
+		msg.append(":" + client->getNick() + "!" + client->getUser() + "@127.0.0.1 JOIN " + channel_name + "\n");
+		send(client->getFd(), msg.c_str(), msg.length(), 0);
+		msg.clear();
+		msg.append(":127.0.0.1 353 " + client->getNick() + " = " + channel_name + " :@" + client->getNick() + "\n");
+		send(client->getFd(), msg.c_str(), msg.length(), 0);
+		msg.clear();
+		msg.append(":127.0.0.1 366 " + client->getNick() + " " + channel_name + " :End of /NAMES list.\n331\n");
+		send(client->getFd(), msg.c_str(), msg.length(), 0);
 		channel->connect(client, psw);
+		addChannel(channel);
 	}
 }
 
@@ -1248,6 +1336,6 @@ Channel* Server::getChannel(std::string nameCh)
 
 void Server::addChannel(Channel *toAdd)
 {
-	std::cout << printTime() << "creo canale :" << toAdd->getName() << std::endl;
+	//std::cout << printTime() << "creo canale :" << toAdd->getName() << std::endl;
 	this->channel_map.insert(std::make_pair(toAdd->getName(), toAdd));
 }
