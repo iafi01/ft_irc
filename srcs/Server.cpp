@@ -388,13 +388,24 @@ bool Server::check_user(Client *new_client, char *buffer, int valread)
 
 bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 {
+
+	/*
+	Il sottocomando LS viene utilizzato per elencare le funzionalità supportate dal server.
+	 Il client deve inviare un sottocomando LS senza altri argomenti per richiedere un elenco di tutte le funzionalità.
+
+Se un server riceve un LSsottocomando mentre è in corso la registrazione
+ del client, DEVE sospendere la registrazione fino a quando non ENDviene ricevuto un sottocomando dal client.
+	*/
 	std::vector<std::string> splitted;
 	std::string	strings(buffer, (size_t)valread);
 	std::vector<std::string> user;
 	std::string msg;
 
+	//jssend(new_client->getFd(), "CAP * LS :", strlen("CAP * LS :"),0);
+	std::cout << buffer << std::endl;
 	splitted = ft_split(strings, "\r\n"); //CRLF fine cmd
 	splitted.resize(1);
+	std::cout << "Pass:" << this->pass << " " << "other:" << splitted[0]  << std::endl;
 	if (!splitted[0].compare(0, 6,"PASS :")) //irc_client
 	{
 		//set pass
@@ -409,6 +420,9 @@ bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 		this->irc_client = 1;
 		//setted nick, user and control irc_client == 0 in check_user,check_nick
 	}
+	splitted = ft_split(strings, "\n");
+	//la pass automatica di kvirc manda "CAP LS" e se la scrivo a mano la chiude con un char finale
+	std::cout << "Pass:" << this->pass << " " << "other:" << splitted[0]  << std::endl;
 	if (this->pass != splitted[0])
 	{
 		msg.append(printTime() + "Error: Password incorrect\n" + printTime() + "Please insert the password: ");
@@ -532,7 +546,7 @@ void Server::start_server()
 					if (cli->getIsLogged() == false)
 					{
 						if (check_pass(*i, buffer, valread) == false)
-							exit(1);
+							continue;
 						std::cout << cli->getIsLogged() << " " << cli->getNick() << " " << cli->getUser() << " " << std::endl;
 					}
 					else if (cli->getNick().empty() && cli->getIsLogged() == true && irc_client == 0)
