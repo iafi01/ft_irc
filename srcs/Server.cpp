@@ -407,6 +407,7 @@ bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 		new_client->setNick(splitted[1]);
 		new_client->setUser(user[1]);
 		this->irc_client = 1;
+		//sendWelcome(new_client);
 		//setted nick, user and control irc_client == 0 in check_user,check_nick
 	}
 	if (irc_client == 0)
@@ -419,7 +420,7 @@ bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 	{
 		msg.append(printTime() + "Error: Password incorrect\n" + printTime() + "Please insert the password: ");
 		send(new_client->getFd(), msg.c_str(), msg.length(), 0);
-		return (0);
+		return (-1);
 	}
 	new_client->setIsLogged(true);
 	msg.clear();
@@ -528,14 +529,11 @@ void Server::start_server()
 				}
 				else
 				{
-					std::cout << buffer << std::endl;
-					buffer[valread] = '\0';
 					Client *cli = client_map.find(fd)->second;
 					if (cli->getIsLogged() == false)
 					{
 						if (check_pass(*i, buffer, valread) == false)
 							exit(1);
-						std::cout << cli->getIsLogged() << " " << cli->getNick() << " " << cli->getUser() << " " << std::endl;
 					}
 					else if (cli->getNick().empty() && cli->getIsLogged() == true && irc_client == 0)
 					{
