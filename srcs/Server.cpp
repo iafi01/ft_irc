@@ -438,7 +438,7 @@ bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 	}
 	if (irc_client == 0)
 	{
-		//std::cout << pass << " " << splitted[0] << pass.length() << " " << splitted[0].length() << " " << (int)splitted[0][4] << std::endl;
+		std::cout << pass << " " << splitted[0] << pass.length() << " " << splitted[0].length() << " " << (int)splitted[0][4] << std::endl;
 		char c = 10; //LF
 		if (this->pass + c != splitted[0])
 		{
@@ -1163,12 +1163,12 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 				send(client->getFd(), msg.c_str(), msg.length(), 0);
 				msg.clear();
 			}
-			else
+			/*else
 			{
 				msg += ": 331 " + client->getNick() + channel_name + " :No topic is set" + "\n";
 				send(client->getFd(), msg.c_str(), msg.length(), 0);
 				msg.clear();
-			}
+			}*/
 			std::vector<Client *>vec = channel->getClients();
 			msg += ":" + client->getNick() + "!" + client->getUser() + " JOIN :" + channel_name + "\n";
 			for(std::vector<Client *>::iterator k = vec.begin(); k != vec.end(); k++)
