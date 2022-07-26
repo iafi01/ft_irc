@@ -438,19 +438,21 @@ bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 	}
 	if (irc_client == 0)
 	{
+		//std::cout << pass << " " << splitted[0] << pass.length() << " " << splitted[0].length() << " " << (int)splitted[0][4] << std::endl;
+		char c = 10; //LF
+		if (this->pass + c != splitted[0])
+		{
+			msg.append(printTime() + ": 464 Error: Password incorrect\n" + printTime() + "Please insert the password: ");
+			send(new_client->getFd(), msg.c_str(), msg.length(), 0);
+			return (-1);
+		}
 		splitted = ft_split(strings, "\n");
 		splitted.resize(1);
 		msg.append(printTime() + "Now insert your nickname: ");
 		send(new_client->getFd(), msg.c_str(), msg.length(), 0);
 		new_client->setIsLogged(true);
 		return 1;
-	}
-	if (this->pass != splitted[0])
-	{
-		msg.append(printTime() + ": 464 Error: Password incorrect\n" + printTime() + "Please insert the password: ");
-		send(new_client->getFd(), msg.c_str(), msg.length(), 0);
-		return (-1);
-	}
+	}	
 	sendWelcome(new_client);
 	msg.clear();
 	return (1);
