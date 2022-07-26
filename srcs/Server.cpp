@@ -249,7 +249,7 @@ void Server::ban_cmd(Client *admin, std::string channel_name, std::vector<Client
 
 	if (!channel->isOp(admin))
 	{
-		msg += printTime() + channel_name + ": You are not channel operator\n";
+		msg += printTime() + channel_name + ": 482 You are not channel operator\n";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
@@ -769,7 +769,7 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	else
 	{
 		aStr.clear();
-		aStr += printTime() + splitted[0] + " is an unkown server command\n";
+		aStr += ": 421 " printTime() + splitted[0] + "is an unkown server command\n";
 		send(client->getFd(), aStr.c_str(), aStr.length(), 0);
 	}
 	return (false);
@@ -870,7 +870,7 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 	{
 		if(getChannel(receiver) == NULL)
 		{
-			msg += printTime() + receiver + ": no such nick/channel\n";
+			msg += printTime() + receiver + ": 401 no such nick/channel\n";
 			send(sender->getFd(), msg.c_str(), msg.length(), 0);
 			return ;
 		}
@@ -879,7 +879,7 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 		//std::cout << channel->getName() << std::endl;
 		if (channel->isBanned(sender))
 		{
-			msg += sender->getUser() + ": you are banned from the channel\n";
+			msg += sender->getUser() + ": 474 you are banned from the channel\n";
 			send(sender->getFd(), msg.c_str(), msg.length(), 0);
 			return ;
 		}
@@ -893,13 +893,13 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 			msg += printTime() + channel->getName() +  " <" + sender->getNick() + ">: ";
 		else if(!channel->isVoiceOp(sender) && channel->isClient(sender))
 		{
-			std::string err = printTime() + "You can not write on this channel\n";
+			std::string err = printTime() + ": 481 You can not write on this channel\n";
 			send(sender->getFd(), err.c_str(), err.length(), 0);
 			return;
 		}	
 		else
 		{
-			std::string err = printTime() + "You are not on this channel\n";
+			std::string err = printTime() + ": 442 You are not on this channel\n";
 			send(sender->getFd(), err.c_str(), err.length(), 0);
 			return;
 		}
@@ -938,7 +938,7 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 			msg += "\n";
 			send(sender->getFd(), msg.c_str(), msg.length(), 0);
 			msg.clear();
-			msg += printTime() + receiver + ": no such nick/channel\n";
+			msg += printTime() + receiver + ": 401 no such nick/channel\n";
 			send(sender->getFd(), msg.c_str(), msg.length(), 0);
 			return ;
 		}
@@ -985,7 +985,7 @@ void Server::invite_cmd(std::vector<Client *> invited, std::string channel_name,
 			break;
 		if(iter == channel_map.end())
 		{
-			msg += printTime() + "401 " + sender->getNick() + " " + invited[0]->getNick() + ": No such name/channel";
+			msg += ": 401 " printTime() + sender->getNick() + " " + invited[0]->getNick() + ": No such name/channel";
 			send(sender->getFd(), msg.c_str(), msg.size(), 0);
 			return ;
 		}
@@ -1002,7 +1002,7 @@ void Server::invite_cmd(std::vector<Client *> invited, std::string channel_name,
 			it++;
 			if (it == client_map.end())
 			{
-				msg += printTime() + "401 " + sender->getNick() + " " + invited[0]->getNick() + ": No such name/channel";
+				msg += ": 401 " printTime() + sender->getNick() + " " + invited[0]->getNick() + ": No such name/channel";
 				send(sender->getFd(), msg.c_str(), msg.size(), 0);
 				return ;
 			}
@@ -1026,7 +1026,7 @@ void Server::topic_cmd(std::string channel_name, std::vector<std::string> splitt
 	channel = this->getChannel(channel_name);
 	if (!channel)
 	{
-		std::string err = printTime() + "No channel name found\n";
+		std::string err = ": 403 " + printTime() + "No channel name found\n";
 		send(sender->getFd(), err.c_str(), err.length(), 0);
 		return ;
 	}
@@ -1034,15 +1034,18 @@ void Server::topic_cmd(std::string channel_name, std::vector<std::string> splitt
 	{
 		if (!channel->getTopic().empty())
 		{
-			msg = printTime() + "Channel topic is: ";
+			msg = ": 332 " + printTime() + "Channel topic is: ";
 			msg.append(channel->getTopic());
 			msg.append("\n");
 			send(sender->getFd(), msg.c_str(), msg.length(), 0);
 		}
 		else
 		{
-			msg = printTime() + "No channel topic is set\n";
-			send(sender->getFd(), msg.c_str(), msg.length(), 0);
+			msg = ": 332 " + client->getNick() + " " + chan->getName() + " :" + chan->getTopic() + "\n";
+			send(sender->getSd(), msg.c_str(), msg.length(), 0);
+			msg.clear();
+			msg = ": 333 " + client->getNick() + " " + chan->getName() + " " + chan->getTopicChanger() + " " + std::to_string(chan->getTopicTime()) + "\n";
+			send(sender->getSd(), msg.c_str(), msg.length(), 0);
 		}
 	}
 	else
@@ -1053,7 +1056,7 @@ void Server::topic_cmd(std::string channel_name, std::vector<std::string> splitt
 			msg = printTime();
 			if (!channel->isOp(sender))
 			{
-				msg += "You are not Op\n";
+				msg += ": 482 You are not Op\n";
 				send(sender->getFd(), msg.c_str(), msg.length(), 0);
 				return ;
 			}
@@ -1285,7 +1288,7 @@ void Server::who_cmd(std::string filter, Client *client)
 		channel = getChannel(filter);
 		if (channel == NULL) //se il channel non esiste
 		{
-			msg += printTime() + "Error: Channel does not exist\n";
+			msg += ": 403 " + printTime() + "Error: Channel does not exist\n";
 			send(client->getFd(), msg.c_str(), msg.length(), 0);
 			return ;
 		}
