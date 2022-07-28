@@ -625,6 +625,7 @@ Server::Server(const int port, const std::string pass) : server_name("localhost"
 {
 	this->port = port;
 	this->pass = pass;
+	this->server_name = "0.0.0.0";
     setup_server(port, pass);
     start_server();
 }
@@ -759,12 +760,16 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 		join_cmd(client, splitted[1], splitted[2]);
 	else if(compStr(aStr, "WHO") || compStr(aStr, "/WHO"))
 		who_cmd(splitted[1], client);
-	else if(compStr(aStr, "PRIVMSG") || compStr(aStr, "/PRIVMSG"))
+	else if(compStr(aStr, "PRIVMSG") || compStr(aStr, "/PRIVMSG") || compStr(aStr, "/NOTICE") || compStr(aStr, "NOTICE"))
 		privmsg_cmd(client, splitted[1], splitted);
 	else if(compStr(aStr, "MODE") || compStr(aStr, "/MODE"))
 		mode_cmd(client, splitted);
 	else if(compStr(aStr, "PART") || compStr(aStr, "/PART"))
 		part_cmd(client, splitted);
+	else if(compStr(aStr, "PING") || compStr(aStr, "/PING"))
+		ping_cmd(client, splitted);
+	else if(compStr(aStr, "PONG") || compStr(aStr, "/PONG"))
+		ping_cmd();
 	else
 	{
 		aStr.clear();
@@ -1171,9 +1176,20 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 		msg.append(":127.0.0.1 353 " + client->getNick() + " = " + channel_name + " :@" + client->getNick() + "\n");
 		send(client->getFd(), msg.c_str(), msg.length(), 0);
 		msg.clear();
-		msg.append(":127.0.0.1 366 " + client->getNick() + " " + channel_name + " :End of /NAMES list.\n331\n");
+		msg.append(": 331 " + client->getNick() + name[0] + " :No topic is set\n");
+		send(client->getFd(), msg.c_str(), msg.length(), 0);
+		msg.clear();
+		msg.append(": 353 " + client->getNick() + " = " + name[0] + " :" + client->getNick() + "\n");
+		send(client->getFd(), msg.c_str(), msg.length(), 0);
+		msg.clear();
+		msg.append(":127.0.0.1 366 " + client->getNick() + " " + channel_name + " :End of NAMES list.\n");
 		send(client->getFd(), msg.c_str(), msg.length(), 0);
 		channel_map.insert(std::make_pair(name[0], new_channel));
+		Channel *channelToSearch = getChannel(name[0]);
+		std::vector<Client *> clis = channelToSearch->getClients();
+		std::vector<Client *>::iterator it = clis.begin();
+		for(; it != clis.end(); it++)
+			std::cout << (*it)->getNick() << std::endl;
 	}
 	else
 	{
@@ -1227,6 +1243,12 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 		}
 		msg += ": 366 " + client->getNick() + channel_name + " :End of NAMES list\n";
 		send(client->getFd(), msg.c_str(), msg.length(), 0);
+		std::cout << "Entro nell' else" << std::endl;
+		Channel *channelToSearch = getChannel(name[0]);
+		std::vector<Client *> clis = channelToSearch->getClients();
+		std::vector<Client *>::iterator it = clis.begin();
+		for(; it != clis.end(); it++)
+			std::cout << (*it)->getNick() << std::endl;
 	}
 }
 
@@ -1327,6 +1349,17 @@ void Server::who_cmd(std::string filter, Client *client)
 			}
 		}
 	}
+}
+
+void Server::ping_cmd(Client *client, std::vector<std::string > splitted)
+{
+	std::string msg += "PONG " + server_name + " :" + splitted[0];
+	send(client->getFd(), msg.c_str(), msg.length(), 0);
+}
+
+void Server::pong_cmd()
+{
+	continue;
 }
 
 //clients and channels management by server
