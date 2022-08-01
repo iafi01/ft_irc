@@ -397,7 +397,6 @@ bool Channel::isBanned(const Client* client)
     for (int i = 0; i < (int)banned_vec.size(); i++)
 	{
         //queste stringhe contengono toxic characters
-        //std::cout << this->banned_vec[i].nick << this->banned_vec[i].user << this->banned_vec[i].reason << " == " << client->getUser() << std::endl;
 		if (this->banned_vec[i].user == client->getUser())
 			return (true);
 	}
@@ -458,12 +457,12 @@ void Channel::connect(Client* client, std::string psw = "")
     }
     if (pass != psw)
     {
-        if (pass != psw + "")
-        {
+        // if (pass != psw + "")
+        // {
             err = "pass of the channel incorrect\n";
             send(client->getFd(), err.c_str(), err.length(), 0);
             return ;
-        }
+        // }
     }
     if (nClient + 1 > userLimit)
     {
@@ -508,7 +507,6 @@ void Channel::disconnect(Client* client)
     if (std::find(clients.begin(), clients.end(), client) != clients.end())
         clients.erase(std::find(clients.begin(), clients.end(), client));
     this->decrementClient();
-    //std::cout << this->nClient << std::endl;
     //non sei piu client di questo channel
     //tolgo i permessi da admin se abbandoni
     if (std::find(op_vec.begin(), op_vec.end(), client) != op_vec.end())
