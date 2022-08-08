@@ -346,68 +346,65 @@ void Server::sendWelcome(Client *client)
     send(client->getFd(), msgWelcome.c_str(), msgWelcome.length(), 0);
 }
 
-bool Server::check_nick(Client *new_client, char *buffer, int valread)
+bool Server::check_nick(Client *new_client, const char *buffer, int valread)
 {
 	std::vector<std::string> splitted;
 	std::string	strings(buffer, (size_t)valread);
 	std::string msg;
+	int i = 1;
 
 	splitted = ft_split(strings, "\n"); //CRLF fine cmd
 	splitted.resize(1);
 	new_client->setNick(splitted[0]);
-	std::map<int, Client *>::iterator iter = client_map.begin();
-	std::map<int, Client *>::iterator clientPos = client_map.begin();
-	for (; clientPos != client_map.end(); clientPos++)
-		if(clientPos->first == new_client->getFd())
-			break;	
-	for( ; iter != client_map.end(); iter++)
+	size_t pipe = splitted[0].find("|", 0);
+	if (pipe != std::string::npos) // se troviamo giá una pipe nei due nomi uguali
 	{
-		if (std::distance(client_map.begin(), iter) < std::distance(client_map.begin(), clientPos))
+		splitted[0].resize(pipe);
+		new_client->setNick(splitted[0]);
+	}
+	for(std::map<int, Client*>::iterator it = client_map.begin(); it != client_map.end(); ++it)
+	{
+		if(!it->second->getNick().compare(new_client->getNick()) && new_client->getFd() != it->first)
 		{
-			if(iter->second->getNick() == clientPos->second->getNick())
-				clientPos->second->setNick(clientPos->second->getNick() + "|2");
-		}
-		else if(std::distance(client_map.begin(), iter) > std::distance(client_map.begin(), clientPos))
-		{
-			if(iter->second->getNick() == clientPos->second->getNick())
-				iter->second->setNick(iter->second->getNick() + "|2");
+			new_client->setNick(splitted[0] + "|" + std::to_string(i));
+			i++;
 		}
 	}
-	msg.append("Now insert your username: ");
-	send(new_client->getFd(), msg.c_str(), msg.length(), 0);
+	if(this->irc_client == 0)
+	{
+		msg.append("Now insert your username: ");
+		send(new_client->getFd(), msg.c_str(), msg.length(), 0);
+	}
 	return (true);
 }
 
-bool Server::check_user(Client *new_client, char *buffer, int valread)
+bool Server::check_user(Client *new_client, const char *buffer, int valread)
 {
 	std::vector<std::string> splitted;
 	std::string	strings(buffer, (size_t)valread);
 	std::string msg;
+	int i = 1;;
 
 	splitted = ft_split(strings, "\n"); //CRLF fine cmd
 	splitted.resize(1);
 	new_client->setUser(splitted[0]);
-	std::map<int, Client *>::iterator iter = client_map.begin();
-	std::map<int, Client *>::iterator clientPos = client_map.begin();
-	for (; clientPos != client_map.end(); clientPos++)
-		if(clientPos->first == new_client->getFd())
-			break;	
-	for( ; iter != client_map.end(); iter++)
+	size_t pipe = splitted[0].find("|", 0);
+	if (pipe != std::string::npos) // se troviamo giá una pipe nei due nomi uguali
 	{
-		if (std::distance(client_map.begin(), iter) < std::distance(client_map.begin(), clientPos))
+		splitted[01].resize(pipe);
+		new_client->setUser(splitted[0]);
+	}
+	for(std::map<int, Client*>::iterator it = client_map.begin(); it != client_map.end(); ++it)
+	{
+		if(!it->second->getUser().compare(new_client->getUser()) && new_client->getFd() != it->first) //se troviamo due nomi uguali
 		{
-			if(iter->second->getUser() == clientPos->second->getUser())
-				clientPos->second->setUser(clientPos->second->getUser() + "|2");
-		}
-		else if(std::distance(client_map.begin(), iter) > std::distance(client_map.begin(), clientPos))
-		{
-			if(iter->second->getUser() == clientPos->second->getUser())
-				iter->second->setUser(iter->second->getUser() + "|2");
+			new_client->setUser(splitted[0] + "|" + std::to_string(i));
+			i++;
 		}
 	}
-	msg.append(printTime());
-	send(new_client->getFd(), msg.c_str(), msg.length(), 0);
-	sendWelcome(new_client);
+	if(this->irc_client == 0)
+		sendWelcome(new_client);
+	this->irc_client = 0;
 	return (true);
 }
 
@@ -422,21 +419,23 @@ bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 	splitted.resize(1);
 	if (!splitted[0].compare(0, 6,"PASS :")) //irc_client
 	{
+		this->irc_client = 1;
 		//set pass
 		splitted[0] = splitted[0].substr(6, splitted[0].length() - 1);
+		if(splitted[0].compare(this->get_pass()) != 0)
+			return 0;
 		//set nick
 		splitted[1] = splitted[1].substr(5, splitted[1].length() - 1);
 		//set user
 		user = ft_split(splitted[2], " ");
 
-		new_client->setNick(splitted[1]);
-		new_client->setUser(user[1]);
-		this->irc_client = 1;
+		check_nick(new_client, splitted[1].c_str(), valread);
+		check_user(new_client, user[1].c_str(), valread);
 		new_client->setIsLogged(true);
-		//setted nick, user and control irc_client == 0 in check_user,check_nick
 	}
 	if (irc_client == 0)
 	{
+		
 		splitted = ft_split(strings, "\n");
 		splitted.resize(1);
 		if (this->pass != splitted[0])
@@ -449,7 +448,7 @@ bool	Server::check_pass(Client *new_client, char *buffer, int valread)
 		send(new_client->getFd(), msg.c_str(), msg.length(), 0);
 		new_client->setIsLogged(true);
 		return 1;
-	}	
+	}
 	sendWelcome(new_client);
 	msg.clear();
 	return (1);
@@ -551,7 +550,7 @@ void Server::start_server()
                 }
                 else if (buffer[0] == 0 || buffer[0] == 3 || buffer[0] == '\n')
                 {
-                    std::string err = printTime () + "Error: inserted\n";
+                    std::string err = "Error: inserted\n";
                     if (parameters == 0)
                         err += "Please insert a valid password: ";
                     else if (parameters > 0)
@@ -591,8 +590,6 @@ void Server::start_server()
                             i = clients.begin();
                             continue ;
                         }
-                        std::string msg = printTime();
-                        send(cli->getFd(), msg.c_str(), msg.length(), 0);
                     }
                 }
             }
@@ -788,7 +785,7 @@ void Server::notQuitCmd(int fd, int i)
 	
 	getsockname(fd , (struct sockaddr*)&serveraddr , (socklen_t*)&addrlen);
 	std::cout << "The disconnected host was named " << clients[i]->getUser() << std::endl;
-	msg.append(printTime() + ":" + clientToErase->getNick() + "!" + clientToErase->getUser() + ": QUIT " + "\n");
+	msg.append(":" + clientToErase->getNick() + "!" + clientToErase->getUser() + ": QUIT " + "\n");
 	if (!channel_map.empty())
 	{
 		for(std::map<std::string, Channel*>::iterator it = channel_map.begin(); it != channel_map.end(); it++)
@@ -1057,7 +1054,6 @@ void Server::topic_cmd(std::string channel_name, std::vector<std::string> splitt
 		//controllo se sender é admin
 		if (channel->setTopic(topic))
 		{
-			msg = printTime();
 			if (!channel->isOp(sender))
 			{
 				msg += ": 482 You are not Op\n";
@@ -1107,7 +1103,6 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, Client 
 	//sas
 	if (reason != "")
 	{
-		std::cout << printTime();
 		msg = client_name;
 		msg.append(" was kicked from ");
 		msg.append(channel_name);
@@ -1119,7 +1114,6 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, Client 
 	}
 	else
 	{
-		std::cout << printTime();
 		msg = client_name;
 		msg.append(" was kicked from ");
 		msg.append(channel_name);

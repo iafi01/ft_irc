@@ -21,18 +21,6 @@
 #define ERR_ARG "Wrong number of arguments\n"
 #define ERR_FAT "Fatal error\n"
 
-/*
-Per testare il programma scriviamo sul terminale, dopo aver avviato il server,:
->nc 0.0.0.0 8080
-
-***NAHHH - Scrivere messaggio di benvenuto contenete le informazioni riguardo i comandi disponibili***
-aggiustare il quit
-privmsg fa scrivere ai bannati
-
-//facoltativo spostare buona parte dei commands di channel in server per unificarli
-//facoltativo aggiungeree piú files cpp per ogni classe: example (comandi, getters, setters ecc)
-*/
-
 class Client;
 
 class Server
@@ -97,8 +85,8 @@ class Server
         void sendWelcome(Client *client);
 
         //void forceQuit(int fd);
-        bool check_nick(Client *new_client, char *buffer, int valread);
-        bool check_user(Client *new_client, char *buffer, int valread);
+        bool check_nick(Client *new_client, const char *buffer, int valread);
+        bool check_user(Client *new_client, const char *buffer, int valread);
         bool check_pass(Client *new_client, char *buffer, int valread);
 
 
