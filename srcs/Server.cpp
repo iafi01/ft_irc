@@ -667,18 +667,13 @@ Server& Server::operator=(const Server &obj)
 	// clients.push_back(newClient);
 }*/
 
-void Server::send_all(std::string mex, Client sender)		/**** Da rivedere ****/
+void Server::send_all(std::string mex, Client *sender, std::vector<Client *> vec)		/**** Da rivedere ****/
 {
-	int i = 0;
-	while(clients[i])
-	{
-		if(clients[i] != &sender && FD_ISSET(clients[i]->getFd(), &write_fds))
-		{
-			if(send(clients[i]->getFd(), mex.c_str(), mex.length(), 0) < 0)
+	std::vector<Client *>::iterator i = vec.begin();
+	for( ; i != vec.end(); i++)
+		if((*i)->getFd() !=  sender->getFd())
+			if(send((*i)->getFd(), mex.c_str(), mex.length(), 0) < 0)
 				fatal("Error: send error on send_all funtion");
-		}
-		i++;
-	}
 }
 
 //setters
@@ -757,7 +752,7 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 	else if(compStr(aStr, "JOIN") || compStr(aStr, "/JOIN"))
 	{
 		int i = 0;
-		for(int j = 0; buf[j] != NULL; j++)
+		for(int j = 0; buf[j]; j++)
 			if(buf[j] == ' ')
 				i++;
 		if(i == 1)
@@ -845,11 +840,10 @@ bool Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da
 	{
 		for(std::map<std::string, Channel*>::iterator it = channel_map.begin(); it != channel_map.end(); it++)
 		{
-			if(client != NULL)
+			if(it->second->isClient(client))
 			{
-				
-				for (std::vector<Client *>::iterator c = (*it).second->getClients().begin(); c != (*it).second->getClients().end(); c++)
-					send((*c)->getFd(), msg.c_str(), msg.length(), 0);
+				std::vector<Client *> vec = it->second->getClients();
+				send_all(msg, client, vec);
 				(*it).second->disconnect(client);
 			}
 		}
@@ -857,18 +851,9 @@ bool Server::quit_cmd(Client *client, std::vector<std::string> words)	/*****  Da
 	msg.clear();
 	msg.append("ERROR: :Closing Link: " + client->getNick() + " (Quit: " + client->getUser() + ")\n");
 	send(fd, msg.c_str(), msg.length(), 0);
-	client[id].setIsLogged(false);
+	client_map.find(fd)->second->setIsLogged(false);
 	client_map.erase(fd);
 	close(fd);
-	int k = 0;
-	for (std::vector<Client *>::iterator j = clients.begin(); j != clients.end(); j++)
-	{
-		if (k++ == id)
-		{
-			clients.erase(j);
-			return (true);
-		}
-	}
 	return (false);
 }
 
@@ -1164,7 +1149,7 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 	std::string msg;
 	if (channel_name[0] != '#')
 	{
-		err = "403 "  + client->getNick() + " " + channel_name + " :No such channel" + "\n";
+		err = "403 " + client->getNick() + " " + channel_name + " :No such channel" + "\n";
 		send(client->getFd(), err.c_str(), err.length(), 0);
 		return ;
 	}
@@ -1177,16 +1162,10 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 		msg.append(":" + client->getNick() + "!" + client->getUser() + "@127.0.0.1 JOIN " + channel_name + "\n");
 		send(client->getFd(), msg.c_str(), msg.length(), 0);
 		msg.clear();
-		msg.append(":127.0.0.1 353 " + client->getNick() + " = " + channel_name + " :@" + client->getNick() + "\n");
+		msg.append(":127.0.0.1 353 " + client->getNick() + " = " + name[0] + " :" + client->getNick() + "\n");
 		send(client->getFd(), msg.c_str(), msg.length(), 0);
 		msg.clear();
-		msg.append(": 331 " + client->getNick() + name[0] + " :No topic is set\n");
-		send(client->getFd(), msg.c_str(), msg.length(), 0);
-		msg.clear();
-		msg.append(": 353 " + client->getNick() + " = " + name[0] + " :" + client->getNick() + "\n");
-		send(client->getFd(), msg.c_str(), msg.length(), 0);
-		msg.clear();
-		msg.append(":127.0.0.1 366 " + client->getNick() + " " + channel_name + " :End of NAMES list.\n");
+		msg.append(":127.0.0.1 366 " + client->getNick() + " " + name[0] + " :End of NAMES list.\n331\n");
 		send(client->getFd(), msg.c_str(), msg.length(), 0);
 		channel_map.insert(std::make_pair(name[0], new_channel));
 	}
@@ -1196,36 +1175,32 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 		Channel *channel = getChannel(name[0]);
 		if (channel->isClient(client))
 			return ;
-		msg += ":" + client->getNick() + "!" + client->getUser() + "@127.0.0.1 JOIN " + channel_name + "\n";
+		msg += ":" + client->getNick() + "!" + client->getUser() + "@127.0.0.1 JOIN " + name[0] + "\n";
 		send(client->getFd(), msg.c_str(), msg.length(), 0);
 		msg.clear();
 		channel->connect(client, psw);
 		addChannel(channel);
 		if(!channel->getTopic().empty())
 		{
-			msg += ": 332 " + client->getNick() + " " + channel_name + " :" + channel->getTopic() + "\n";
+			msg += ": 332 " + client->getNick() + " " + name[0] + " :" + channel->getTopic() + "\n";
 			send(client->getFd(), msg.c_str(), msg.length(), 0);
 			msg.clear();
 		}
 		else
 		{
-			msg += ": 331 " + client->getNick() + channel_name + " :No topic is set" + "\n";
+			msg += ": 331 " + client->getNick() + name[0] + " :No topic is set" + "\n";
 			send(client->getFd(), msg.c_str(), msg.length(), 0);
 			msg.clear();
 		}
-		std::vector<Client *>vec = channel->getClients();
-		msg += ":" + client->getNick() + "!" + client->getUser() + " JOIN :" + channel_name + "\n";
-		for(std::vector<Client *>::iterator k = vec.begin(); k != vec.end(); k++)
-		{
-			if((*k)->getFd() != client->getFd())	
-				send((*k)->getFd(), msg.c_str(), msg.length(), 0);
-		}
+		std::vector<Client *> vec = channel->getClients();
+		msg += ":" + client->getNick() + "!~" + client->getUser() + " JOIN :" + name[0] + "\n";
+		send_all(msg, client, vec);
 		msg.clear();
 		for(std::vector<Client *>::iterator k = vec.begin(); k != vec.end(); k++)
 		{
 			if(channel->isOp(*k))
 			{
-				msg += ":127.0.0.1 353 " + (*k)->getNick() + " = " + channel_name + " :@" + (*k)->getNick() + "\n";
+				msg += ":127.0.0.1 353 " + (*k)->getNick() + " = " + name[0] + " :@" + (*k)->getNick() + "\n";
 				send(client->getFd(), msg.c_str(), msg.length(), 0);
 				msg.clear();
 			}
@@ -1234,12 +1209,12 @@ void Server::join_cmd(Client *client, std::string channel_name, std::string psw 
 		{
 			if(!channel->isOp(*k))
 			{
-				msg += ":127.0.0.1 353 " + (*k)->getNick() + " = " + channel_name + " :@" + (*k)->getNick() + "\n";
+				msg += ":127.0.0.1 353 " + (*k)->getNick() + " = " + name[0] + " :" + (*k)->getNick() + "\n";
 				send(client->getFd(), msg.c_str(), msg.length(), 0);
 				msg.clear();
 			}
 		}
-		msg += ": 366 " + client->getNick() + channel_name + " :End of NAMES list\n";
+		msg += ":127.0.0.1 366 " + client->getNick() + name[0] + " :End of NAMES list\n331\n";
 		send(client->getFd(), msg.c_str(), msg.length(), 0);
 	}
 }
@@ -1271,29 +1246,22 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 			{
 				if (!channel->isClient(client))
 				{
-					msg.append(+ ": 403 " + client->getNick() + " " + names[i] + " :No such channel\n");
+					msg.append(+ " :442 " + client->getNick() + " " + channel->getName() + " :You're not on that channel\n");
 					send(client->getFd(), msg.c_str(), msg.length(), 0);
 				}
 				else
 				{
-					if (!channel->isClient(client))
+					msg.append(+ ":" + client->getNick() + "!~" + client->getUser() + " PART " + channel->getName() + "\n");
+					std::vector<Client *> vec = channel->getClients();
+					send_all(msg, client, vec);
+					send(client->getFd(), msg.c_str(), msg.length(), 0);
+					channel->removeClient(client);
+					channel->decrementClient();
+					if (channel->getClients().empty()) //se esce l'ultimo utente il canale viene eliminato
 					{
-						msg.append(+ " :442 " + client->getNick() + " " + channel->getName() + " :You're not on that channel\n");
-						send(client->getFd(), msg.c_str(), msg.length(), 0);
-					}
-					else
-					{
-						msg.append(+ ":" + client->getNick() + "!~" + client->getUser() + " PART " + channel->getName() + "\n");
-						send_all(msg, *client);
-						send(client->getFd(), msg.c_str(), msg.length(), 0);
-						channel->removeClient(client);
-						channel->decrementClient();
-						if (channel->getClients().empty()) //se esce l'ultimo utente il canale viene eliminato
-						{
-							std::map<std::string, Channel*>::iterator i;
-							i = channel_map.find(channel->getName());
-							channel_map.erase(i);
-						}
+						std::map<std::string, Channel*>::iterator i;
+						i = channel_map.find(channel->getName());
+						channel_map.erase(i);
 					}
 				}
 			}
@@ -1346,9 +1314,14 @@ void Server::who_cmd(std::string filter, Client *client)
 void Server::ping_cmd(Client *client, std::vector<std::string > splitted)
 {
 	std::string msg;
-	msg += "PONG " + server_name + " :" + splitted[0];
+	
+	if (splitted.size() < 2)
+		msg.append("409 " + client->getNick() + " :No origin specified" + "\n");
+	else if (splitted.size() == 2)
+		msg.append("PONG " + splitted[1] + "\n");
+	else
+		msg.append("PONG " + splitted[2] + " " + splitted[1] + "\n");
 	send(client->getFd(), msg.c_str(), msg.length(), 0);
-	msg.clear();
 }
 
 void Server::pong_cmd()

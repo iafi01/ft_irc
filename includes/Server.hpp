@@ -69,7 +69,7 @@ class Server
 /**/    Server& operator=(const Server &obj);
 
         void accept_client();
-        void send_all(std::string mex, Client sender); //Sends a message to every connected clients
+        void send_all(std::string mex, Client *sender, std::vector<Client *> vec); //Sends a message to every connected clients
         void clientRegister(Client *client);
         void eraseClient(int fd);
 
