@@ -18,6 +18,7 @@ Channel::Channel(std::string name, int userLimit, int is_only_invite, std::strin
     this->nClient = 0;
     this->setPass(psw);
     this->setTopic(topic);
+    this->timeCreation = retTime();
 }
 
 bool Channel::setPass(std::string psw)
@@ -30,6 +31,18 @@ bool Channel::setPass(std::string psw)
         std::cerr << e.what();
         return (false);
     }
+}
+
+int	Channel::retTime() 
+{
+    struct timeval time; 
+    gettimeofday(&time, NULL); 
+    return(time.tv_sec);
+}
+
+int Channel::getTime()
+{
+    return timeCreation;
 }
 
 void Channel::addClient(Client *toAdd)

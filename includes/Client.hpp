@@ -19,7 +19,7 @@ class Client
         int fd;
         int id;
         int is_msg;      //Variabile che indica se lo user ha appena inviato un messaggio
-        int is_irc;
+        bool is_irc;
     public:
         Client();
         ~Client();
@@ -34,6 +34,7 @@ class Client
         std::string getNick() const;
         std::string getUser() const;
         std::string getHost() const;
+        bool        getIrc();
 
         //setters
         void setNick(std::string str);
@@ -42,4 +43,5 @@ class Client
         void setFd(int fd);
         void setId(int id);
         void setIsLogged(bool log);
+        void setIrc(bool val);
 };

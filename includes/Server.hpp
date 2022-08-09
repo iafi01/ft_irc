@@ -38,7 +38,7 @@ class Server
         fd_set curr_fds, read_fds, write_fds;
         char server_buffer[64];
         std::map<int, Client*> client_map;
-        std::map<std::string, Channel*> channel_map;
+        std::map<std::string, Channel *> channel_map;
         time_t now; //settare = time(0)
         std::string time_string; //ctime(&now) (localdate not UTC)
         std::vector<Client*> clients;
@@ -109,6 +109,7 @@ class Server
         void dehalf_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeHalfOp);
         void ban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToBan, std::string reason);
         void unban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnBan);
+        void show_ban(Client *admin, std::string channel_name);
         void voice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToVoice);
         void unvoice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnVoice);
         void who_cmd(std::string filter, Client *client);   //The filter is the name of the channel that contains the list of users that you want to visualize [channel or a client] (# or ' ')

@@ -3,10 +3,13 @@
 Client::Client()
 {
     isLogged = false;
+    is_irc = false;
 }
 
 Client::Client(int fd): fd(fd)
 {
+    isLogged = false;
+    is_irc = false;
 }
 
 Client::Client(const Client &obj)
@@ -56,6 +59,16 @@ std::string Client::getUser() const
 std::string Client::getHost() const
 {
     return (this->hostname);
+}
+
+bool Client::getIrc()
+{
+    return is_irc;
+}
+
+void Client::setIrc(bool val)
+{
+    is_irc = val;
 }
 
 void Client::setNick(std::string str)

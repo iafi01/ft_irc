@@ -7,8 +7,10 @@
 #include <ctime>
 #include <exception>
 #include <algorithm>
+#include <sys/time.h>
 
 #include "Client.hpp"
+//#include "Server.hpp"
 
 class Channel {
     private:
@@ -47,6 +49,7 @@ class Channel {
         int userLimit;
         int nClient;
         int is_only_invite;
+        int timeCreation;
 
     public:
         
@@ -70,6 +73,8 @@ class Channel {
         std::string getName() const;
         std::string getTopic() const;
         bool setTopic(std::string topic);
+        int retTime();
+        int	getTime();
 
         std::vector<Client*> getClients() const;
         std::vector<Client*> getOp() const;
