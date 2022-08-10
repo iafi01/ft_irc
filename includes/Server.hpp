@@ -115,6 +115,7 @@ class Server
         void who_cmd(std::string filter, Client *client);   //The filter is the name of the channel that contains the list of users that you want to visualize [channel or a client] (# or ' ')
         void privmsg_cmd(Client *admin, std::string target, std::vector<std::string> text); //The target could be a channel or a client (# or ' ')
         void part_cmd(Client *client, std::vector<std::string > splitted); //Leaves a channel/s
+        void list_cmd(Client *client);
         void ping_cmd(Client *client, std::vector<std::string > splitted);
         void pong_cmd();
 

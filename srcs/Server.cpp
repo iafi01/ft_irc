@@ -851,6 +851,8 @@ bool Server::parse_commands(Client *client, char *buf, int valrecv)
 		ping_cmd(client, splitted);
 	else if(compStr(aStr, "PONG") || compStr(aStr, "/PONG"))
 		pong_cmd();
+	else if(compStr(aStr, "LIST") || compStr(aStr, "/LIST"))
+		list_cmd(client);
 	else
 	{
 		aStr.clear();
@@ -970,34 +972,58 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 		}
 		std::vector<Client *>::iterator iter;
 		
-		if(channel->isOp(sender))
-			msg += channel->getName() + " <@" + sender->getNick() + ">: ";
-		else if(channel->isHalfOp(sender) && channel->isVoiceOp(sender))
-			msg += channel->getName() +  " <%" + sender->getNick() + ">: ";
-		else if (channel->isClient(sender) && channel->isVoiceOp(sender))
-			msg += channel->getName() +  " <" + sender->getNick() + ">: ";
-		else if(!channel->isVoiceOp(sender) && channel->isClient(sender))
+		if(sender->getIrc() == false)
 		{
-			std::string err = ": 481 You can not write on this channel\n";
-			send(sender->getFd(), err.c_str(), err.length(), 0);
-			return;
-		}	
+			if(channel->isOp(sender))
+				msg += channel->getName() + " <@" + sender->getNick() + ">: ";
+			else if(channel->isHalfOp(sender) && channel->isVoiceOp(sender))
+				msg += channel->getName() +  " <%" + sender->getNick() + ">: ";
+			else if (channel->isClient(sender) && channel->isVoiceOp(sender))
+				msg += channel->getName() +  " <" + sender->getNick() + ">: ";
+			else if(!channel->isVoiceOp(sender) && channel->isClient(sender))
+			{
+				std::string err = ": 481 You can not write on this channel\n";
+				send(sender->getFd(), err.c_str(), err.length(), 0);
+				return;
+			}	
+			else
+			{
+				std::string err = ": 442 You are not on this channel\n";
+				send(sender->getFd(), err.c_str(), err.length(), 0);
+				return;
+			}
+			for(msgIt = mex.begin() + 2; msgIt != mex.end(); msgIt++)
+			{
+				msg += *msgIt;
+				if (msgIt != mex.end() - 1)
+					msg += " ";
+			}
+			msg += "\n";
+			send_all(msg, sender, clients);
+		}
 		else
 		{
-			std::string err = ": 442 You are not on this channel\n";
-			send(sender->getFd(), err.c_str(), err.length(), 0);
-			return;
+			if(channel->isClient(sender))
+			{
+				if(mex[2][0] == ':')
+					mex[2].erase(0, mex[2].find(':') + 1);
+				msg += ":" + sender->getNick() + "!~" + sender->getUser() + " PRIVMSG " + mexTo[0] + " :";
+				for(msgIt = mex.begin() + 2; msgIt != mex.end(); msgIt++)
+				{
+					msg += *msgIt;
+					if (msgIt != mex.end() - 1)
+						msg += " ";
+				}
+				msg += "\n";
+				send_all(msg, sender, clients);
+			}
+			else
+			{
+				std::string err = ": 442 You are not on this channel\n";
+				send(sender->getFd(), err.c_str(), err.length(), 0);
+				return;
+			}
 		}
-		if(mex[2][0] == ":")
-			mex.erase(0, mex.find(':') + 1);
-		for(msgIt = mex.begin() + 2; msgIt != mex.end(); msgIt++)
-		{
-			msg += *msgIt;
-			if (msgIt != mex.end() - 1)
-				msg += " ";
-		}
-		msg += "\n";
-		send_all(msg, sender, clients);
 	}
 	else //manda ad un utente 
 	{
@@ -1166,6 +1192,7 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, Client 
 		send(sender->getFd(), err.c_str(), err.length(), 0);
 		return ;
 	}
+	client_name.erase(client_name.length() - 1);
 	channel = this->getChannel(channel_name);
 	if (!channel->isOp(sender))
 	{
@@ -1185,7 +1212,7 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, Client 
 	//sas
 	if (reason != "")
 	{
-		msg = client_name;
+		msg = kicked->getNick();
 		msg.append(" was kicked from ");
 		msg.append(channel_name);
 		msg.append(" by ");
@@ -1196,7 +1223,7 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, Client 
 	}
 	else
 	{
-		msg = client_name;
+		msg = kicked->getNick();
 		msg.append(" was kicked from ");
 		msg.append(channel_name);
 		msg.append(" by ");
@@ -1209,7 +1236,7 @@ void Server::kick_cmd(std::string channel_name, std::string client_name, Client 
 	for (uint i = 0; i < clients.size(); i++)
 	{
 		msg.clear();
-		if (clients[i]->getNick() == client_name)
+		if (clients[i]->getNick() == kicked->getNick())
 		{
 			channel->kickCmd(clients[i], reason);
 			msg = "Please re-join the channel\n";
@@ -1308,7 +1335,7 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 		send(client->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
-	else if (splitted.size() == 2)
+	else if (splitted.size() >= 2)
 	{
 		for (uint i = 0; i < names.size(); i++)
 		{
@@ -1327,7 +1354,7 @@ void Server::part_cmd(Client *client, std::vector<std::string> splitted)
 				}
 				else
 				{
-					msg.append(+ ":" + client->getNick() + "!~" + client->getUser() + " PART " + channel->getName() + "\n");
+					msg.append(":" + client->getNick() + "!~" + client->getUser() + " PART " + channel->getName() + "\n");
 					std::vector<Client *> vec = channel->getClients();
 					send_all(msg, client, vec);
 					send(client->getFd(), msg.c_str(), msg.length(), 0);
@@ -1384,6 +1411,21 @@ void Server::who_cmd(std::string filter, Client *client)
 				break;
 			}
 		}
+	}
+}
+
+void Server::list_cmd(Client *client)
+{
+	std::string msg;
+
+	msg.append(": 321 " + client->getNick() + " Channel :Users  Name\n");
+	send(client->getFd(), msg.c_str(), msg.length(), 0);
+	msg.clear();
+	for(std::map<std::string, Channel *>::iterator it = channel_map.begin(); it != channel_map.end(); it++)
+	{	
+		msg.append(": 322 " + client->getNick() + " " + it->second->getName() + " " + std::to_string(it->second->getClients().size())  + " : " + it->second->getTopic() + "\n");
+		send(client->getFd(), msg.c_str(), msg.length(), 0);
+		msg.clear();
 	}
 }
 
