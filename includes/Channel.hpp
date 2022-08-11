@@ -37,19 +37,19 @@ class Channel {
             _ban,
             _unBan
         };
-        std::string name;
-        std::string topic;
-        std::string pass;
-        std::vector<Client*> clients;
-        std::vector<Client*> op_vec;
-        std::vector<Client*> half_op_vec;
-        std::vector<Client*> voice_op_vec;
-        std::vector<Client*> invited_vec;
-        std::vector<Banned> banned_vec;
-        int userLimit;
-        int nClient;
-        int is_only_invite;
-        int timeCreation;
+        std::string             name;
+        std::string             topic;
+        std::string             pass;
+        std::vector<Client*>    clients;
+        std::vector<Client*>    op_vec;
+        std::vector<Client*>    half_op_vec;
+        std::vector<Client*>    voice_op_vec;
+        std::vector<Client*>    invited_vec;
+        std::vector<Banned>     banned_vec;
+        int                     userLimit;
+        int                     nClient;
+        int                     is_only_invite;
+        int                     timeCreation;
 
     public:
         
@@ -72,25 +72,25 @@ class Channel {
         
         std::string getName() const;
         std::string getTopic() const;
-        bool setTopic(std::string topic);
-        int retTime();
-        int	getTime();
+        bool        setTopic(std::string topic);
+        int         retTime();
+        int	        getTime();
 
-        std::vector<Client*> getClients() const;
-        std::vector<Client*> getOp() const;
-        std::vector<Client*> halfOp() const;
-        std::vector<Client*> voiceOp() const;
-        std::vector<Banned> getBanned() const;
-        bool isClient(const Client* client);
-        bool isInvited(const Client* client);
-        bool isOp(const Client* client);
-        bool isHalfOp(const Client* client);
-        bool isVoiceOp(const Client* client);
-        bool isBanned(const Client* client);
-        bool invite(Client* client);
-        bool removeInvite(const Client* client);
-        void connect(Client* client, std::string psw);
-        void disconnect(Client* client);
+        std::vector<Client*>    getClients() const;
+        std::vector<Client*>    getOp() const;
+        std::vector<Client*>    halfOp() const;
+        std::vector<Client*>    voiceOp() const;
+        std::vector<Banned>     getBanned() const;
+        bool                    isClient(const Client* client);
+        bool                    isInvited(const Client* client);
+        bool                    isOp(const Client* client);
+        bool                    isHalfOp(const Client* client);
+        bool                    isVoiceOp(const Client* client);
+        bool                    isBanned(const Client* client);
+        bool                    invite(Client* client);
+        bool                    removeInvite(const Client* client);
+        void                    connect(Client* client, std::string psw);
+        void                    disconnect(Client* client);
 
         //Clients operations
         void addClient(Client *toAdd);

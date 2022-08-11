@@ -26,23 +26,22 @@ class Client;
 class Server
 {
     private:
-        std::string server_name;
-        struct sockaddr_in serveraddr;
-        int addrlen;
-        std::string pass;
-        int port;
-        int sockfd;
-        int max_id;
-        int max_fd;
-        int opt;
-        fd_set curr_fds, read_fds, write_fds;
-        char server_buffer[64];
-        std::map<int, Client*> client_map;
-        std::map<std::string, Channel *> channel_map;
-        time_t now; //settare = time(0)
-        std::string time_string; //ctime(&now) (localdate not UTC)
-        std::vector<Client*> clients;
-        int irc_client;
+        struct sockaddr_in                  serveraddr;
+        std::string                         server_name;
+        std::string                         pass;
+        time_t                              now;
+        std::string                         time_string;
+        int                                 addrlen;
+        int                                 port;
+        int                                 sockfd;
+        int                                 max_id;
+        int                                 max_fd;
+        int                                 opt;
+        char                                server_buffer[64];
+        fd_set                              curr_fds, read_fds, write_fds;
+        std::map<int, Client*>              client_map;
+        std::map<std::string, Channel *>    channel_map;
+        std::vector<Client*>                clients;
 
         //funzioni usate dal costruttore
         void setup_server(int port, std::string pass);
@@ -66,23 +65,25 @@ class Server
         void setPass(std::string new_pass);
 
         //getters
-        int get_port() const;
-        int get_sock() const;
-        int get_max_id() const;
-        std::string get_pass() const;
-        std::string getDate() const;
+        int                     get_port() const;
+        int                     get_sock() const;
+        int                     get_max_id() const;
+        std::string             get_pass() const;
+        std::string             getDate() const;
+        std::vector<Client *>   getIrcClients(Channel *channel);
+        std::vector<Client *>   getNotIrcClients(Channel *channel);
 
         //utils
-        int get_max_fd(int sockfd);
-        std::string toUpper(std::string toUp); //Convert a character from lower case to upper case
-        bool compStr(std::string buf, std::string str); //Compare two given strings
-        std::vector<Client *> clientConvert(std::vector<std::string> toConv); //Return a vector of clients, they are extrapolated from a splitted string (std::vector<std::string>)
-        std::string topicConvert(std::vector<std::string> toConv); //Return a string that contains the topic of a channel, same as clientConvert
-        std::vector<std::string> parseBanMask(std::string banMask);//function parse mode cmds banmask
-        std::vector<Channel *> channelConvert(std::vector<std::string> splitted);
-        bool compNames(std::string receiver, std::string nickname);
-        std::string printTime();
-        void sendWelcome(Client *client);
+        int                         get_max_fd(int sockfd);
+        std::string                 toUpper(std::string toUp); //Convert a character from lower case to upper case
+        bool                        compStr(std::string buf, std::string str); //Compare two given strings
+        std::vector<Client *>       clientConvert(std::vector<std::string> toConv); //Return a vector of clients, they are extrapolated from a splitted string (std::vector<std::string>)
+        std::string                 topicConvert(std::vector<std::string> toConv); //Return a string that contains the topic of a channel, same as clientConvert
+        std::vector<std::string>    parseBanMask(std::string banMask);//function parse mode cmds banmask
+        std::vector<Channel *>      channelConvert(std::vector<std::string> splitted);
+        bool                        compNames(std::string receiver, std::string nickname);
+        std::string                 printTime();
+        void                        sendWelcome(Client *client);
 
         //void forceQuit(int fd);
         bool check_nick(Client *new_client, const char *buffer, int valread);
@@ -119,11 +120,11 @@ class Server
         void ping_cmd(Client *client, std::vector<std::string > splitted);
         void pong_cmd();
 
-        void notQuitCmd(int sd, int i); //sotto_cmd riferito al quit
         //clients and channels management by server
-        Client *getClient(int sockfd);
-        int findIterClient(Client *client);
-        Channel* getChannel(std::string nameCh);
-        void addChannel(Channel *toAdd);
-        Client *getClientFromUser(std::string username, std::vector<Client *> clie);
+        void    notQuitCmd(int sd, int i); //sotto_cmd riferito al quit
+        void    addChannel(Channel *toAdd);
+        int     findIterClient(Client *client);
+        Channel *getChannel(std::string nameCh);
+        Client  *getClient(int sockfd);
+        Client  *getClientFromUser(std::string username, std::vector<Client *> clie);
 };

@@ -15,11 +15,11 @@ class Client
         std::string nickname;
         std::string username;
         std::string hostname;
-        bool isLogged;
-        int fd;
-        int id;
-        int is_msg;      //Variabile che indica se lo user ha appena inviato un messaggio
-        bool is_irc;
+        bool        isLogged;
+        int         fd;
+        int         id;
+        int         is_msg;      //Variabile che indica se lo user ha appena inviato un messaggio
+        bool        is_irc;
     public:
         Client();
         ~Client();
@@ -27,6 +27,7 @@ class Client
         Client(const Client &obj);
         Client& operator=(const Client &obj);
         //getters
+        bool        getIrc();
         int         getFd() const;
         int         getId() const;
         int         getIsMsg() const;
@@ -34,7 +35,6 @@ class Client
         std::string getNick() const;
         std::string getUser() const;
         std::string getHost() const;
-        bool        getIrc();
 
         //setters
         void setNick(std::string str);

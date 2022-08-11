@@ -28,6 +28,30 @@ Client *Server::getClientFromUser(std::string username, std::vector<Client *> cl
 	return (NULL);
 }
 
+std::vector<Client *> Server::getIrcClients(Channel *channel)
+{
+	std::vector<Client *> ircClients;
+	std::vector<Client *> clients = channel->getClients();
+	std::vector<Client *>::iterator it = clients.begin();
+
+	for( ; it != clients.end(); it++)
+		if((*it)->getIrc() == true)
+			ircClients.push_back(*it);
+	return (ircClients);
+}
+
+std::vector<Client *> Server::getNotIrcClients(Channel *channel)
+{
+	std::vector<Client *> notIrcClients;
+	std::vector<Client *> clients = channel->getClients();
+	std::vector<Client *>::iterator it = clients.begin();
+
+	for( ; it != clients.end(); it++)
+		if((*it)->getIrc() == false)
+			notIrcClients.push_back(*it);
+	return (notIrcClients);
+}
+
 int Server::findIterClient(Client *client)
 {
 	int j = 0;
@@ -179,6 +203,7 @@ std::vector<std::string> Server::parseBanMask(std::string banMask)
 void Server::op_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToOp)
 {
 	Channel *channel = this->getChannel(channel_name);
+	std::vector<Client *> vec = channel->getClients();
 	std::string msg;
 
 	if (!channel->isOp(admin))
@@ -190,7 +215,7 @@ void Server::op_cmd(Client *admin, std::string channel_name, std::vector<Client 
 	for (uint i = 0; i < clientToOp.size(); i++)
 	{
 		msg += ":" + admin->getNick() + " MODE " + channel_name + " +o " + clientToOp[i]->getNick() + "\n";
-		send_all(msg, admin, clientToOp);
+		send_all(msg, admin, vec);
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		channel->op(clientToOp[i]);
 	}
@@ -199,6 +224,7 @@ void Server::op_cmd(Client *admin, std::string channel_name, std::vector<Client 
 void Server::deop_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeOp)
 {
 	Channel *channel = this->getChannel(channel_name);
+	std::vector<Client *> vec = channel->getClients();
 	std::string msg;
 
 	if (!channel->isOp(admin))
@@ -210,7 +236,7 @@ void Server::deop_cmd(Client *admin, std::string channel_name, std::vector<Clien
 	for (uint i = 0; i < clientToDeOp.size(); i++)
 	{
 		msg += ":" + admin->getNick() + " MODE " + channel_name + " -o " + clientToDeOp[i]->getNick() + "\n";
-		send_all(msg, admin, clientToDeOp);
+		send_all(msg, admin, vec);
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		channel->deop(clientToDeOp[i]);	
 	}
@@ -219,18 +245,21 @@ void Server::deop_cmd(Client *admin, std::string channel_name, std::vector<Clien
 void Server::half_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToHalfOp)
 {
 	Channel *channel = this->getChannel(channel_name);
+	std::vector<Client *> vec = channel->getClients();
 	std::string msg;
 
 	if (!channel->isOp(admin))
 	{
+		std::cout << "Entro qua" << std::endl;
 		msg +=  ": 482 " + admin->getNick() + " " + channel_name + " :You're not channel operator\n";
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		return ;
 	}
+	std::cout << clientToHalfOp.size() << std::endl;
 	for (uint i = 0; i < clientToHalfOp.size(); i++)
 	{
 		msg += ":" + admin->getNick() + " MODE " + channel_name + " +h " + clientToHalfOp[i]->getNick() + "\n";
-		send_all(msg, admin, clientToHalfOp);
+		send_all(msg, admin, vec);
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		channel->halfOp(clientToHalfOp[i]);
 	}
@@ -239,6 +268,7 @@ void Server::half_cmd(Client *admin, std::string channel_name, std::vector<Clien
 void Server::dehalf_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToDeHalfOp)
 {
 	Channel *channel = this->getChannel(channel_name);
+	std::vector<Client *> vec = channel->getClients();
 	std::string msg;
 
 	if (!channel->isOp(admin))
@@ -250,7 +280,7 @@ void Server::dehalf_cmd(Client *admin, std::string channel_name, std::vector<Cli
 	for (uint i = 0; i < clientToDeHalfOp.size(); i++)
 	{
 		msg += ":" + admin->getNick() + " MODE " + channel_name + " -h " + clientToDeHalfOp[i]->getNick() + "\n";
-		send_all(msg, admin, clientToDeHalfOp);
+		send_all(msg, admin, vec);
 		send(admin->getFd(), msg.c_str(), msg.length(), 0);
 		channel->deHalfOp(clientToDeHalfOp[i]);
 	}
@@ -259,6 +289,7 @@ void Server::dehalf_cmd(Client *admin, std::string channel_name, std::vector<Cli
 void Server::voice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToVoice)
 {
 	Channel *channel = this->getChannel(channel_name);
+	std::vector<Client *> vec = channel->getClients();
 	std::string msg;
 
 	if (channel->isOp(admin) || channel->isHalfOp(admin))
@@ -266,7 +297,7 @@ void Server::voice_cmd(Client *admin, std::string channel_name, std::vector<Clie
 		for (uint i = 0; i < clientToVoice.size(); i++)
 		{
 			msg += ":" + admin->getNick() + " MODE " + channel_name + " +v " + clientToVoice[i]->getNick() + "\n";
-			send_all(msg, admin, clientToVoice);
+			send_all(msg, admin, vec);
 			send(admin->getFd(), msg.c_str(), msg.length(), 0);
 			channel->voiceOp(clientToVoice[i]);
 		}
@@ -282,14 +313,15 @@ void Server::voice_cmd(Client *admin, std::string channel_name, std::vector<Clie
 void Server::unvoice_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnVoice)
 {
 	Channel *channel = this->getChannel(channel_name);
+	std::vector<Client *> vec = channel->getClients();
 	std::string msg;
 
-	if (channel->isOp(admin) || !channel->isHalfOp(admin))
+	if (channel->isOp(admin) || channel->isHalfOp(admin))
 	{
 		for (uint i = 0; i < clientToUnVoice.size(); i++)
 		{
 			msg += ":" + admin->getNick() + " MODE " + channel_name + " -v " + clientToUnVoice[i]->getNick() + "\n";
-			send_all(msg, admin, clientToUnVoice);
+			send_all(msg, admin, vec);
 			send(admin->getFd(), msg.c_str(), msg.length(), 0);
 			channel->deVoiceOp(clientToUnVoice[i]);
 		}
@@ -308,6 +340,7 @@ void Server::ban_cmd(Client *admin, std::string channel_name, std::vector<Client
 {
 	Channel *channel = this->getChannel(channel_name);
 	std::string msg;
+	std::vector<Client *> vec = channel->getClients();
 
 	if (!channel->isOp(admin))
 	{
@@ -317,15 +350,18 @@ void Server::ban_cmd(Client *admin, std::string channel_name, std::vector<Client
 	}
 	for (uint i = 0; i < clientToBan.size(); i++)
 	{
-		
 		channel->ban(admin, clientToBan[i]->getNick(), clientToBan[i]->getUser(), clientToBan[i]->getHost(), reason);
+		msg += ":" + admin->getNick() + "!~" + admin->getUser() + " MODE " + channel->getName() + " +b " + clientToBan[i]->getNick() + "!*@*\n";
 	}
+	send_all(msg, admin, vec);
+	send(admin->getFd(), msg.c_str(), msg.length(), 0);
 }
 
 void Server::unban_cmd(Client *admin, std::string channel_name, std::vector<Client *> clientToUnBan)
 {
 	Channel *channel = this->getChannel(channel_name);
 	std::string msg;
+	std::vector<Client *> vec = channel->getClients();
 
 	if (!channel->isOp(admin))
 	{
@@ -334,7 +370,12 @@ void Server::unban_cmd(Client *admin, std::string channel_name, std::vector<Clie
 		return ;
 	}
 	for (uint i = 0; i < clientToUnBan.size(); i++)
+	{
 		channel->unBan(clientToUnBan[i]->getNick(), clientToUnBan[i]->getUser(), clientToUnBan[i]->getHost());
+		msg += ":" + admin->getNick() + "!~" + admin->getUser() + " MODE " + channel->getName() + " -b " + clientToUnBan[i]->getNick() + "!*@*\n";
+	}
+	send_all(msg, admin, vec);
+	send(admin->getFd(), msg.c_str(), msg.length(), 0);
 }
 
 void Server::show_ban(Client *client, std::string channel_name)
@@ -383,10 +424,14 @@ bool Server::compNames(std::string receiver, std::string nickname)
 std::vector<Client *> Server::clientConvert(std::vector<std::string> splitted)
 {
 	std::vector<Client *> new_clients;
-	for (uint j = 0; j < clients.size(); j++)
-		for (uint i = 3; i < splitted.size(); i++)
-			if (splitted[i] == clients[j]->getNick())
-				new_clients.push_back(clients[j]);
+	if(splitted.size() == 4)
+	{
+		splitted[3].erase(splitted[3].size() - 1);
+		for (std::vector<Client *>::iterator j = clients.begin(); j != clients.end(); j++)
+			for (uint i = 3; i < splitted.size(); i++)
+				if (splitted[i] == (*j)->getNick())
+					new_clients.push_back((*j));
+	}
 	return (new_clients);
 }
 
@@ -557,7 +602,6 @@ void Server::setup_server(int port, std::string password)
 	serveraddr.sin_addr.s_addr = htonl(2130706433);
 	serveraddr.sin_port = htons(port);
 	pass = password;
-	irc_client = 0;
 	pass += "\0";
 
 	this->sockfd = -1;
@@ -718,33 +762,6 @@ Server& Server::operator=(const Server &obj)
 		*this = obj;
 	return (*this);
 }
-
-/*void Server::clientRegister(Client *client)
-{
-	std::string msgOne = "Welcome to IRC Server!\n" + this->time_string + "Please Insert your nickname: ";
-	std::string msgTwo = "now insert your username: ";
-	int new_fd = client->getFd();
-
-	send(new_fd, msgOne.c_str(), msgOne.length(), 0);
-	
-	
-	
-}*/
-
-/*void Server::accept_client()
-{
-	int new_fd;
-	Client *newClient;
-	if((new_fd = accept(this->sockfd, (struct sockaddr *)&serveraddr, (socklen_t *)&addrlen)) < 0)
-		fatal();
-	newClient = new Client(new_fd);
-	//clientRegister(newClient);
-	//sprintf(this->server_buffer, "server: client %d just arrived\n", new_fd);
-	// send_all(this->server_buffer, *getClient(new_fd)); //segfault
-	// FD_SET(new_fd, &this->curr_fds);
-	// client_map.insert(std::make_pair(new_fd, newClient));
-	// clients.push_back(newClient);
-}*/
 
 void Server::send_all(std::string mex, Client *sender, std::vector<Client *> vec)		/**** Da rivedere ****/
 {
@@ -963,7 +980,6 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 			send(sender->getFd(), msg.c_str(), msg.length(), 0);
 			return ;
 		}
-		std::vector<Client *> clients = channel->getClients();
 		if (channel->isBanned(sender))
 		{
 			msg += "474 "+ sender->getUser() + ": you are banned from the channel\n";
@@ -974,6 +990,7 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 		
 		if(sender->getIrc() == false)
 		{
+			std::vector<Client *> clients = getNotIrcClients(channel);
 			if(channel->isOp(sender))
 				msg += channel->getName() + " <@" + sender->getNick() + ">: ";
 			else if(channel->isHalfOp(sender) && channel->isVoiceOp(sender))
@@ -1000,11 +1017,23 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 			}
 			msg += "\n";
 			send_all(msg, sender, clients);
+			msg.clear();
+			clients = getIrcClients(channel);
+			msg += ":" + sender->getNick() + "!~" + sender->getUser() + " PRIVMSG " + mexTo[0] + " :";
+				for(msgIt = mex.begin() + 2; msgIt != mex.end(); msgIt++)
+				{
+					msg += *msgIt;
+					if (msgIt != mex.end() - 1)
+						msg += " ";
+				}
+				msg += "\n";
+				send_all(msg, sender, clients);
 		}
 		else
 		{
-			if(channel->isClient(sender))
+			if(channel->isClient(sender) && channel->isVoiceOp(sender))
 			{
+				std::vector<Client *> clients = getIrcClients(channel);
 				if(mex[2][0] == ':')
 					mex[2].erase(0, mex[2].find(':') + 1);
 				msg += ":" + sender->getNick() + "!~" + sender->getUser() + " PRIVMSG " + mexTo[0] + " :";
@@ -1016,6 +1045,25 @@ void Server::privmsg_cmd(Client *sender, std::string receiver, std::vector<std::
 				}
 				msg += "\n";
 				send_all(msg, sender, clients);
+				msg.clear();
+				clients = getNotIrcClients(channel);
+				if(channel->isOp(sender))
+					msg += channel->getName() + " <@" + sender->getNick() + ">: ";
+				else if(channel->isHalfOp(sender) && channel->isVoiceOp(sender))
+					msg += channel->getName() +  " <%" + sender->getNick() + ">: ";
+				else if (channel->isClient(sender) && channel->isVoiceOp(sender))
+					msg += channel->getName() +  " <" + sender->getNick() + ">: ";
+				else
+					return;
+				for(msgIt = mex.begin() + 2; msgIt != mex.end(); msgIt++)
+				{
+					msg += *msgIt;
+					if (msgIt != mex.end() - 1)
+						msg += " ";
+				}
+				msg += "\n";
+				send_all(msg, sender, clients);
+				msg.clear();
 			}
 			else
 			{
